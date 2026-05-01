@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Parallelogram — The linter for fine-tuning data</title>
+  <meta name="description" content="A strict CLI validator for fine-tuning datasets. Catches the silent killers — broken role sequences, context-window overflows, duplicates, mojibake — before your training run does." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- Global background grid — sits behind every section at very low opacity -->
+  <div class="page-grid" aria-hidden="true"></div>
+
+  <!-- ───────────────────────────────────────────  NAV  ─────────────── -->
+  <header class="nav">
+    <div class="nav-inner">
+      <a href="/" class="brand" aria-label="Parallelogram home">
+        <svg class="brand-mark" viewBox="0 0 28 24" aria-hidden="true">
+          <path d="M7 3 L25 3 L21 21 L3 21 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+        </svg>
+        <span class="brand-word">parallelogram</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#demo">Demo</a>
+        <a href="#rules">Rules</a>
+        <a href="#install">Install</a>
+        <a href="#integrations">Integrations</a>
+      </nav>
+      <div class="nav-ctas">
+        <a class="btn btn-ghost" href="https://github.com/Thatayotlhe04/Parallelogram" target="_blank" rel="noopener" aria-label="GitHub repository">
+          <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+          GitHub
+        </a>
+        <a class="btn btn-primary" href="#install">Get started <span class="arr">→</span></a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ───────────────────────────────────────────  HERO  ────────────── -->
+  <section class="hero">
+    <div class="grid-bg" aria-hidden="true"></div>
+    <div class="grid-fade" aria-hidden="true"></div>
+
+    <div class="container hero-inner">
+      <span class="eyebrow">
+        <span class="eyebrow-dot"></span>
+        v0.2 · open source · --fix shipped
+      </span>
+
+      <h1 class="headline">
+        The linter for<br />fine-tuning <em class="serif">data</em>.
+      </h1>
+
+      <p class="subhead">
+        Parallelogram catches the silent killers — broken role sequences, context-window
+        overflows, duplicates, mojibake — before your $500 GPU run discovers them for you.
+      </p>
+
+      <div class="hero-ctas">
+        <a class="btn btn-primary lg" href="#install">Get started <span class="arr">→</span></a>
+        <button class="install-chip" id="install-chip" type="button" aria-label="Copy install command">
+          <span class="chip-prompt">$</span>
+          <span class="chip-cmd">parallelogram check data.jsonl</span>
+          <span class="chip-copy" aria-hidden="true">
+            <svg viewBox="0 0 16 16" width="13" height="13"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M5 5V3a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1h-2M3 5h7a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"/></svg>
+          </span>
+        </button>
+      </div>
+
+      <div class="hero-meta">
+        <span><span class="green-dot"></span>If it exits 0, your run won't fail because of data.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────────────────────────────────  TERMINAL DEMO  ───── -->
+  <section class="demo" id="demo">
+    <div class="container">
+      <div class="section-head">
+        <span class="kicker">/ 01 — pre-flight</span>
+        <h2 class="section-title">See what it catches.</h2>
+        <p class="section-sub">
+          One command before you train. Errors report the exact line and rule.
+          A clean exit is a guarantee.
+        </p>
+      </div>
+
+      <div class="terminal-frame reveal" data-reveal>
+        <div class="terminal-chrome">
+          <span class="dot dot-r" aria-hidden="true"></span>
+          <span class="dot dot-y" aria-hidden="true"></span>
+          <span class="dot dot-g" aria-hidden="true"></span>
+          <span class="terminal-title">~/projects/finetune-llama3 — parallelogram</span>
+          <span class="terminal-tabs" aria-hidden="true">⌘1</span>
+        </div>
+        <div class="terminal-body" id="terminal-body" aria-live="polite"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────────────────────────────────  RULES GRID  ──────── -->
+  <section class="rules" id="rules">
+    <div class="container">
+      <div class="section-head">
+        <span class="kicker">/ 02 — what it checks</span>
+        <h2 class="section-title">Six rules. Every silent killer.</h2>
+        <p class="section-sub">
+          Every check maps to a real failure mode that has cost someone a training run.
+          Rules are pluggable; the v0.2 set is non-negotiable.
+        </p>
+      </div>
+
+      <div class="rule-list">
+
+        <article class="rule-row reveal" data-reveal>
+          <div class="rule-meta">
+            <span class="rule-id">schema</span>
+            <span class="rule-sev sev-err">error</span>
+          </div>
+          <div class="rule-text">
+            <h3>Malformed records.</h3>
+            <p>Missing fields, wrong types, invalid roles. The first rule, because every other rule assumes it.</p>
+          </div>
+          <pre class="rule-snippet"><span class="s-dim">data.jsonl:84</span>
+{<span class="s-key">"messages"</span>: [{<span class="s-key">"role"</span>: <span class="s-bad">"owner"</span>, <span class="s-key">"content"</span>: <span class="s-str">"…"</span>}]}
+          <span class="s-caret">^^^^^^^</span> <span class="s-bad-text">invalid role: must be system|user|assistant|tool</span></pre>
+        </article>
+
+        <article class="rule-row reveal" data-reveal>
+          <div class="rule-meta">
+            <span class="rule-id">roles</span>
+            <span class="rule-sev sev-err">error</span>
+          </div>
+          <div class="rule-text">
+            <h3>Bad role sequences.</h3>
+            <p>System out of place. Doubled turns. Conversations that don't end on the assistant. The model learns to talk to itself.</p>
+          </div>
+          <pre class="rule-snippet"><span class="s-dim">data.jsonl:23</span>
+[user → user → assistant]
+       <span class="s-caret">^^^^</span> <span class="s-bad-text">role alternation broken at turn 1: expected 'assistant', got 'user'</span></pre>
+        </article>
+
+        <article class="rule-row reveal" data-reveal>
+          <div class="rule-meta">
+            <span class="rule-id">empty-content</span>
+            <span class="rule-sev sev-err">error</span>
+          </div>
+          <div class="rule-text">
+            <h3>Empty turns.</h3>
+            <p>Whitespace-only content slips past most validators. The model trains to produce silence.</p>
+          </div>
+          <pre class="rule-snippet"><span class="s-dim">data.jsonl:312</span>
+{<span class="s-key">"role"</span>: <span class="s-str">"user"</span>, <span class="s-key">"content"</span>: <span class="s-bad">"   "</span>}
+                       <span class="s-caret">^^^^^</span> <span class="s-bad-text">message 0 has empty content</span></pre>
+        </article>
+
+        <article class="rule-row reveal" data-reveal>
+          <div class="rule-meta">
+            <span class="rule-id">context-window</span>
+            <span class="rule-sev sev-err">error</span>
+          </div>
+          <div class="rule-text">
+            <h3>Context-window overflow.</h3>
+            <p>TRL truncates oversized records silently — usually severing the assistant turn. You train on noise and don't know.</p>
+          </div>
+          <pre class="rule-snippet"><span class="s-dim">data.jsonl:1209</span>
+~8512 tokens > <span class="s-key">max_seq_len</span> = 8192
+<span class="s-bad-text">will be silently truncated, severing the assistant response</span></pre>
+        </article>
+
+        <article class="rule-row reveal" data-reveal>
+          <div class="rule-meta">
+            <span class="rule-id">duplicates</span>
+            <span class="rule-sev sev-err">error</span>
+          </div>
+          <div class="rule-text">
+            <h3>Exact duplicates.</h3>
+            <p>Repeated examples push the model toward memorization, not generalization. We hash with normalized whitespace so trivial differences don't mask real dupes.</p>
+          </div>
+          <pre class="rule-snippet"><span class="s-dim">data.jsonl:147</span>
+duplicate of line 89  <span class="s-dim">(3 copies total at lines: [89, 147, 402])</span></pre>
+        </article>
+
+        <article class="rule-row reveal" data-reveal>
+          <div class="rule-meta">
+            <span class="rule-id">encoding</span>
+            <span class="rule-sev sev-warn">warning</span>
+          </div>
+          <div class="rule-text">
+            <h3>Mojibake &amp; BOM.</h3>
+            <p>UTF-8 → latin-1 → UTF-8 round-trips look fine in your editor and ruin your model's punctuation forever.</p>
+          </div>
+          <pre class="rule-snippet"><span class="s-dim">data.jsonl:401</span>
+"don<span class="s-bad">â€™</span>t do it" <span class="s-dim">→ should be:</span> "don't do it"
+     <span class="s-caret">^^^</span> <span class="s-bad-text">latin-1 → UTF-8 round-trip artifact</span></pre>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────────────────────  COMPARE DEMO  ──────── -->
+  <section class="compare" id="compare">
+    <div class="container">
+      <div class="section-head">
+        <span class="kicker">/ in motion — input vs output</span>
+        <h2 class="section-title">Watch a broken dataset get walled off.</h2>
+        <p class="section-sub">
+          547 records in. Three errors and one warning identified. 543 records out, ready
+          to train. The rejected lines stay on your disk; nothing leaves your machine.
+        </p>
+      </div>
+
+      <div class="compare-grid reveal" data-reveal>
+        <div class="compare-pane in-pane">
+          <div class="compare-head">
+            <span class="compare-label">data.jsonl</span>
+            <span class="compare-meta"><span class="cm-num" id="cm-in">547</span> records</span>
+          </div>
+          <div class="compare-stream" id="compare-stream-in"></div>
+        </div>
+
+        <div class="compare-arrow" aria-hidden="true">
+          <div class="ca-track"></div>
+          <div class="ca-pulse"></div>
+          <span class="ca-label">parallelogram check</span>
+        </div>
+
+        <div class="compare-pane out-pane">
+          <div class="compare-head">
+            <span class="compare-label">clean.jsonl</span>
+            <span class="compare-meta"><span class="cm-num cm-good" id="cm-out">543</span> records</span>
+          </div>
+          <div class="compare-stream" id="compare-stream-out"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────────────────────────────────  CI  ──────────────── -->
+  <section class="mobile-usecase" id="ci">
+    <div class="container two-col">
+      <div class="two-col-text">
+        <span class="kicker">/ 03 — anywhere a build runs</span>
+        <h2 class="section-title">Free CI integration.<br/>No config required.</h2>
+        <p class="section-sub">
+          Clean POSIX exit codes — <code>0</code> clean, <code>1</code> warnings, <code>2</code> errors —
+          plus a structured JSON report. Drop one line into your workflow and your training data
+          gets the same gate as your code.
+        </p>
+
+        <pre class="codeblock"><span class="comm"># .github/workflows/data.yml — install from GitHub until v0.2 lands on PyPI</span>
+<span class="k">- run:</span> pip install git+https://github.com/Thatayotlhe04/Parallelogram.git#subdirectory=cli
+<span class="k">- run:</span> parallelogram check data.jsonl <span class="g">--json</span></pre>
+
+        <div class="exit-codes">
+          <span class="exit-codes-label">exit codes</span>
+          <div class="exit-code-pill ec-0" id="ec-0"><span class="ec-num">0</span><span class="ec-text">clean</span></div>
+          <div class="exit-code-pill ec-1" id="ec-1"><span class="ec-num">1</span><span class="ec-text">warnings</span></div>
+          <div class="exit-code-pill ec-2" id="ec-2"><span class="ec-num">2</span><span class="ec-text">errors</span></div>
+        </div>
+
+        <ul class="bullet-list">
+          <li><span class="green-dot"></span>No telemetry. No upload boundary. No backend.</li>
+          <li><span class="green-dot"></span>Streams the file. Memory stays flat at 100k records.</li>
+          <li><span class="green-dot"></span>Pluggable rules — disable or extend without forking.</li>
+        </ul>
+      </div>
+
+      <div class="ci-wrap reveal" data-reveal>
+        <div class="ci-card">
+          <div class="ci-card-head">
+            <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path fill="#9CA3AD" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+            <span class="ci-source">github.com / Thatayotlhe04 / openai-fine-tune</span>
+            <span class="ci-time">PR #847 · 2m ago</span>
+          </div>
+
+          <div class="ci-card-title">
+            <span class="badge badge-fail" aria-hidden="true">×</span>
+            <div>
+              <strong>Check failed</strong> · <span class="ci-action">parallelogram / data</span>
+              <p class="ci-sub">3 errors, 1 warning in <code>data.jsonl</code></p>
+            </div>
+          </div>
+
+          <div class="ci-issues">
+            <div class="ci-issue err">
+              <span class="line">L23</span>
+              <span class="rid">roles</span>
+              <span class="msg">Conversation must end on 'assistant', ended on 'user'</span>
+            </div>
+            <div class="ci-issue err">
+              <span class="line">L147</span>
+              <span class="rid">duplicates</span>
+              <span class="msg">Duplicate of line 89</span>
+            </div>
+            <div class="ci-issue err">
+              <span class="line">L312</span>
+              <span class="rid">context-window</span>
+              <span class="msg">Record exceeds max_seq_len: ~8512 &gt; 8192 tokens</span>
+            </div>
+            <div class="ci-issue warn">
+              <span class="line">L401</span>
+              <span class="rid">encoding</span>
+              <span class="msg">Likely mojibake: 'â€™'</span>
+            </div>
+          </div>
+
+          <div class="ci-foot">
+            <span class="ci-foot-pill"><span class="bullet b-err"></span>3 errors</span>
+            <span class="ci-foot-pill"><span class="bullet b-warn"></span>1 warning</span>
+            <span class="ci-foot-pill"><span class="bullet b-ok"></span>543 clean</span>
+            <span class="ci-foot-action">Re-run jobs</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────────────────────────────────  INSTALL  ─────────── -->
+  <section class="install" id="install">
+    <div class="container">
+      <div class="section-head center">
+        <span class="kicker">/ 04 — quickstart</span>
+        <h2 class="section-title">A few commands.<br/>Then never lose a run again.</h2>
+      </div>
+
+      <div class="install-grid">
+        <div class="install-card reveal" data-reveal>
+          <span class="step">01</span>
+          <h4>Install</h4>
+          <pre class="codeblock dark"><span class="prompt">$</span> pip install <span class="g">\</span>
+    git+https://github.com/Thatayotlhe04/Parallelogram.git<span class="g">\</span>
+    #subdirectory=cli</pre>
+          <p class="muted">Direct from GitHub for now — <code>pip install parallelogram</code> lands on PyPI shortly.</p>
+        </div>
+
+        <div class="install-card reveal" data-reveal style="--d:.08s">
+          <span class="step">02</span>
+          <h4>Validate</h4>
+          <pre class="codeblock dark"><span class="prompt">$</span> parallelogram check data.jsonl <span class="g">\</span>
+    <span class="g">--tokenizer</span> meta-llama/Llama-3-8B <span class="g">\</span>
+    <span class="g">--max-seq-len</span> 8192</pre>
+          <p class="muted">Exits 0 if your data is fine. Otherwise, exact lines and rules.</p>
+        </div>
+
+        <div class="install-card reveal" data-reveal style="--d:.16s">
+          <span class="step">03</span>
+          <h4>Repair</h4>
+          <pre class="codeblock dark"><span class="prompt">$</span> parallelogram check data.jsonl <span class="g">\</span>
+    <span class="g">--fix --output</span> clean.jsonl</pre>
+          <p class="muted">Mechanical fixes — dedupe, BOM strip, mojibake repair. Free, local, no network.</p>
+        </div>
+
+        <div class="install-card reveal" data-reveal style="--d:.24s">
+          <span class="step">04</span>
+          <h4>Ship</h4>
+          <pre class="codeblock dark"><span class="prompt">$</span> parallelogram check clean.jsonl</pre>
+          <p class="muted">Re-validates clean. Ready to feed your trainer.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────────────────────  PIPELINE DIAGRAM  ──── -->
+  <section class="pipeline">
+    <div class="container">
+      <div class="section-head center">
+        <span class="kicker">/ where it sits</span>
+        <h2 class="section-title">One step. One file. No surprises downstream.</h2>
+      </div>
+
+      <div class="pipeline-row reveal" data-reveal>
+        <div class="pipe-node pn-raw">
+          <span class="pn-icon">📄</span>
+          <span class="pn-label">raw.jsonl</span>
+          <span class="pn-meta">unverified</span>
+        </div>
+
+        <div class="pipe-link">
+          <div class="pipe-track"></div>
+          <div class="pipe-dot pd-1"></div>
+          <div class="pipe-dot pd-2"></div>
+          <div class="pipe-dot pd-3"></div>
+        </div>
+
+        <div class="pipe-node pn-tool">
+          <span class="pn-icon">
+            <svg viewBox="0 0 28 24" width="22" height="20" aria-hidden="true">
+              <path d="M7 3 L25 3 L21 21 L3 21 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+            </svg>
+          </span>
+          <span class="pn-label">parallelogram</span>
+          <span class="pn-meta">6 rules</span>
+        </div>
+
+        <div class="pipe-link">
+          <div class="pipe-track"></div>
+          <div class="pipe-dot pd-1" style="animation-delay:.5s"></div>
+          <div class="pipe-dot pd-2" style="animation-delay:.5s"></div>
+          <div class="pipe-dot pd-3" style="animation-delay:.5s"></div>
+        </div>
+
+        <div class="pipe-node pn-clean">
+          <span class="pn-icon">✓</span>
+          <span class="pn-label">clean.jsonl</span>
+          <span class="pn-meta">verified</span>
+        </div>
+
+        <div class="pipe-link">
+          <div class="pipe-track"></div>
+          <div class="pipe-dot pd-1" style="animation-delay:1s"></div>
+          <div class="pipe-dot pd-2" style="animation-delay:1s"></div>
+          <div class="pipe-dot pd-3" style="animation-delay:1s"></div>
+        </div>
+
+        <div class="pipe-node pn-trainer">
+          <span class="pn-icon">⚙</span>
+          <span class="pn-label">trainer</span>
+          <span class="pn-meta">no nasty surprises</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────────────────────────────────  INTEGRATIONS  ────── -->
+  <section class="integrations" id="integrations">
+    <div class="container">
+      <div class="section-head center">
+        <span class="kicker">/ 05 — works with</span>
+        <h2 class="section-title">Validates the formats your trainer already speaks.</h2>
+      </div>
+
+      <div class="integ-row">
+        <a class="integ-plate" href="https://github.com/OpenAccess-AI-Collective/axolotl" target="_blank" rel="noopener" aria-label="Axolotl">
+          <span class="wm wm-axolotl">axolotl</span>
+        </a>
+        <a class="integ-plate" href="https://github.com/unslothai/unsloth" target="_blank" rel="noopener" aria-label="Unsloth">
+          <span class="wm wm-unsloth">🦥 Unsloth</span>
+        </a>
+        <a class="integ-plate" href="https://github.com/huggingface/trl" target="_blank" rel="noopener" aria-label="TRL">
+          <span class="wm wm-trl">TRL</span>
+        </a>
+        <a class="integ-plate" href="https://huggingface.co" target="_blank" rel="noopener" aria-label="Hugging Face">
+          <span class="wm wm-hf">🤗 Hugging Face</span>
+        </a>
+        <a class="integ-plate" href="https://platform.openai.com/docs/guides/fine-tuning" target="_blank" rel="noopener" aria-label="OpenAI fine-tuning">
+          <span class="wm wm-oai">
+            <svg viewBox="0 0 32 32" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M29.7 13.1a8 8 0 0 0-.7-6.6 8.1 8.1 0 0 0-8.7-3.9A8 8 0 0 0 14.1.7a8.1 8.1 0 0 0-7.7 5.6 8 8 0 0 0-5.4 3.9 8.1 8.1 0 0 0 1 9.5 8 8 0 0 0 .7 6.6 8.1 8.1 0 0 0 8.7 3.9 8 8 0 0 0 6.1 2.7 8.1 8.1 0 0 0 7.7-5.6 8 8 0 0 0 5.4-3.9 8.1 8.1 0 0 0-1-9.5l.1.2zm-12.1 16.9a6 6 0 0 1-3.9-1.4l.2-.1 6.5-3.7c.3-.2.5-.5.5-.9v-9.1l2.8 1.6v7.5a6 6 0 0 1-6 6l-.1.1zM4.8 24.2a6 6 0 0 1-.7-4l.2.1 6.5 3.8c.3.2.7.2 1 0l8-4.6v3.2L13 26.5a6 6 0 0 1-8.2-2.2v-.1zM3.1 11.1a6 6 0 0 1 3.1-2.6V16c0 .4.2.7.5.9l8 4.6-2.8 1.6L5.4 19a6 6 0 0 1-2.2-8.2zm22.6 5.2-8-4.6 2.8-1.6 6.5 3.8a6 6 0 0 1-.9 10.8v-7.5a1 1 0 0 0-.4-.9zm2.8-4.2-.2-.1-6.5-3.8c-.3-.2-.7-.2-1 0l-8 4.6V9.6L19 6a6 6 0 0 1 9.5 6.1zm-17.4 5.8-2.8-1.6V8.8a6 6 0 0 1 9.8-4.6l-.2.1L11.4 8c-.3.2-.5.5-.5.9v9zm1.5-3.3 3.6-2 3.6 2v4.1l-3.6 2-3.6-2v-4.1z"/></svg>
+            OpenAI
+          </span>
+        </a>
+        <a class="integ-plate" href="https://github.com/features/actions" target="_blank" rel="noopener" aria-label="GitHub Actions">
+          <span class="wm wm-gha">
+            <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+            GitHub Actions
+          </span>
+        </a>
+      </div>
+
+      <p class="integ-note">
+        v0.2 supports OpenAI chat (<code>{"messages":[…]}</code>).
+        ShareGPT and raw-completion shipping next.
+      </p>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────────────────────  STATS BAND  ────────── -->
+  <section class="stats">
+    <div class="container">
+      <div class="stats-row reveal" data-reveal>
+        <div class="stat">
+          <span class="stat-num"><span data-counter="0">0</span></span>
+          <span class="stat-label">records uploaded</span>
+          <span class="stat-sub">no telemetry, ever</span>
+        </div>
+        <div class="stat-divider" aria-hidden="true"></div>
+        <div class="stat">
+          <span class="stat-num"><span data-counter="6">0</span></span>
+          <span class="stat-label">rules in v0.2</span>
+          <span class="stat-sub">covering every silent killer</span>
+        </div>
+        <div class="stat-divider" aria-hidden="true"></div>
+        <div class="stat">
+          <span class="stat-num">~<span data-counter="100">0</span><span class="stat-unit">ms</span></span>
+          <span class="stat-label">per 1k records</span>
+          <span class="stat-sub">streaming, O(1) memory</span>
+        </div>
+        <div class="stat-divider" aria-hidden="true"></div>
+        <div class="stat">
+          <span class="stat-num">$<span data-counter="0">0</span></span>
+          <span class="stat-label">to use</span>
+          <span class="stat-sub">apache 2.0, forever</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────────────────────────────────  CTA  ─────────────── -->
+  <section class="final-cta">
+    <div class="container">
+      <div class="cta-inner reveal" data-reveal>
+        <span class="cta-glyph" aria-hidden="true">
+          <svg viewBox="0 0 80 60" width="80" height="60"><path d="M22 8 L72 8 L58 52 L8 52 Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        </span>
+        <h2>Run before you train.</h2>
+        <p>Free, open source, local. No telemetry, no upload, no account.</p>
+        <div class="cta-buttons">
+          <a class="btn btn-primary lg" href="#install">Get started <span class="arr">→</span></a>
+          <a class="btn btn-ghost lg" href="https://github.com/Thatayotlhe04/Parallelogram" target="_blank" rel="noopener">Read the source</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────────────────────────────────  FOOTER  ──────────── -->
+  <footer class="foot">
+    <div class="container foot-inner">
+      <div class="foot-brand">
+        <svg class="brand-mark" viewBox="0 0 28 24" aria-hidden="true">
+          <path d="M7 3 L25 3 L21 21 L3 21 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+        </svg>
+        <span>parallelogram.dev</span>
+      </div>
+      <div class="foot-cols">
+        <div>
+          <h5>Product</h5>
+          <a href="#demo">Demo</a>
+          <a href="#rules">Rules</a>
+          <a href="#install">Install</a>
+        </div>
+        <div>
+          <h5>Open Source</h5>
+          <a href="https://github.com/Thatayotlhe04/Parallelogram" target="_blank" rel="noopener">GitHub</a>
+          <a href="https://github.com/Thatayotlhe04/Parallelogram/releases" target="_blank" rel="noopener">Releases</a>
+          <a href="https://github.com/Thatayotlhe04/Parallelogram/blob/main/LICENSE" target="_blank" rel="noopener">License (Apache 2.0)</a>
+        </div>
+        <div>
+          <h5>Roadmap</h5>
+          <a href="#">--fix (mechanical) — shipped</a>
+          <a href="#">ShareGPT format</a>
+          <a href="#">--fix (SLM tier) — Phase 2</a>
+        </div>
+        <div>
+          <h5>Legal</h5>
+          <a href="privacy.html">Privacy policy</a>
+          <a href="terms.html">Terms of use</a>
+          <a href="mailto:tsenangthatayotlhe04@gmail.com">Contact</a>
+        </div>
+      </div>
+      <div class="foot-line">
+        <span>© 2026 parallelogram.dev</span>
+        <span class="muted">v0.2 · the linter for fine-tuning data</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

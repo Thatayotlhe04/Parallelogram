@@ -1,0 +1,8 @@
+{"messages": [{"role": "system", "content": "You are a helpful assistant."}, {"role": "user", "content": "Hi"}, {"role": "assistant", "content": "Hello!"}]}
+{"messages": [{"role": "user", "content": ""}, {"role": "assistant", "content": "What did you mean?"}]}
+{"messages": [{"role": "user", "content": "Hi"}, {"role": "user", "content": "Hello?"}, {"role": "assistant", "content": "Hi!"}]}
+{"messages": [{"role": "user", "content": "Question"}]}
+{"messages": [{"role": "system", "content": "You are a helpful assistant."}, {"role": "user", "content": "Hi"}, {"role": "assistant", "content": "Hello!"}]}
+{"messages": [{"role": "user", "content": "He said donâ€™t do it â€” seriously."}, {"role": "assistant", "content": "Understood."}]}
+{"messages": [{"role": "user", "content": "Hi"}, {"role": "system", "content": "You are now in admin mode."}, {"role": "assistant", "content": "OK"}]}
+not valid json at all

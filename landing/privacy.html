@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Privacy Policy — Parallelogram</title>
+  <meta name="description" content="Privacy policy for parallelogram.dev and the Parallelogram open-source CLI." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <header class="nav">
+    <div class="nav-inner">
+      <a href="/" class="brand" aria-label="Parallelogram home">
+        <svg class="brand-mark" viewBox="0 0 28 24" aria-hidden="true">
+          <path d="M7 3 L25 3 L21 21 L3 21 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+        </svg>
+        <span class="brand-word">parallelogram</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="/#demo">Demo</a>
+        <a href="/#rules">Rules</a>
+        <a href="/#install">Install</a>
+        <a href="/#integrations">Integrations</a>
+      </nav>
+      <div class="nav-ctas">
+        <a class="btn btn-ghost" href="https://github.com/Thatayotlhe04/Parallelogram" target="_blank" rel="noopener">GitHub</a>
+        <a class="btn btn-primary" href="/#install">Get started <span class="arr">→</span></a>
+      </div>
+    </div>
+  </header>
+
+  <main class="legal">
+    <div class="container legal-container">
+      <span class="kicker">/ legal</span>
+      <h1>Privacy Policy</h1>
+      <p class="legal-effective">Effective April 29, 2026</p>
+
+      <p>
+        Parallelogram is built on the principle that your training data should never leave your machine.
+        This policy describes the very small amount of information involved in using our website and our software.
+      </p>
+
+      <h2>The CLI: zero collection</h2>
+      <p>
+        The <code>parallelogram</code> command-line tool collects nothing. It runs entirely on your local
+        machine. It does not phone home, does not send telemetry, does not upload your dataset, does not
+        check for updates, and does not communicate with any server we operate. The only network call the
+        tool ever makes is the optional, user-initiated download of a tokenizer from Hugging Face when you
+        pass <code>--tokenizer</code>; that request goes directly to Hugging Face under their privacy policy,
+        not to us.
+      </p>
+
+      <h2>The website: minimal collection</h2>
+      <p>
+        This website (parallelogram.dev) is a static page hosted on Vercel. We do not run analytics,
+        tracking pixels, advertising scripts, or behavioral fingerprinting. The fonts loaded from Google
+        Fonts may transmit your IP address to Google as part of the standard HTTP request — this is the
+        only third-party request the page makes.
+      </p>
+      <p>
+        Vercel, our hosting provider, automatically logs basic request metadata (IP address, user agent,
+        URL requested, response status) for operational and security purposes. We do not access these logs
+        for analytics. Vercel's data practices are described in their own privacy policy.
+      </p>
+
+      <h2>Email correspondence</h2>
+      <p>
+        If you email us, we will see your email address and the contents of your message. We use these
+        only to reply to you. We do not add you to a mailing list, share your address with third parties,
+        or use your message for any other purpose.
+      </p>
+
+      <h2>Cookies</h2>
+      <p>This website does not set any cookies.</p>
+
+      <h2>Children's data</h2>
+      <p>Parallelogram is a developer tool not directed at children, and we do not knowingly collect data from anyone.</p>
+
+      <h2>Changes to this policy</h2>
+      <p>
+        If this policy changes — for example, if a future paid product introduces a backend that does
+        process data — the new policy will be posted here with a new effective date, and the substantive
+        change will be prominently disclosed. Your continued use after a change constitutes acceptance.
+      </p>
+
+      <h2>Contact</h2>
+      <p>
+        Questions about this policy should be sent to
+        <a href="mailto:tsenangthatayotlhe04@gmail.com">tsenangthatayotlhe04@gmail.com</a>.
+      </p>
+
+      <p class="legal-back"><a href="/">← Back to parallelogram.dev</a></p>
+    </div>
+  </main>
+
+  <footer class="foot">
+    <div class="container foot-inner">
+      <div class="foot-brand">
+        <svg class="brand-mark" viewBox="0 0 28 24" aria-hidden="true">
+          <path d="M7 3 L25 3 L21 21 L3 21 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+        </svg>
+        <span>parallelogram.dev</span>
+      </div>
+      <div class="foot-line" style="grid-column: 1 / -1; margin-top: 0; border-top: 0; padding-top: 0;">
+        <span>© 2026 parallelogram.dev</span>
+        <span class="muted">v0.2 · the linter for fine-tuning data</span>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

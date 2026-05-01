@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Terms of Use — Parallelogram</title>
+  <meta name="description" content="Terms of use for parallelogram.dev and the Parallelogram open-source CLI." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <header class="nav">
+    <div class="nav-inner">
+      <a href="/" class="brand" aria-label="Parallelogram home">
+        <svg class="brand-mark" viewBox="0 0 28 24" aria-hidden="true">
+          <path d="M7 3 L25 3 L21 21 L3 21 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+        </svg>
+        <span class="brand-word">parallelogram</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="/#demo">Demo</a>
+        <a href="/#rules">Rules</a>
+        <a href="/#install">Install</a>
+        <a href="/#integrations">Integrations</a>
+      </nav>
+      <div class="nav-ctas">
+        <a class="btn btn-ghost" href="https://github.com/Thatayotlhe04/Parallelogram" target="_blank" rel="noopener">GitHub</a>
+        <a class="btn btn-primary" href="/#install">Get started <span class="arr">→</span></a>
+      </div>
+    </div>
+  </header>
+
+  <main class="legal">
+    <div class="container legal-container">
+      <span class="kicker">/ legal</span>
+      <h1>Terms of Use</h1>
+      <p class="legal-effective">Effective April 29, 2026</p>
+
+      <p>
+        These terms apply to your use of the <strong>parallelogram.dev</strong> website and the open-source
+        <strong>parallelogram</strong> CLI. By using either, you agree to what follows.
+      </p>
+
+      <h2>The software is open source</h2>
+      <p>
+        The CLI is licensed under the Apache License, Version 2.0. The license text is the authoritative
+        document governing your rights to use, modify, and redistribute the software. These terms do not
+        override or expand on the license — they exist alongside it. You can read the full license in the
+        repository at
+        <a href="https://github.com/Thatayotlhe04/Parallelogram/blob/main/LICENSE" target="_blank" rel="noopener">github.com/Thatayotlhe04/Parallelogram</a>.
+      </p>
+
+      <h2>No warranty</h2>
+      <p>
+        Parallelogram is provided "as is", without warranty of any kind, express or implied. We make every
+        effort to make the validator correct, but no validator can guarantee that any particular dataset
+        will produce a successful training run, or that any model trained on parallelogram-validated data
+        will perform as you hope. The promise on the home page — "if it exits 0, your run won't fail because
+        of data" — refers specifically to the failure modes the v0.2 rule set covers (schema, role sequence,
+        empty content, context window, exact duplicates, encoding artifacts), as documented, and applies
+        only to runs where every rule was enabled. The CLI's <code>--disable</code> flag turns off named rules;
+        when used, the CLI emits a loud stderr warning, and the exit-0 promise no longer applies for that
+        invocation. It is not a warranty against all possible training failures, only the specific ones the
+        validator checks for in a full-rules run.
+      </p>
+
+      <h2>No liability</h2>
+      <p>
+        To the maximum extent permitted by law, the authors and contributors of Parallelogram are not
+        liable for any damages, including lost training runs, corrupted models, wasted compute, lost
+        revenue, or any other direct, indirect, incidental, or consequential damages arising from your use
+        of the software or this website.
+      </p>
+
+      <h2>Acceptable use of the website</h2>
+      <p>
+        Don't try to break parallelogram.dev. Don't scrape it abusively, attempt to attack the hosting
+        infrastructure, or use it to distribute malware. The site is a static page; there is very little
+        to abuse, but please don't try.
+      </p>
+
+      <h2>Third-party trademarks</h2>
+      <p>
+        The names and marks of other projects mentioned on this site — including Axolotl, Unsloth, TRL,
+        Hugging Face, OpenAI, and GitHub Actions — belong to their respective owners. Their appearance
+        on this page is a factual statement of format compatibility under nominative fair use, not an
+        endorsement, partnership, or affiliation. If a rightsholder objects to a particular mention, we
+        will remove or modify it on request.
+      </p>
+
+      <h2>Changes</h2>
+      <p>
+        We may update these terms over time. Material changes will be reflected by an updated effective
+        date at the top of this page. Continued use after a change means you accept the new terms.
+      </p>
+
+      <h2>Governing law</h2>
+      <p>
+        These terms are governed by the laws of South Africa, without regard to its conflict-of-laws
+        principles. Any dispute that cannot be resolved informally will be brought in the courts of
+        South Africa.
+      </p>
+
+      <h2>Contact</h2>
+      <p>
+        Questions about these terms should be sent to
+        <a href="mailto:tsenangthatayotlhe04@gmail.com">tsenangthatayotlhe04@gmail.com</a>.
+      </p>
+
+      <p class="legal-back"><a href="/">← Back to parallelogram.dev</a></p>
+    </div>
+  </main>
+
+  <footer class="foot">
+    <div class="container foot-inner">
+      <div class="foot-brand">
+        <svg class="brand-mark" viewBox="0 0 28 24" aria-hidden="true">
+          <path d="M7 3 L25 3 L21 21 L3 21 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+        </svg>
+        <span>parallelogram.dev</span>
+      </div>
+      <div class="foot-line" style="grid-column: 1 / -1; margin-top: 0; border-top: 0; padding-top: 0;">
+        <span>© 2026 parallelogram.dev</span>
+        <span class="muted">v0.2 · the linter for fine-tuning data</span>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

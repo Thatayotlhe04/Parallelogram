@@ -1,0 +1,53 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Phase 1 smoke (stdlib-only, no install)
+        run: python smoke.py
+
+      - name: Phase 2 fix-tier smoke (stdlib-only, no install)
+        run: python smoke_fix.py
+
+      - name: Install with dev extras
+        run: |
+          pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Run pytest
+        run: pytest tests/ -v
+
+      - name: CLI sanity check (Phase 1)
+        run: |
+          parallelogram --help
+          parallelogram check examples/clean.jsonl
+          # broken.jsonl is expected to exit 2; invert so the workflow passes
+          ! parallelogram check examples/broken.jsonl
+
+      - name: CLI sanity check (Phase 2 --fix)
+        run: |
+          # --fix on broken.jsonl should drop unfixable records but emit clean ones,
+          # exiting 1 (partial fix). The `|| [ $? -eq 1 ]` pattern lets exit 1 pass.
+          parallelogram check examples/broken.jsonl --fix --dry-run || [ $? -eq 1 ]
+          parallelogram check examples/broken.jsonl --fix --output /tmp/cleaned.jsonl || [ $? -eq 1 ]
+          test -s /tmp/cleaned.jsonl
+          # The repaired output must itself validate clean
+          parallelogram check /tmp/cleaned.jsonl

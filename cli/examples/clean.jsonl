@@ -1,0 +1,3 @@
+{"messages": [{"role": "system", "content": "You are a helpful coding assistant."}, {"role": "user", "content": "How do I reverse a list in Python?"}, {"role": "assistant", "content": "Use slicing with a step of -1: my_list[::-1]"}]}
+{"messages": [{"role": "user", "content": "What is 2+2?"}, {"role": "assistant", "content": "4"}]}
+{"messages": [{"role": "user", "content": "Capital of France?"}, {"role": "assistant", "content": "Paris."}]}
