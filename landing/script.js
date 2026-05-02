@@ -255,3 +255,29 @@ const counterObs = new IntersectionObserver((entries) => {
   }
 }, { threshold: 0.4 });
 counters.forEach(c => counterObs.observe(c));
+
+// ── 7. cookie consent banner ───────────────────────────────────────
+const cookieBanner = document.getElementById('cookie-banner');
+const cookieAccept = document.getElementById('cookie-accept');
+const cookieDecline = document.getElementById('cookie-decline');
+
+const CONSENT_KEY = 'parallelogram_cookie_consent';
+const CONSENT_COOKIE = 'pg_cookie_consent';
+
+function setConsentCookie(value) {
+  const maxAge = 60 * 60 * 24 * 365;
+  document.cookie = `${CONSENT_COOKIE}=${value}; max-age=${maxAge}; path=/; SameSite=Lax`;
+}
+
+function storeConsent(value) {
+  localStorage.setItem(CONSENT_KEY, value);
+  setConsentCookie(value);
+  cookieBanner?.setAttribute('hidden', '');
+}
+
+if (cookieBanner && !localStorage.getItem(CONSENT_KEY)) {
+  cookieBanner.removeAttribute('hidden');
+}
+
+cookieAccept?.addEventListener('click', () => storeConsent('accepted'));
+cookieDecline?.addEventListener('click', () => storeConsent('declined'));
