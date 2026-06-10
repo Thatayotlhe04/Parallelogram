@@ -52,6 +52,11 @@ app = typer.Typer(
 )
 
 
+@app.callback()
+def main() -> None:
+    """Strict validator for fine-tuning datasets. Run before you train."""
+
+
 @app.command()
 def check(
     path: Path = typer.Argument(..., exists=True, readable=True, help="Path to JSONL dataset."),
