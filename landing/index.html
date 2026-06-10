@@ -66,7 +66,7 @@
         <a class="btn btn-primary lg" href="#install">Get started <span class="arr">→</span></a>
         <button class="install-chip" id="install-chip" type="button" aria-label="Copy install command">
           <span class="chip-prompt">$</span>
-          <span class="chip-cmd">pip install git+https://github.com/Thatayotlhe04/Parallelogram.git#subdirectory=cli</span>
+          <span class="chip-cmd">pip install parallelogram</span>
           <span class="chip-copy" aria-hidden="true">
             <svg viewBox="0 0 16 16" width="13" height="13"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M5 5V3a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1h-2M3 5h7a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"/></svg>
           </span>
@@ -255,8 +255,8 @@ duplicate of line 89  <span class="s-dim">(3 copies total at lines: [89, 147, 40
           gets the same gate as your code.
         </p>
 
-        <pre class="codeblock"><span class="comm"># .github/workflows/data.yml — install from GitHub until v0.2 lands on PyPI</span>
-<span class="k">- run:</span> pip install git+https://github.com/Thatayotlhe04/Parallelogram.git#subdirectory=cli
+        <pre class="codeblock"><span class="comm"># .github/workflows/data.yml</span>
+<span class="k">- run:</span> pip install parallelogram
 <span class="k">- run:</span> parallelogram check data.jsonl <span class="g">--json</span></pre>
 
         <div class="exit-codes">
@@ -335,18 +335,14 @@ duplicate of line 89  <span class="s-dim">(3 copies total at lines: [89, 147, 40
         <div class="install-card reveal" data-reveal>
           <span class="step">01</span>
           <h4>Install</h4>
-          <pre class="codeblock dark"><span class="prompt">$</span> pip install <span class="g">\</span>
-    git+https://github.com/Thatayotlhe04/Parallelogram.git<span class="g">\</span>
-    #subdirectory=cli</pre>
-          <p class="muted">Direct from GitHub for now — <code>pip install parallelogram</code> lands on PyPI shortly.</p>
+          <pre class="codeblock dark"><span class="prompt">$</span> pip install parallelogram</pre>
+          <p class="muted">One command, on PyPI. No GPU, no network, no config.</p>
         </div>
 
         <div class="install-card reveal" data-reveal style="--d:.08s">
           <span class="step">02</span>
           <h4>Validate</h4>
-          <pre class="codeblock dark"><span class="prompt">$</span> parallelogram check data.jsonl <span class="g">\</span>
-    <span class="g">--tokenizer</span> meta-llama/Llama-3-8B <span class="g">\</span>
-    <span class="g">--max-seq-len</span> 8192</pre>
+          <pre class="codeblock dark"><span class="prompt">$</span> parallelogram check data.jsonl</pre>
           <p class="muted">Exits 0 if your data is fine. Otherwise, exact lines and rules.</p>
         </div>
 

@@ -96,7 +96,7 @@ startWhenVisible.observe(term);
 const chip = document.getElementById('install-chip');
 chip?.addEventListener('click', async () => {
   try {
-    await navigator.clipboard.writeText('pip install git+https://github.com/Thatayotlhe04/Parallelogram.git#subdirectory=cli');
+    await navigator.clipboard.writeText('pip install parallelogram');
     chip.classList.add('copied');
     setTimeout(() => chip.classList.remove('copied'), 1600);
   } catch {
