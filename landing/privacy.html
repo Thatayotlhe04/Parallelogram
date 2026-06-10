@@ -37,60 +37,257 @@
     <div class="container legal-container">
       <span class="kicker">/ legal</span>
       <h1>Privacy Policy</h1>
-      <p class="legal-effective">Effective April 29, 2026</p>
+      <p class="legal-effective">Effective June 11, 2026 · Replaces all prior versions</p>
 
       <p>
-        Parallelogram is built on the principle that your training data should never leave your machine.
-        This policy describes the very small amount of information involved in using our website and our software.
+        This Privacy Policy describes how <strong>Parallelogram</strong> ("we", "us", "our") handles information
+        in connection with the <strong>parallelogram.dev</strong> website and the open-source
+        <strong>parallelogram</strong> command-line interface ("CLI"). We wrote this policy to be direct and
+        complete, not to bury important details. Please read it in full.
       </p>
 
-      <h2>The CLI: zero collection</h2>
       <p>
-        The <code>parallelogram</code> command-line tool collects nothing. It runs entirely on your local
-        machine. It does not phone home, does not send telemetry, does not upload your dataset, does not
-        check for updates, and does not communicate with any server we operate. The only network call the
-        tool ever makes is the optional, user-initiated download of a tokenizer from Hugging Face when you
-        pass <code>--tokenizer</code>; that request goes directly to Hugging Face under their privacy policy,
-        not to us.
+        The short version: <strong>the CLI collects nothing whatsoever.</strong> The website collects almost
+        nothing — only what your browser unavoidably transmits and what our hosting provider logs for
+        operational reasons. We do not sell, rent, or share your data with anyone for commercial purposes.
       </p>
 
-      <h2>The website: minimal collection</h2>
+      <h2>1. Scope of this policy</h2>
       <p>
-        This website (parallelogram.dev) is a static page hosted on Vercel. We do not run analytics,
-        tracking pixels, advertising scripts, or behavioral fingerprinting. The fonts loaded from Google
-        Fonts may transmit your IP address to Google as part of the standard HTTP request — this is the
-        only third-party request the page makes.
+        This policy applies to:
       </p>
+      <ul>
+        <li>The <strong>parallelogram.dev</strong> website and all pages served from that domain.</li>
+        <li>The <strong>parallelogram</strong> Python package distributed via PyPI and any source builds from the GitHub repository.</li>
+        <li>Any email or written communications you initiate with us.</li>
+      </ul>
       <p>
-        Vercel, our hosting provider, automatically logs basic request metadata (IP address, user agent,
-        URL requested, response status) for operational and security purposes. We do not access these logs
-        for analytics. Vercel's data practices are described in their own privacy policy.
-      </p>
-
-      <h2>Email correspondence</h2>
-      <p>
-        If you email us, we will see your email address and the contents of your message. We use these
-        only to reply to you. We do not add you to a mailing list, share your address with third parties,
-        or use your message for any other purpose.
+        This policy does not apply to third-party services you may access through links on this website,
+        to the Hugging Face model hub (which you may optionally contact when using <code>--tokenizer</code>),
+        or to GitHub, PyPI, or Vercel, each of which operates under its own privacy policy.
       </p>
 
-      <h2>Cookies</h2>
-      <p>This website does not set any cookies.</p>
-
-      <h2>Children's data</h2>
-      <p>Parallelogram is a developer tool not directed at children, and we do not knowingly collect data from anyone.</p>
-
-      <h2>Changes to this policy</h2>
+      <h2>2. The CLI: zero data collection</h2>
       <p>
-        If this policy changes — for example, if a future paid product introduces a backend that does
-        process data — the new policy will be posted here with a new effective date, and the substantive
-        change will be prominently disclosed. Your continued use after a change constitutes acceptance.
+        The <code>parallelogram</code> CLI is a fully offline, local tool. When you run it, it reads the
+        files you point it at on your own machine and writes output to your own machine. It performs no
+        outbound network activity of any kind unless you explicitly pass the <code>--tokenizer</code> flag.
+      </p>
+      <p>
+        Specifically, the CLI does <strong>not</strong>:
+      </p>
+      <ul>
+        <li>Transmit your dataset — or any portion of it — to any server, ours or otherwise.</li>
+        <li>Send telemetry, crash reports, usage statistics, or error logs to any remote endpoint.</li>
+        <li>Check for updates, ping a version server, or poll any URL on startup or shutdown.</li>
+        <li>Read, write, or store any data outside the files and directories you explicitly name on the command line.</li>
+        <li>Create, read, or modify environment variables beyond those required for standard Python operation.</li>
+        <li>Access any file on your system other than the input file(s) you specify and the output file(s) you specify with <code>--output</code>.</li>
+      </ul>
+      <p>
+        The <strong>one and only network call</strong> the CLI can ever make is the optional download of a
+        tokenizer vocabulary when you pass <code>--tokenizer &lt;model-id&gt;</code>. This request is made
+        directly from your machine to the Hugging Face Hub API. We are not involved in that request; it
+        goes to Hugging Face under their own privacy policy. We do not intercept it, proxy it, or receive
+        any copy of it. If you do not pass <code>--tokenizer</code>, no network call is ever made.
+      </p>
+      <p>
+        Because the CLI collects nothing, there is nothing for us to disclose, sell, or retain. This is a
+        design choice, not a policy choice that could change by amending this document — the code simply
+        contains no instrumentation code.
       </p>
 
-      <h2>Contact</h2>
+      <h2>3. The website: what we collect and why</h2>
+
+      <h3>3.1 Information you provide directly</h3>
       <p>
-        Questions about this policy should be sent to
-        <a href="mailto:tsenangthatayotlhe04@gmail.com">tsenangthatayotlhe04@gmail.com</a>.
+        The parallelogram.dev website has no user accounts, no sign-up forms, no comment sections, and no
+        input fields of any kind. You cannot submit personal data to us through the website interface because
+        the interface provides no mechanism to do so.
+      </p>
+
+      <h3>3.2 Server logs (Vercel hosting)</h3>
+      <p>
+        The website is hosted on Vercel's global edge network. As with every web server on the internet,
+        Vercel's infrastructure automatically records certain metadata for each HTTP request it receives.
+        This typically includes:
+      </p>
+      <ul>
+        <li><strong>IP address</strong> of the requesting client.</li>
+        <li><strong>Date and time</strong> of the request.</li>
+        <li><strong>URL path</strong> requested (e.g., <code>/privacy.html</code>).</li>
+        <li><strong>HTTP method</strong> (GET, etc.).</li>
+        <li><strong>HTTP status code</strong> returned.</li>
+        <li><strong>Referrer URL</strong>, if your browser transmitted one.</li>
+        <li><strong>User-agent string</strong> of your browser or client.</li>
+        <li><strong>Response size</strong> in bytes.</li>
+      </ul>
+      <p>
+        These logs exist for operational and security purposes — to detect abuse, diagnose errors, and
+        maintain uptime. We do not access Vercel's access logs for analytics, marketing, or product purposes.
+        We do not configure any custom logging beyond Vercel's defaults. Vercel's retention and processing
+        of these logs is governed by
+        <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener">Vercel's Privacy Policy</a>.
+      </p>
+
+      <h3>3.3 Google Fonts</h3>
+      <p>
+        This website loads typefaces (Geist, Geist Mono, Instrument Serif) from Google Fonts via
+        <code>fonts.googleapis.com</code> and <code>fonts.gstatic.com</code>. When your browser loads
+        these fonts, it makes an HTTP request to Google's servers. That request may transmit your IP
+        address and standard HTTP headers (including user-agent and referrer) to Google. This is a
+        consequence of how web fonts work and is governed entirely by
+        <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google's Privacy Policy</a>.
+        We do not receive any data from Google as a result of these requests. We do not use Google Analytics,
+        Google Tag Manager, or any other Google product beyond font delivery.
+      </p>
+      <p>
+        If you wish to prevent this network request, you can block <code>fonts.googleapis.com</code> in
+        your browser or use a browser extension that blocks third-party font requests. The website remains
+        fully functional with fallback system fonts if the Google Fonts request fails or is blocked.
+      </p>
+
+      <h3>3.4 Analytics and tracking</h3>
+      <p>
+        We run <strong>no analytics</strong> of any kind. There is no Google Analytics, no Mixpanel, no
+        Segment, no Plausible, no Fathom, no Cloudflare Web Analytics, no Hotjar, no FullStory, no
+        advertising pixel, no conversion tracker, and no behavioral fingerprinting script on this website.
+        You can verify this by inspecting the page source — there are no third-party script tags beyond
+        Google Fonts.
+      </p>
+
+      <h3>3.5 Cookies and local storage</h3>
+      <p>
+        The website sets <strong>one functional cookie</strong>: a small first-party cookie named
+        <code>pg_cookie_consent</code> that stores your acceptance or declination of cookies as presented
+        in the cookie notice. This cookie contains no personal information — only the string
+        <code>"accepted"</code> or <code>"declined"</code> — and is used solely to avoid showing the
+        cookie banner on every subsequent visit. It is not read by any analytics or advertising system,
+        because we have none.
+      </p>
+      <p>
+        If you decline cookies, the banner will not appear again during that browser session, but the
+        preference is not persisted across sessions (since storing it would itself require a cookie).
+        If you accept, the cookie is set with a 365-day expiry on the <code>parallelogram.dev</code>
+        domain only, with the <code>SameSite=Lax</code> attribute.
+      </p>
+      <p>
+        Beyond this consent cookie, the website uses no cookies, no local storage, and no session storage
+        for any other purpose.
+      </p>
+
+      <h2>4. Email correspondence</h2>
+      <p>
+        If you contact us by email at
+        <a href="mailto:tsenangthatayotlhe04@gmail.com">tsenangthatayotlhe04@gmail.com</a>, we will
+        receive your email address and the contents of your message. We use these only to respond to you.
+      </p>
+      <p>We do not:</p>
+      <ul>
+        <li>Add you to a mailing list.</li>
+        <li>Share your email address or message contents with third parties.</li>
+        <li>Use your message for marketing, research, or product analytics.</li>
+        <li>Retain your email beyond the period needed to address your inquiry, except where we are required by law to do so.</li>
+      </ul>
+      <p>
+        Note that email is transmitted through Gmail (Google's email infrastructure), which has its own
+        privacy policy governing email in transit and at rest.
+      </p>
+
+      <h2>5. GitHub and PyPI</h2>
+      <p>
+        If you interact with the Parallelogram project on GitHub — for example, by opening an issue,
+        submitting a pull request, starring the repository, or leaving a comment — that activity is
+        governed by
+        <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener">GitHub's Privacy Statement</a>.
+        We see the information you post publicly there (your username, comments, code contributions), but
+        we have no special access to private GitHub data about you.
+      </p>
+      <p>
+        If you download the package from PyPI, PyPI may log that download. That logging is governed by
+        <a href="https://www.python.org/privacy/" target="_blank" rel="noopener">PyPI's Privacy Policy</a>.
+        We do not receive download records from PyPI that identify individual users.
+      </p>
+
+      <h2>6. Children's privacy</h2>
+      <p>
+        Parallelogram is a developer tool intended for use by practitioners working with machine learning
+        training data. It is not directed at children under the age of 13 (or 16 where applicable under
+        GDPR). We do not knowingly collect personal information from children. If you believe a child has
+        inadvertently provided us with personal information, please contact us at
+        <a href="mailto:tsenangthatayotlhe04@gmail.com">tsenangthatayotlhe04@gmail.com</a> and we will
+        promptly take steps to delete it.
+      </p>
+
+      <h2>7. International users</h2>
+      <p>
+        Parallelogram is developed and operated from South Africa. If you are accessing the website from
+        the European Economic Area, the United Kingdom, California, or any other jurisdiction with data
+        protection laws, please be aware of the following:
+      </p>
+      <p>
+        <strong>EEA / UK (GDPR and UK GDPR):</strong> We believe our data processing activities described
+        in this policy are either (a) not subject to GDPR because we do not systematically monitor
+        individuals or offer goods and services to EEA/UK residents on a commercial basis, or (b)
+        permissible under the legitimate interests basis for purely operational server logging that we do
+        not use for profiling or marketing. In any case, the volume and sensitivity of information involved
+        is minimal. If you have specific concerns or requests under GDPR (access, rectification, erasure,
+        portability, objection), please contact us and we will respond in good faith.
+      </p>
+      <p>
+        <strong>California (CCPA/CPRA):</strong> We do not sell personal information. We do not share
+        personal information for cross-context behavioral advertising. The information we collect is used
+        solely for operational purposes as described in this policy.
+      </p>
+
+      <h2>8. Data retention</h2>
+      <p>
+        Because we collect almost nothing, our retention considerations are narrow:
+      </p>
+      <ul>
+        <li><strong>Vercel server logs</strong> are retained according to Vercel's default retention policy, which we do not control.</li>
+        <li><strong>Email correspondence</strong> is retained in our email inbox for as long as we deem it necessary to address the matter, after which it may be deleted.</li>
+        <li><strong>The cookie consent value</strong> is stored in your browser for up to 365 days and is never transmitted to us; you can delete it by clearing your browser cookies at any time.</li>
+      </ul>
+
+      <h2>9. Security</h2>
+      <p>
+        The website is served over HTTPS, which means the data in transit between your browser and Vercel's
+        edge network is encrypted. The site is a static HTML/CSS/JS bundle with no server-side processing,
+        no database, and no user-facing backend — there is no application layer to exploit or breach in the
+        conventional sense.
+      </p>
+      <p>
+        For the CLI: because it collects no data and transmits nothing, there is no data store to secure
+        on our end. The security surface is entirely local to your machine.
+      </p>
+
+      <h2>10. Changes to this policy</h2>
+      <p>
+        We will update this policy if our practices change. The effective date at the top of this page
+        will be updated whenever the policy changes. If a future version of Parallelogram introduces a
+        backend service, a paid tier, or any other feature that would cause data to leave your machine and
+        reach our infrastructure, that change will be <strong>prominently disclosed</strong> — not buried
+        in a policy update — before the feature is shipped. We will not retroactively apply a more
+        permissive data policy to any past interactions.
+      </p>
+      <p>
+        You can track the history of changes to this page in the
+        <a href="https://github.com/Thatayotlhe04/Parallelogram" target="_blank" rel="noopener">Parallelogram GitHub repository</a>,
+        where the source for this site is maintained.
+      </p>
+
+      <h2>11. Contact</h2>
+      <p>
+        Questions, concerns, or requests relating to this privacy policy should be directed to:
+      </p>
+      <p>
+        <strong>Thatayotlhe Tsenang</strong><br />
+        Email: <a href="mailto:tsenangthatayotlhe04@gmail.com">tsenangthatayotlhe04@gmail.com</a><br />
+        Jurisdiction: South Africa
+      </p>
+      <p>
+        We aim to respond to all privacy inquiries within 14 calendar days.
       </p>
 
       <p class="legal-back"><a href="/">← Back to parallelogram.dev</a></p>
