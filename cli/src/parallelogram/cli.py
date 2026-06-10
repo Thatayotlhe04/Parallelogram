@@ -28,6 +28,7 @@ from rich.console import Console
 
 from .core.fixer import Fixer, Disposition
 from .core.io import atomic_write_jsonl
+from .core.report import Severity
 from .core.runner import Runner
 from .core.rules import registry
 
@@ -60,10 +61,10 @@ def main() -> None:
 @app.command()
 def check(
     path: Path = typer.Argument(..., exists=True, readable=True, help="Path to JSONL dataset."),
-    format: str = typer.Option(
+    dataset_format: str = typer.Option(
         "openai-chat",
         "--format", "-f",
-        help="Dataset format. Only 'openai-chat' is supported in v0.1.",
+        help="Dataset format. Only 'openai-chat' is supported.",
     ),
     tokenizer: Optional[str] = typer.Option(
         None,
@@ -105,9 +106,9 @@ def check(
     no_color: bool = typer.Option(False, "--no-color", help="Disable colored output."),
 ) -> None:
     """Check a fine-tuning dataset for problems that would silently corrupt training."""
-    if format != "openai-chat":
+    if dataset_format != "openai-chat":
         typer.echo(
-            f"format {format!r} is not supported in v0.1 (only 'openai-chat').",
+            f"format {dataset_format!r} is not supported (only 'openai-chat').",
             err=True,
         )
         raise typer.Exit(2)
@@ -191,6 +192,7 @@ def check(
                     "emitted": len(fix_report.clean_records),
                 },
                 "fixes_by_rule": fix_report.fixes_by_rule,
+                "fixer_errors": fix_report.fixer_errors,
                 "outcomes": [
                     {
                         "line": o.line_no,
@@ -207,6 +209,11 @@ def check(
             _render_fix_report(console, fix_report, str(path), dry_run,
                                has_output=output is not None,
                                disabled_rules=sorted(disabled))
+
+        # Surface any fixer crashes loudly on stderr — these are bugs in a
+        # fix rule, not data problems, and must never hide behind exit 0.
+        for err in fix_report.fixer_errors:
+            typer.echo(f"  ! FIXER ERROR: {err}", err=True)
 
         if not dry_run and output:
             lines = [json.dumps(rec, ensure_ascii=False)
@@ -225,11 +232,11 @@ def check(
 
         # Exit code semantics for fix mode:
         #   0 if everything is now clean (no dropped records)
-        #   1 if some records were dropped (partial fix)
+        #   1 if some records were dropped (partial fix) or a fixer crashed
         #   2 if nothing was fixable (no records emitted)
         if not fix_report.clean_records:
             raise typer.Exit(2)
-        if fix_report.dropped or fix_report.unparseable:
+        if fix_report.dropped or fix_report.unparseable or fix_report.fixer_errors:
             raise typer.Exit(1)
         raise typer.Exit(0)
 
@@ -242,12 +249,27 @@ def check(
         render_report(report, console, str(path), disabled_rules=sorted(disabled))
 
     if output:
+        # `clean` is error-free, but error-free is not warning-free: records
+        # carrying warnings (mojibake, BOM) pass the error gate and are copied
+        # to --output *verbatim*, unrepaired. Don't call them "clean" and don't
+        # let the warnings vanish silently — point the user at --fix.
+        clean_line_nos = {ln for ln, _ in clean}
+        warned_lines = {
+            i.line_no for i in report.issues
+            if i.severity == Severity.WARNING and i.line_no in clean_line_nos
+        }
         lines = [raw if raw.endswith("\n") else raw + "\n" for _, raw in clean]
         atomic_write_jsonl(output, [l.rstrip("\n") for l in lines])
         if not json_output:
             console.print(
-                f"  [green]→[/green] Wrote {len(clean)} clean records to {output}"
+                f"  [green]→[/green] Wrote {len(clean)} error-free records to {output}"
             )
+            if warned_lines:
+                console.print(
+                    f"  [yellow]![/yellow] {len(warned_lines)} of them still carry "
+                    f"warnings (e.g. mojibake/BOM) and were copied verbatim — "
+                    f"re-run with [bold]--fix --output[/bold] to repair them."
+                )
 
     if report.has_errors:
         raise typer.Exit(2)

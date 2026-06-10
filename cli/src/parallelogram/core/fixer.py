@@ -54,6 +54,12 @@ class FixReport:
     fixes_by_rule: dict[str, int] = field(default_factory=dict)
     # Records that survived the fix pass (line_no, fixed_record).
     clean_records: list[tuple[int, Any]] = field(default_factory=list)
+    # Unexpected exceptions raised by a rule's fix method. These used to be
+    # swallowed silently — a crashing fixer would quietly drop a record (or
+    # skip a whole dataset-level pass) with no trace. We now record them so
+    # the CLI can surface them; a fixer bug should never hide behind a clean
+    # exit code. Entries are human-readable "rule_id: message" strings.
+    fixer_errors: list[str] = field(default_factory=list)
 
 
 class Fixer:
@@ -133,7 +139,13 @@ class Fixer:
                     continue
                 try:
                     new = rule.fix_record(current, issue)
-                except Exception:  # noqa: BLE001 — defensive
+                except Exception as exc:  # noqa: BLE001 — defensive
+                    # Don't swallow: a crashing fix means we drop this record,
+                    # but the user needs to know the fixer itself misbehaved.
+                    fr.fixer_errors.append(
+                        f"{rule.id}: fix_record raised on line {line_no}: "
+                        f"{type(exc).__name__}: {exc}"
+                    )
                     failed = True
                     break
                 if new is None:
@@ -171,7 +183,15 @@ class Fixer:
                 continue
             try:
                 stage2 = list(rule.fix_dataset(stage2))
-            except Exception:  # noqa: BLE001 — defensive
+            except Exception as exc:  # noqa: BLE001 — defensive
+                # Previously this `continue` silently skipped the failed
+                # dataset pass, leaving stage2 == the pre-pass records. The
+                # re-validation in stage 3 still catches anything left broken,
+                # but the failure itself must not be invisible.
+                fr.fixer_errors.append(
+                    f"{rule.id}: fix_dataset raised: "
+                    f"{type(exc).__name__}: {exc}"
+                )
                 continue
 
         kept_lines_after = {ln for ln, _ in stage2}
