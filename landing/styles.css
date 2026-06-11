@@ -424,7 +424,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
   font-size: 13.5px;
   line-height: 1.7;
   padding: 22px 24px 28px;
-  min-height: 300px;
+  height: 520px;
+  overflow-y: auto;
   color: var(--text-2);
   white-space: pre-wrap;
   position: relative;
@@ -1521,7 +1522,7 @@ code {
   .hero-ctas .btn { justify-content: center; }
   .install-chip { max-width: 100%; justify-content: flex-start; }
   .install-chip .chip-cmd { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .terminal-body { font-size: 11.5px; padding: 16px; }
+  .terminal-body { font-size: 11.5px; padding: 16px; height: 440px; }
   .section-title { font-size: 30px !important; }
   .cta-inner { padding: 40px 22px; }
   .demo-controls { flex-direction: column; align-items: stretch; gap: var(--space-2); }
