@@ -155,6 +155,19 @@ chip?.addEventListener('click', async () => {
   }
 });
 
+// ── 6b. install-card copy buttons ───────────────────────────────────
+document.querySelectorAll('.install-copy-btn').forEach((btn) => {
+  btn.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(btn.dataset.copyText || '');
+      btn.classList.add('copied');
+      setTimeout(() => btn.classList.remove('copied'), 1600);
+    } catch {
+      // clipboard API can be blocked; silently fail rather than break the page
+    }
+  });
+});
+
 // ── 7. compare demo (input vs output stream) ────────────────────────
 /*
   Streams rows into both panes on a loop. The "in" pane shows raw records
