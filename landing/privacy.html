@@ -8,9 +8,8 @@
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+  <link rel="preload" href="fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="fonts/GeistMono-Variable.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -24,14 +23,14 @@
         <span class="brand-word">parallelogram</span>
       </a>
       <nav class="nav-links" aria-label="Primary">
-        <a href="/#demo">Demo</a>
-        <a href="/#rules">Rules</a>
-        <a href="/#install">Install</a>
-        <a href="/#integrations">Integrations</a>
+        <a href="/#product">Product</a>
+        <a href="/#checks">Checks</a>
+        <a href="/#formats">Formats</a>
+        <a href="/#tokenizers">Tokenizers</a>
       </nav>
       <div class="nav-ctas">
         <a class="btn btn-ghost" href="https://github.com/Thatayotlhe04/Parallelogram" target="_blank" rel="noopener">GitHub</a>
-        <a class="btn btn-primary" href="/#install">Get started <span class="arr">→</span></a>
+        <a class="btn btn-primary" href="/#quickstart">Install</a>
       </div>
     </div>
   </header>
@@ -133,21 +132,13 @@
         <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener">Vercel's Privacy Policy</a>.
       </p>
 
-      <h3>3.3 Google Fonts</h3>
+      <h3>3.3 Fonts</h3>
       <p>
-        This website loads typefaces (Geist, Geist Mono, Instrument Serif) from Google Fonts via
-        <code>fonts.googleapis.com</code> and <code>fonts.gstatic.com</code>. When your browser loads
-        these fonts, it makes an HTTP request to Google's servers. That request may transmit your IP
-        address and standard HTTP headers (including user-agent and referrer) to Google. This is a
-        consequence of how web fonts work and is governed entirely by
-        <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google's Privacy Policy</a>.
-        We do not receive any data from Google as a result of these requests. We do not use Google Analytics,
-        Google Tag Manager, or any other Google product beyond font delivery.
-      </p>
-      <p>
-        If you wish to prevent this network request, you can block <code>fonts.googleapis.com</code> in
-        your browser or use a browser extension that blocks third-party font requests. The website remains
-        fully functional with fallback system fonts if the Google Fonts request fails or is blocked.
+        This website serves its typefaces (Geist and Geist Mono) directly from
+        <code>parallelogram.dev</code> as self-hosted font files. Loading a page here makes
+        <strong>no request to Google Fonts or any other third-party font service</strong> — your browser
+        talks only to the same Vercel-hosted origin that serves the page itself. No font-related data is
+        transmitted to any third party.
       </p>
 
       <h3>3.4 Analytics and tracking</h3>
@@ -155,8 +146,8 @@
         We run <strong>no analytics</strong> of any kind. There is no Google Analytics, no Mixpanel, no
         Segment, no Plausible, no Fathom, no Cloudflare Web Analytics, no Hotjar, no FullStory, no
         advertising pixel, no conversion tracker, and no behavioral fingerprinting script on this website.
-        You can verify this by inspecting the page source — there are no third-party script tags beyond
-        Google Fonts.
+        You can verify this by inspecting the page source — there are no third-party script, font, or
+        resource tags of any kind. Every asset on this site is served first-party.
       </p>
 
       <h3>3.5 Cookies and local storage</h3>
@@ -307,7 +298,7 @@
       </div>
       <div class="foot-line" style="grid-column: 1 / -1; margin-top: 0; border-top: 0; padding-top: 0;">
         <span>© 2026 parallelogram.dev</span>
-        <span class="muted">v0.3 · the linter for fine-tuning data</span>
+        <span class="muted">v0.4.0 · preflight validation for fine-tuning datasets</span>
       </div>
     </div>
   </footer>

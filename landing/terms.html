@@ -8,9 +8,8 @@
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+  <link rel="preload" href="fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="fonts/GeistMono-Variable.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -24,14 +23,14 @@
         <span class="brand-word">parallelogram</span>
       </a>
       <nav class="nav-links" aria-label="Primary">
-        <a href="/#demo">Demo</a>
-        <a href="/#rules">Rules</a>
-        <a href="/#install">Install</a>
-        <a href="/#integrations">Integrations</a>
+        <a href="/#product">Product</a>
+        <a href="/#checks">Checks</a>
+        <a href="/#formats">Formats</a>
+        <a href="/#tokenizers">Tokenizers</a>
       </nav>
       <div class="nav-ctas">
         <a class="btn btn-ghost" href="https://github.com/Thatayotlhe04/Parallelogram" target="_blank" rel="noopener">GitHub</a>
-        <a class="btn btn-primary" href="/#install">Get started <span class="arr">→</span></a>
+        <a class="btn btn-primary" href="/#quickstart">Install</a>
       </div>
     </div>
   </header>
@@ -172,7 +171,7 @@
       </p>
       <ul>
         <li>
-          The claim applies to the six rule categories in v0.3: <code>schema</code>, <code>roles</code>,
+          The claim applies to the six rule categories in v0.4.0: <code>schema</code>, <code>roles</code>,
           <code>empty-content</code>, <code>context-window</code>, <code>duplicates</code>, and
           <code>encoding</code>. Future rule additions will be noted in the changelog.
         </li>
@@ -232,7 +231,7 @@
       <h2>7. Third-party services and links</h2>
       <p>
         The Site contains links to third-party websites and services (GitHub, PyPI, Hugging Face,
-        Vercel, Google Fonts, and the websites of the projects listed in the Integrations section).
+        Vercel, and the websites of the projects listed in the Integrations section).
         These links are provided for convenience and informational purposes only. We have no control
         over those sites and are not responsible for their content, availability, privacy practices, or
         terms of service. A link from this Site does not constitute an endorsement.
@@ -333,7 +332,7 @@
       </div>
       <div class="foot-line" style="grid-column: 1 / -1; margin-top: 0; border-top: 0; padding-top: 0;">
         <span>© 2026 parallelogram.dev</span>
-        <span class="muted">v0.3 · the linter for fine-tuning data</span>
+        <span class="muted">v0.4.0 · preflight validation for fine-tuning datasets</span>
       </div>
     </div>
   </footer>

@@ -1,65 +1,53 @@
-# parallelogram.dev — landing page
+# parallelogram.dev — landing site
 
-Static landing page for parallelogram. No build step. Open `index.html` in a browser.
+Static landing page for the [parallelogram](https://github.com/Thatayotlhe04/Parallelogram)
+CLI — preflight validation for fine-tuning datasets. No build step, no framework,
+no third-party requests: serve the folder and it works.
 
 ## Files
 
-- `index.html` — the page
-- `styles.css` — the styles
-- `demo.js` — the **interactive terminal demo**: an in-browser re-implementation
-  of the linter that mirrors the real Python rules and CLI output
-- `script.js` — motion (GSAP-driven reveals + IntersectionObserver fallback,
-  hero parallax, magnetic buttons, scroll-spy, brand draw-on), install-chip
-  copy, the compare demo, exit-code cycler, stat counters, cookie banner
+| File | Purpose |
+|---|---|
+| `index.html` | The landing page — 14 numbered sections (see the TOC comment at the top of the file) |
+| `styles.css` | All styling, organized with CSS cascade layers: `tokens, base, components, sections, legal, motion, utilities` |
+| `main.js` | Header state, mobile nav, reveals, scroll-spy, copy buttons, token meter, compare stream, architecture inspector, exit-code cycler, cookie banner |
+| `hero-terminal.js` | The scripted hero terminal — deterministic typing (fixed delay table, no RNG), three tabs |
+| `demo.js` | In-browser port of the six linter rules plus the `--fix` pipeline and ShareGPT normalizer, faithful to `cli/src/parallelogram/`; exposes `window.__pgLint` / `window.__pgFix` for parity testing |
+| `privacy.html` / `terms.html` | Legal pages, styled by the `legal` CSS layer |
+| `fonts/` | Self-hosted Geist + Geist Mono variable woff2 (OFL) — no Google Fonts |
+| `og.png` | 1200×630 social preview (`og-image.png` is the legacy image, kept so previously shared links don't break) |
+| `vercel.json` | Immutable cache headers for `/fonts/*` |
 
-## Dependencies
+## Local development
 
-One CDN dependency, loaded `defer` and feature-detected: **GSAP + ScrollTrigger**
-(`cdn.jsdelivr.net/npm/gsap`). The page is fully functional without it — if it
-fails to load, or the visitor has `prefers-reduced-motion`, reveals fall back to
-an IntersectionObserver and the rest of the motion is simply skipped. No build
-step, no other deps.
-
-## The interactive demo (`demo.js`)
-
-The `#demo` terminal auto-types and lints a bundled sample on a loop **until the
-visitor interacts** — clicking a sample chip (`broken.jsonl` / `clean.jsonl`),
-editing the JSONL editor, or hitting Run hands control over; an "auto-demo"
-control resumes the loop.
-
-Its linter is a faithful port of the real rules (`cli/src/parallelogram/rules/*`)
-and terminal output (`cli/src/parallelogram/output/terminal.py`), running in the
-CLI's **approximate** token-counting mode (no tiktoken/HF in a browser). That
-means it always emits the one-time "context-window counts are approximate" note
-and treats overflow as a warning, exactly like `parallelogram check <file>` with
-no `--tokenizer`. The bundled samples are the project's own fixtures
-(`cli/examples/broken.jsonl`, `clean.jsonl`) so the demo can't drift from the CLI.
-If you change a rule, update the matching `check*` function in `demo.js`.
-
-## Design notes
-
-**Aesthetic.** Refined-minimal, precision-instrument feel. Linear-style restraint with deeper monochrome. Single linter-green accent (the "exits 0" feeling); red used only inside demos for error states; amber only for warning markers.
-
-**Type.** Geist (sans) + Geist Mono + Instrument Serif (italic, accent only). All Google Fonts, no Inter.
-
-**The "video".** The macOS terminal panel runs the interactive demo (see above) — it auto-types a command, streams errors with line numbers and rule ids, and prints the summary panel, looping until the visitor takes over. It only starts when scrolled into view to save CPU.
-
-**The mobile usecase.** The phone frame mocks a CI/PR-check view (GitHub-style notification card with the four issue rows from the demo). This previews the natural Phase 2 surface — CI integration — without overpromising what v0.1 ships.
-
-**No tracking, no fonts beyond Google Fonts, no backend.** Drop the directory on any static host (Vercel, Netlify, Cloudflare Pages, GitHub Pages) and it works.
-
-## Hosting
-
-```
-vercel deploy
-# or
-netlify deploy --dir=.
+```bash
+cd landing
+python3 -m http.server 8000
+# open http://localhost:8000
 ```
 
-For `parallelogram.dev` specifically: any static host pointed at this folder, with the domain CNAME'd over.
+## Deploy (Vercel)
+
+Static deployment: set the project root directory to `landing/`, no build
+command, no output directory. Any other static host works identically.
+
+## Conventions
+
+- **No external resources.** No GSAP, no CDN scripts, no Google Fonts —
+  everything is first-party (the privacy policy now promises exactly this).
+- **Legacy anchors** `#rules`, `#install`, and `#integrations` are kept as
+  zero-height alias anchors so old inbound links and the legal pages keep working.
+- **Reduced motion** is fully supported: typing paints its final frame,
+  streams render one static pass, reveals are instant.
+- **Mojibake strings in `demo.js` are written as `\u` escapes**, never literal
+  glyphs, so rule matching survives any editor/encoding round-trip.
+- The demo must stay in lockstep with the CLI: if a rule changes in
+  `cli/src/parallelogram/rules/`, update the matching `check*`/`fix*` function
+  in `demo.js`.
 
 ## Tweak knobs
 
-- All colors are CSS vars at the top of `styles.css` under `:root`.
-- The terminal sequence is the `seq` array at the top of `script.js`; reorder, add, or change pacing freely.
-- Section spacing lives in the `padding` of each `<section>`'s rule (`.hero`, `.demo`, `.rules`, etc.).
+- Design tokens (colors, spacing, type, easing) live in `:root` inside the
+  `tokens` layer at the top of `styles.css`.
+- The hero transcript is the `LINES` array in `hero-terminal.js`.
+- Demo fixtures are the `SAMPLES` object in `demo.js` (per format).

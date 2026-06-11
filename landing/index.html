@@ -3,278 +3,648 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Parallelogram — The linter for fine-tuning data</title>
-  <meta name="description" content="A strict CLI validator for fine-tuning datasets. Catches the silent killers — broken role sequences, context-window overflows, duplicates, mojibake — before your $500 GPU run discovers them for you." />
+  <title>Parallelogram — catch fine-tuning dataset bugs before training</title>
+  <meta name="description" content="Open-source local CLI that validates OpenAI chat JSONL and ShareGPT fine-tuning datasets — broken roles, empty messages, duplicates, encoding artifacts, context-window overflows — before they poison a training run." />
+  <link rel="canonical" href="https://parallelogram.dev/" />
 
   <!-- Favicons -->
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
 
-  <!-- Open Graph / LinkedIn -->
+  <!-- Open Graph -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://parallelogram.dev/" />
-  <meta property="og:title" content="Parallelogram — The linter for fine-tuning data" />
-  <meta property="og:description" content="Catches broken role sequences, context-window overflows, duplicates, and mojibake before your $500 GPU run does. Free, open source, local." />
-  <meta property="og:image" content="https://parallelogram.dev/og-image.png" />
+  <meta property="og:title" content="Parallelogram — catch fine-tuning dataset bugs before training" />
+  <meta property="og:description" content="Open-source local CLI that validates OpenAI chat JSONL and ShareGPT fine-tuning datasets — broken roles, empty messages, duplicates, encoding artifacts, context-window overflows — before they poison a training run." />
+  <meta property="og:image" content="https://parallelogram.dev/og.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
 
   <!-- Twitter / X -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Parallelogram — The linter for fine-tuning data" />
-  <meta name="twitter:description" content="Catches broken role sequences, context-window overflows, duplicates, and mojibake before your $500 GPU run does." />
-  <meta name="twitter:image" content="https://parallelogram.dev/og-image.png" />
+  <meta name="twitter:title" content="Parallelogram — catch fine-tuning dataset bugs before training" />
+  <meta name="twitter:description" content="Validates OpenAI chat JSONL and ShareGPT datasets locally — broken roles, empty messages, duplicates, encoding artifacts, context-window overflows — before the training run." />
+  <meta name="twitter:image" content="https://parallelogram.dev/og.png" />
 
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Parallelogram",
+    "description": "Open-source local CLI that validates OpenAI chat JSONL and ShareGPT fine-tuning datasets before training: schema, role sequences, empty content, duplicates, encoding artifacts, and context-window overflows.",
+    "url": "https://parallelogram.dev/",
+    "softwareVersion": "0.4.0",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "macOS, Linux, Windows",
+    "license": "https://www.apache.org/licenses/LICENSE-2.0",
+    "downloadUrl": "https://pypi.org/project/parallelogram/",
+    "sameAs": ["https://github.com/Thatayotlhe04/Parallelogram", "https://pypi.org/project/parallelogram/"],
+    "author": { "@type": "Person", "name": "Thatayotlhe Tsenang" },
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+  }
+  </script>
 
+  <link rel="preload" href="fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="fonts/GeistMono-Variable.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="styles.css" />
 
-  <!-- Motion: GSAP + ScrollTrigger. Loaded defer; the page is fully usable
-       without it (script.js falls back to IntersectionObserver reveals). -->
-  <script defer src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+  <script defer src="main.js"></script>
+  <script defer src="hero-terminal.js"></script>
+  <script defer src="demo.js"></script>
 </head>
 <body>
 
-  <!-- Global background grid — sits behind every section at very low opacity -->
-  <div class="page-grid" aria-hidden="true"></div>
+  <div id="scroll-sentinel" aria-hidden="true"></div>
 
-  <!-- ───────────────────────────────────────────  NAV  ─────────────── -->
-  <header class="nav">
-    <div class="nav-inner">
+  <!--
+    ───────────────────────────────────────────────────────────────────
+    TOC
+      00 · header        #site-header
+      01 · hero          #product
+      02 · pain grid     #failures
+      03 · architecture  #architecture
+      04 · live demo     #demo
+      05 · checks matrix #checks        (alias #rules)
+      06 · tokenizers    #tokenizers
+      07 · formats       #formats
+      08 · before/after  #compare
+      09 · quickstart    #quickstart    (alias #install)
+      10 · use cases     #use-cases     (alias #integrations)
+      11 · trust         #open-source
+      12 · vision        #vision
+      13 · final CTA     #cta
+      14 · footer + cookie banner
+    ───────────────────────────────────────────────────────────────────
+  -->
+
+  <!-- ───── 00 · HEADER #site-header ───── -->
+  <header id="site-header">
+    <div class="header-inner">
       <a href="/" class="brand" aria-label="Parallelogram home">
         <svg class="brand-mark" viewBox="0 0 28 24" aria-hidden="true">
           <path d="M7 3 L25 3 L21 21 L3 21 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
         </svg>
         <span class="brand-word">parallelogram</span>
       </a>
-      <nav class="nav-links" aria-label="Primary">
-        <a href="#demo">Demo</a>
-        <a href="#rules">Rules</a>
-        <a href="#install">Install</a>
-        <a href="#integrations">Integrations</a>
-      </nav>
-      <div class="nav-ctas">
-        <a class="btn btn-ghost" href="https://github.com/Thatayotlhe04/Parallelogram" target="_blank" rel="noopener" aria-label="GitHub repository">
-          <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"></path></svg>
-          GitHub
-        </a>
-        <a class="btn btn-primary" href="#install">Get started <span class="arr">→</span></a>
+
+      <button id="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-menu" aria-label="Toggle navigation">
+        <svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true"><path d="M2 4h12M2 8h12M2 12h12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+
+      <div id="nav-menu">
+        <nav class="nav-links" aria-label="Primary">
+          <a href="#product">Product</a>
+          <a href="#checks">Checks</a>
+          <a href="#formats">Formats</a>
+          <a href="#tokenizers">Tokenizers</a>
+          <a href="https://github.com/Thatayotlhe04/Parallelogram#readme" target="_blank" rel="noopener">Docs</a>
+          <a href="https://github.com/Thatayotlhe04/Parallelogram" target="_blank" rel="noopener" class="nav-gh">
+            <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><path fill="currentColor" d="M8 1.3l2 4.05 4.47.65-3.23 3.15.76 4.45L8 11.5l-4 2.1.76-4.45L1.53 6l4.47-.65L8 1.3z"/></svg>
+            GitHub
+          </a>
+        </nav>
+        <div class="nav-ctas">
+          <a class="btn btn-ghost" href="https://github.com/Thatayotlhe04/Parallelogram" target="_blank" rel="noopener">
+            <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+            GitHub
+          </a>
+          <a class="btn btn-primary" href="#quickstart">Install</a>
+        </div>
       </div>
     </div>
   </header>
 
-  <!-- ───────────────────────────────────────────  HERO  ────────────── -->
-  <section class="hero">
-    <div class="grid-bg" aria-hidden="true"></div>
-    <div class="grid-fade" aria-hidden="true"></div>
+  <main>
 
-    <div class="container hero-inner">
-      <span class="eyebrow">
-        <span class="eyebrow-dot"></span>
-        v0.4 · open source · --fix shipped
-      </span>
+  <!-- ───── 01 · HERO #product ───── -->
+  <section id="product" class="hero">
+    <div class="wrap">
+      <div class="hero-copy" data-reveal>
+        <p class="eyebrow">
+          <span class="pill">v0.4.0</span>
+          <span class="pill">open source</span>
+          <span class="pill">local CLI</span>
+        </p>
 
-      <h1 class="headline">
-        The linter for<br />fine-tuning <em class="serif">data</em>.
-      </h1>
+        <h1>Catch fine-tuning dataset bugs before they poison training.</h1>
 
-      <p class="subhead">
-        Parallelogram catches the silent killers — broken role sequences, context-window
-        overflows, duplicates, mojibake — before your $500 GPU run discovers them for you.
-      </p>
+        <p class="hero-sub">
+          Parallelogram is an open-source CLI that validates OpenAI chat JSONL and
+          ShareGPT datasets — broken role sequences, empty messages, duplicates,
+          encoding artifacts, context-window overflows — locally, before the training run.
+        </p>
 
-      <div class="hero-ctas">
-        <a class="btn btn-primary lg" href="#install">Get started <span class="arr">→</span></a>
-        <button class="install-chip" id="install-chip" type="button" aria-label="Copy install command">
-          <span class="chip-prompt">$</span>
-          <span class="chip-cmd">pip install parallelogram</span>
-          <span class="chip-copy" aria-hidden="true">
-            <svg viewBox="0 0 16 16" width="13" height="13"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M5 5V3a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1h-2M3 5h7a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"></path></svg>
-          </span>
-        </button>
+        <div class="hero-install">
+          <div class="codeblock">
+            <pre><code><span class="pr">$</span> pip install parallelogram</code></pre>
+            <button class="copy-btn" type="button" data-copy="pip install parallelogram" aria-label="Copy: pip install parallelogram">
+              <svg class="copy-ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 2h7a1 1 0 0 1 1 1v7" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="5" width="8" height="9" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+              <span class="copy-label">Copy</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#quickstart">Install from PyPI</a>
+          <a class="btn btn-ghost" href="https://github.com/Thatayotlhe04/Parallelogram" target="_blank" rel="noopener">View GitHub</a>
+        </div>
+
+        <div class="trust-row" aria-label="Project facts">
+          <span class="pill">Apache-2.0</span>
+          <span class="pill">PyPI</span>
+          <span class="pill">OpenAI chat JSONL</span>
+          <span class="pill">ShareGPT</span>
+          <span class="pill">exact tokenizers</span>
+        </div>
+
+        <p class="hero-guarantee">If it exits 0 with all rules enabled, your run won't fail because of data.</p>
       </div>
 
-      <div class="hero-meta">
-        <span><span class="green-dot"></span>If it exits 0, your run won't fail because of data.</span>
+      <figure class="term hero-term" id="hero-term" data-reveal>
+        <figcaption class="term-bar">
+          <span class="term-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          <div class="term-tabs" role="tablist" aria-label="Hero demo views">
+            <button class="term-tab" role="tab" id="hero-tab-dirty" aria-controls="hero-pane-dirty" aria-selected="false" data-hero-tab="dirty" type="button">dirty.jsonl</button>
+            <button class="term-tab" role="tab" id="hero-tab-check" aria-controls="hero-pane-check" aria-selected="true" data-hero-tab="check" type="button">parallelogram check</button>
+            <button class="term-tab" role="tab" id="hero-tab-clean" aria-controls="hero-pane-clean" aria-selected="false" data-hero-tab="clean" type="button">clean.jsonl</button>
+          </div>
+        </figcaption>
+
+        <div class="term-body" id="hero-pane-dirty" role="tabpanel" aria-labelledby="hero-tab-dirty" hidden>
+          <span class="t-line dim"><span class="lno">  41 </span>{"messages":[{"role":"user","content":"Summarize this changelog."},{"role":"assistant","content":"Three breaking changes: …"}]}</span>
+          <span class="t-line"><span class="lno">  42 </span><span class="err">{"messages":[{"role":"user","content":"Draft the follow-up email."},{"role":"user","content":"Actually, make it shorter."}]}</span>  <span class="err">← ends on 'user'</span></span>
+          <span class="t-line dim"><span class="lno">   ⋮ </span></span>
+          <span class="t-line"><span class="lno">  97 </span>{"messages":[{"role":"user","content":"Check the apostrophes."},{"role":"assistant","content":"<span class="warn">Don&#226;&#8364;&#8482;t worry, it&#226;&#8364;&#8482;s handled.</span>"}]}  <span class="warn">← mojibake</span></span>
+          <span class="t-line dim"><span class="lno">   ⋮ </span></span>
+          <span class="t-line"><span class="lno"> 131 </span><span class="err">{"messages":[{"role":"user","content":"Here is the full 40-page transcript: [&#8230;]"},{"role":"assistant","content":"…"}]}</span>  <span class="err">← 5234 &gt; 4096 tokens</span></span>
+          <span class="t-line blank"> </span>
+          <span class="t-line detail"><span class="dim">train.jsonl · 547 records · 2 errors and 1 warning, none of which crash a trainer</span></span>
+        </div>
+
+        <div class="term-body" id="hero-pane-check" role="tabpanel" aria-labelledby="hero-tab-check"><span class="t-line cmd" id="hero-type-target"><span class="pr">$</span> </span></div>
+
+        <div class="term-body" id="hero-pane-clean" role="tabpanel" aria-labelledby="hero-tab-clean" hidden>
+          <span class="t-line dim"><span class="lno">  41 </span>{"messages":[{"role":"user","content":"Summarize this changelog."},{"role":"assistant","content":"Three breaking changes: …"}]}</span>
+          <span class="t-line detail"><span class="lno">     </span><span class="dim">— line 42 dropped → roles (unfixable)</span></span>
+          <span class="t-line dim"><span class="lno">   ⋮ </span></span>
+          <span class="t-line"><span class="lno">  97 </span>{"messages":[{"role":"user","content":"Check the apostrophes."},{"role":"assistant","content":"<span class="ok">Don't worry, it's handled.</span>"}]}  <span class="ok">← mojibake repaired</span></span>
+          <span class="t-line dim"><span class="lno">   ⋮ </span></span>
+          <span class="t-line"><span class="lno"> 131 </span>{"messages":[{"role":"user","content":"Here is the full 40-page transcript: [&#8230;]"},{"role":"assistant","content":"…"}]}  <span class="ok">← truncated to fit 4096</span></span>
+          <span class="t-line blank"> </span>
+          <span class="t-line"><span class="ok">✓ 546 records — exit 0 on re-check</span></span>
+        </div>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ───── 02 · PAIN GRID #failures ───── -->
+  <section id="failures">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <p class="kicker">02 · Silent failure modes</p>
+        <h2>Your dataset can be broken without looking broken.</h2>
+        <p class="section-sub">Bad JSONL doesn't always crash the trainer. It trains anyway — on poisoned data. Eight failure modes Parallelogram catches:</p>
+      </div>
+
+      <div class="card-grid">
+        <article class="card card-fail" data-reveal style="--i:0">
+          <h3>Broken role alternation</h3>
+          <pre class="mini-code"><code>{"role":"user","content":"Try again."},
+{"role":"user","content":"Hello? Anyone?"}</code></pre>
+          <p>Alternation is the supervision signal — doubled turns teach the model that user messages answer user messages.</p>
+          <p class="card-diag"><span class="pill pill--error">[roles] ERROR</span></p>
+        </article>
+
+        <article class="card card-fail" data-reveal style="--i:1">
+          <h3>Empty assistant messages</h3>
+          <pre class="mini-code"><code>{"role":"user","content":"Explain RoPE."},
+{"role":"assistant","content":"   "}</code></pre>
+          <p>A whitespace-only target slips past most loaders and trains the model that silence is a valid completion.</p>
+          <p class="card-diag"><span class="pill pill--error">[empty-content] ERROR</span></p>
+        </article>
+
+        <article class="card card-fail" data-reveal style="--i:2">
+          <h3>Exact duplicates</h3>
+          <pre class="mini-code"><code>line  89: {"messages":[…]}   # hash 9f31c2…
+line 147: {"messages":[…]}   # hash 9f31c2…</code></pre>
+          <p>Repeated records push the model toward memorization and quietly inflate any eval that samples the same file.</p>
+          <p class="card-diag"><span class="pill pill--error">[duplicates] ERROR</span></p>
+        </article>
+
+        <article class="card card-fail" data-reveal style="--i:3">
+          <h3>Invalid JSONL</h3>
+          <pre class="mini-code"><code>{"messages":[{"role":"user","content":"ok"}
+            # unterminated — not JSON</code></pre>
+          <p>One truncated line either fails the whole ingest or gets skipped silently — which one depends on the loader, not on you.</p>
+          <p class="card-diag"><span class="pill pill--error">[schema] ERROR</span></p>
+        </article>
+
+        <article class="card card-fail" data-reveal style="--i:4">
+          <h3>Mojibake / encoding artifacts</h3>
+          <pre class="mini-code"><code>"content":"Don&#226;&#8364;&#8482;t merge yet"
+           # UTF-8 → latin-1 → UTF-8</code></pre>
+          <p>Round-trip artifacts look almost right in an editor and bake corrupted punctuation directly into the weights.</p>
+          <p class="card-diag"><span class="pill pill--warn">[encoding] WARNING</span></p>
+        </article>
+
+        <article class="card card-fail" data-reveal style="--i:5">
+          <h3>Context-window overflow</h3>
+          <pre class="mini-code"><code>record 131:  5234 tokens
+max_seq_len: 4096 tokens</code></pre>
+          <p>TRL truncates oversized records without a word — usually severing the assistant turn you were training on.</p>
+          <p class="card-diag"><span class="pill pill--error">[context-window] ERROR</span></p>
+        </article>
+
+        <article class="card card-fail" data-reveal style="--i:6">
+          <h3>Format drift (OpenAI chat vs ShareGPT)</h3>
+          <pre class="mini-code"><code>{"messages":[{"role":"user", …}]}
+{"conversations":[{"from":"human", …}]}</code></pre>
+          <p>A ShareGPT record in an OpenAI-chat file isn't almost right — it's a different schema. Parallelogram refuses to guess per record.</p>
+          <p class="card-diag"><span class="pill pill--error">[schema] ERROR</span> <span class="card-diag-note">normalized at the parse boundary</span></p>
+        </article>
+
+        <article class="card card-fail" data-reveal style="--i:7">
+          <h3>Conversation ends on user</h3>
+          <pre class="mini-code"><code>{"role":"assistant","content":"Done."},
+{"role":"user","content":"thanks!!"}</code></pre>
+          <p>The final turn is the training target. Ending on a user message means there is no target at all — just wasted loss.</p>
+          <p class="card-diag"><span class="pill pill--error">[roles] ERROR</span></p>
+        </article>
       </div>
     </div>
   </section>
 
-  <!-- ───────────────────────────────────────────  TERMINAL DEMO  ───── -->
-  <section class="demo" id="demo">
-    <div class="container">
-      <div class="section-head">
-        <span class="kicker">/ 01 — pre-flight</span>
-        <h2 class="section-title">See what it catches.</h2>
-        <p class="section-sub">
-          One command before you train. Errors report the exact line and rule.
-          It auto-runs the real checks below — <strong>click a sample or edit the
-          data</strong> to lint your own, right here in the browser.
-        </p>
+  <!-- ───── 03 · ARCHITECTURE #architecture ───── -->
+  <section id="architecture">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <p class="kicker">03 · Architecture</p>
+        <h2>One parser boundary. Every rule runs on the same representation.</h2>
+        <p class="section-sub">Raw formats are normalized once, at parse time. Downstream, the structural checks, the tokenizer-aware context checks, and the safe fixer all operate on a single internal message shape — no rule ever special-cases a format.</p>
       </div>
 
-      <div class="demo-shell reveal" data-reveal>
+      <div class="arch" data-reveal>
+        <div class="arch-stage">
+        <svg class="arch-svg" viewBox="0 0 1100 200" preserveAspectRatio="none" aria-hidden="true">
+          <path class="arch-edge" d="M0 100 H1100" vector-effect="non-scaling-stroke" />
+          <path class="arch-edge arch-edge-flow" d="M0 100 H1100" vector-effect="non-scaling-stroke" />
+        </svg>
+
+        <div class="arch-grid">
+          <button class="arch-node" type="button" data-arch="formats" aria-pressed="false">
+            <span class="arch-node-kicker">input</span>
+            <span class="arch-node-title">raw formats</span>
+            <span class="arch-node-pills"><span class="pill">openai-chat</span><span class="pill">sharegpt</span></span>
+          </button>
+          <button class="arch-node arch-node--gate" type="button" data-arch="parser" aria-pressed="false">
+            <span class="arch-node-kicker">parse boundary</span>
+            <span class="arch-node-title">parser / normalizer</span>
+            <span class="arch-node-pills"><span class="pill">one internal shape</span></span>
+          </button>
+          <button class="arch-node" type="button" data-arch="structural" aria-pressed="false">
+            <span class="arch-node-kicker">rules</span>
+            <span class="arch-node-title">structural checks</span>
+            <span class="arch-node-pills"><span class="pill">schema</span><span class="pill">roles</span><span class="pill">empty-content</span><span class="pill">duplicates</span></span>
+          </button>
+          <button class="arch-node" type="button" data-arch="context" aria-pressed="false">
+            <span class="arch-node-kicker">rules</span>
+            <span class="arch-node-title">context checks</span>
+            <span class="arch-node-pills"><span class="pill">context-window</span><span class="pill pill--info">EXACT</span><span class="pill pill--est">ESTIMATED</span></span>
+          </button>
+          <button class="arch-node" type="button" data-arch="fixer" aria-pressed="false">
+            <span class="arch-node-kicker">--fix</span>
+            <span class="arch-node-title">safe fixer</span>
+            <span class="arch-node-pills"><span class="pill">fix → re-validate → drop</span></span>
+          </button>
+          <button class="arch-node" type="button" data-arch="output" aria-pressed="false">
+            <span class="arch-node-kicker">output</span>
+            <span class="arch-node-title">clean.jsonl</span>
+            <span class="arch-node-pills"><span class="pill pill--fixed">exit 0</span></span>
+          </button>
+        </div>
+        </div>
+
+        <p class="arch-desc" id="arch-desc" aria-live="polite">Click a stage to inspect it. Formats normalize at the parse boundary — every rule runs on one internal message representation.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───── 04 · LIVE DEMO #demo ───── -->
+  <section id="demo">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <p class="kicker">04 · Live demo</p>
+        <h2>Paste nothing. Upload nothing. It runs locally — so does this demo.</h2>
+        <p class="section-sub">The same six rules, ported to the browser. Pick a fixture or edit the JSONL yourself; the diagnostics below are exactly what the CLI prints.</p>
+      </div>
+
+      <div class="demo-shell" data-reveal>
         <div class="demo-controls" role="group" aria-label="Demo controls">
+          <div class="demo-formats tabs" role="group" aria-label="Dataset format">
+            <button class="tab" type="button" data-demo-format="openai-chat" aria-pressed="true">OpenAI chat JSONL</button>
+            <button class="tab" type="button" data-demo-format="sharegpt" aria-pressed="false">ShareGPT</button>
+          </div>
           <div class="demo-samples">
-            <span class="demo-samples-label">sample</span>
+            <span class="demo-samples-label">fixture</span>
             <button class="demo-chip" type="button" data-demo-sample="broken">broken.jsonl</button>
             <button class="demo-chip" type="button" data-demo-sample="clean">clean.jsonl</button>
-            <button class="demo-chip demo-chip-ghost" type="button" id="demo-edit-toggle"
-                    aria-expanded="false" aria-controls="demo-editor-wrap">edit ▾</button>
+            <button class="demo-chip demo-chip-ghost" type="button" id="demo-edit-toggle" aria-expanded="false" aria-controls="demo-editor-wrap">edit JSONL</button>
           </div>
           <div class="demo-actions">
             <button class="demo-resume" type="button" id="demo-resume" hidden>↻ auto-demo</button>
-            <button class="demo-run" type="button" id="demo-run">▶ run</button>
+            <button class="demo-run" type="button" id="demo-run">▶ run checks</button>
           </div>
         </div>
 
         <div class="demo-editor-wrap" id="demo-editor-wrap">
-          <textarea id="demo-editor" class="demo-editor" spellcheck="false"
-                    autocomplete="off" autocapitalize="off" rows="6"
-                    aria-label="JSONL input — one record per line"
-                    placeholder='{"messages":[{"role":"user","content":"…"},{"role":"assistant","content":"…"}]}'></textarea>
-          <p class="demo-editor-hint">One JSON record per line. Runs entirely in your browser — nothing is uploaded.</p>
+          <div class="demo-editor-inner">
+            <textarea id="demo-editor" class="demo-editor" spellcheck="false"
+                      autocomplete="off" autocapitalize="off" rows="6"
+                      aria-label="JSONL input — one record per line"
+                      placeholder='{"messages":[{"role":"user","content":"…"},{"role":"assistant","content":"…"}]}'></textarea>
+            <p class="demo-editor-hint">One JSON record per line. Runs entirely in your browser — nothing is uploaded.</p>
+          </div>
         </div>
 
-        <div class="terminal-frame">
-          <div class="terminal-chrome">
-            <span class="dot dot-r" aria-hidden="true"></span>
-            <span class="dot dot-y" aria-hidden="true"></span>
-            <span class="dot dot-g" aria-hidden="true"></span>
-            <span class="terminal-title">~/projects/finetune-llama3 — parallelogram</span>
-            <span class="terminal-tabs" aria-hidden="true">⌘1</span>
+        <div class="demo-grid">
+        <figure class="term" data-reveal>
+          <figcaption class="term-bar">
+            <span class="term-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="term-title">parallelogram check</span>
+          </figcaption>
+          <div class="term-body" id="terminal-body" aria-live="polite"></div>
+        </figure>
+
+        <figure class="term" data-reveal>
+          <figcaption class="term-bar">
+            <span class="term-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="term-title">--fix --output clean.jsonl</span>
+          </figcaption>
+          <div class="term-body" id="demo-fix-body" aria-live="polite"></div>
+        </figure>
+        </div>
+
+        <p class="demo-note">The browser port counts tokens with the ~4 chars/token estimate, so context-window findings here are WARNINGs. The CLI uses exact tokenizers when installed.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───── 05 · CHECKS MATRIX #checks ───── -->
+  <span class="anchor-alias" id="rules"></span>
+  <section id="checks">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <p class="kicker">05 · Checks</p>
+        <h2>Checks built for fine-tuning data, not generic JSON.</h2>
+        <p class="section-sub">A JSON schema validator can tell you a record is well-formed. It can't tell you the conversation ends on the wrong speaker, repeats itself, or won't fit the model's context window.</p>
+      </div>
+
+      <div class="matrix-wrap" data-reveal tabindex="0" role="region" aria-label="Checks matrix — scrollable">
+        <table class="matrix">
+          <thead>
+            <tr>
+              <th scope="col">Check</th>
+              <th scope="col">Detects</th>
+              <th scope="col">Why it matters</th>
+              <th scope="col">Fixable</th>
+              <th scope="col">Severity</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">schema validation</th>
+              <td>Non-object records, missing <code>messages</code>, wrong types, invalid role values</td>
+              <td>Every other rule depends on its structural guarantees — it cannot be disabled</td>
+              <td>No — with <code>--fix</code> the record is dropped, with the reason</td>
+              <td><span class="pill pill--error">ERROR</span> <span class="pill">DROPPED</span></td>
+            </tr>
+            <tr>
+              <th scope="row">role alternation</th>
+              <td>Doubled turns, system message out of first position</td>
+              <td>Alternation is the supervision signal; the model learns to talk to itself</td>
+              <td>No — dropped</td>
+              <td><span class="pill pill--error">ERROR</span></td>
+            </tr>
+            <tr>
+              <th scope="row">assistant-final</th>
+              <td>Conversations that end on a user message</td>
+              <td>The last turn is the training target — ending on user means no target</td>
+              <td>No — dropped</td>
+              <td><span class="pill pill--error">ERROR</span></td>
+            </tr>
+            <tr>
+              <th scope="row">empty content</th>
+              <td>Empty or whitespace-only message content</td>
+              <td>The model trains to produce silence</td>
+              <td>Yes — empty turns dropped from the record</td>
+              <td><span class="pill pill--error">ERROR</span> <span class="pill pill--fixed">FIXED</span></td>
+            </tr>
+            <tr>
+              <th scope="row">duplicate detection</th>
+              <td>Exact-content duplicates, hashed with normalized whitespace</td>
+              <td>Memorization instead of generalization; inflated eval metrics</td>
+              <td>Yes — first occurrence kept</td>
+              <td><span class="pill pill--error">ERROR</span> <span class="pill pill--fixed">FIXED</span></td>
+            </tr>
+            <tr>
+              <th scope="row">encoding / mojibake</th>
+              <td>BOM markers, UTF-8 → latin-1 → UTF-8 round-trip artifacts</td>
+              <td>Corrupted punctuation gets baked into the weights</td>
+              <td>Yes — BOM stripped, mojibake repaired</td>
+              <td><span class="pill pill--warn">WARNING</span> <span class="pill pill--fixed">FIXED</span></td>
+            </tr>
+            <tr>
+              <th scope="row">context-window overflow</th>
+              <td>Records exceeding <code>--max-seq-len</code> (default 4096)</td>
+              <td>TRL truncates these silently, usually severing the assistant turn</td>
+              <td>Yes — longest user message truncated until the record fits</td>
+              <td><span class="pill pill--error">ERROR</span> <span class="pill pill--info">EXACT</span> <span class="pill pill--warn">WARNING</span> <span class="pill pill--est">ESTIMATED</span></td>
+            </tr>
+            <tr>
+              <th scope="row">safe fix output</th>
+              <td>What changed: unchanged / fixed / dropped / unparseable, per record</td>
+              <td>Repairs are mechanical and re-validated — anything still erroring is dropped, never papered over</td>
+              <td>Writes to <code>--output</code>; <code>--dry-run</code> previews</td>
+              <td><span class="pill pill--fixed">FIXED</span> <span class="pill">DROPPED</span></td>
+            </tr>
+            <tr>
+              <th scope="row">format normalization</th>
+              <td>OpenAI chat and ShareGPT shapes; anything else fails as schema</td>
+              <td>Every rule runs on one internal representation — formats never leak into rule logic</td>
+              <td>Applied at the parse boundary, not a repair</td>
+              <td><span class="pill pill--info">PARSE-TIME</span></td>
+            </tr>
+            <tr>
+              <th scope="row">tokenizer-aware counting</th>
+              <td>Per-record token totals against the budget</td>
+              <td>Exact counts make overflow a hard gate; estimates stay honest as warnings</td>
+              <td>Feeds the context-window rule</td>
+              <td><span class="pill pill--info">EXACT</span> <span class="pill pill--est">ESTIMATED</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───── 06 · TOKENIZERS #tokenizers ───── -->
+  <section id="tokenizers">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <p class="kicker">06 · Tokenizers</p>
+        <h2>Context-window checks with exact tokenizers when possible.</h2>
+        <p class="section-sub">When an exact tokenizer is available — tiktoken for OpenAI models, Hugging Face tokenizers for open-weight models — overflow is a hard ERROR. Otherwise Parallelogram falls back to a ~4 chars/token estimate and reports a WARNING. A heuristic never deletes records or fails CI. Claude models have no offline tokenizer, so they always use the estimate.</p>
+      </div>
+
+      <div class="tok-grid" data-reveal>
+        <div class="tok-copy">
+        <div class="codeblock" data-reveal style="--i:0">
+          <pre><code><span class="pr">$</span> parallelogram check data.jsonl --tokenizer gpt-4o</code></pre>
+          <button class="copy-btn" type="button" data-copy="parallelogram check data.jsonl --tokenizer gpt-4o" aria-label="Copy: parallelogram check data.jsonl --tokenizer gpt-4o">
+            <svg class="copy-ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 2h7a1 1 0 0 1 1 1v7" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="5" width="8" height="9" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+            <span class="copy-label">Copy</span>
+          </button>
+        </div>
+        <div class="codeblock" data-reveal style="--i:1">
+          <pre><code><span class="pr">$</span> parallelogram check data.jsonl --tokenizer llama-3 --max-seq-len 8192</code></pre>
+          <button class="copy-btn" type="button" data-copy="parallelogram check data.jsonl --tokenizer llama-3 --max-seq-len 8192" aria-label="Copy: parallelogram check data.jsonl --tokenizer llama-3 --max-seq-len 8192">
+            <svg class="copy-ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 2h7a1 1 0 0 1 1 1v7" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="5" width="8" height="9" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+            <span class="copy-label">Copy</span>
+          </button>
+        </div>
+        <div class="codeblock" data-reveal style="--i:2">
+          <pre><code><span class="pr">$</span> parallelogram check data.jsonl --tokenizer Qwen/Qwen2.5-7B --max-seq-len 32768</code></pre>
+          <button class="copy-btn" type="button" data-copy="parallelogram check data.jsonl --tokenizer Qwen/Qwen2.5-7B --max-seq-len 32768" aria-label="Copy: parallelogram check data.jsonl --tokenizer Qwen/Qwen2.5-7B --max-seq-len 32768">
+            <svg class="copy-ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 2h7a1 1 0 0 1 1 1v7" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="5" width="8" height="9" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+            <span class="copy-label">Copy</span>
+          </button>
+        </div>
+        </div>
+
+        <div class="meter" id="token-meter">
+        <div class="meter-head"><span class="meter-label">record tokens</span>
+          <span class="meter-count"><span id="meter-count" class="num">0</span> / 4096</span>
+          <span class="pill pill--info" id="meter-status">EXACT · o200k_base</span></div>
+        <div class="meter-track"><div class="meter-zone" aria-hidden="true"></div><div class="meter-fill" id="meter-fill"></div><div class="meter-marker" aria-hidden="true"><span>max_seq_len</span></div></div>
+        <p class="t-line err meter-diag" id="meter-diag" hidden>✗ train.jsonl:131 [context-window] 5234 &gt; 4096 tokens — assistant response at risk of truncation</p>
+          <button class="btn btn-ghost btn-sm" id="meter-replay" type="button">Replay</button>
+        </div>
+      </div>
+
+      <div class="tok-groups" data-reveal>
+        <div class="tok-group">
+          <h3 class="tok-group-title">tiktoken <span class="pill pill--info">EXACT</span></h3>
+          <div class="tok-list">
+            <span class="pill">gpt-4o</span><span class="pill">gpt-4.1</span><span class="pill">o1</span><span class="pill">o3</span><span class="pill pill--info">o200k_base</span>
           </div>
-          <div class="terminal-body" id="terminal-body" aria-live="polite"></div>
+          <div class="tok-list">
+            <span class="pill">gpt-4</span><span class="pill">gpt-3.5</span><span class="pill pill--info">cl100k_base</span>
+          </div>
+        </div>
+        <div class="tok-group">
+          <h3 class="tok-group-title">Hugging Face tokenizers <span class="pill pill--info">EXACT</span></h3>
+          <div class="tok-list">
+            <span class="pill">llama-3</span><span class="pill">mistral</span><span class="pill">mixtral</span><span class="pill">qwen2.5</span><span class="pill">gemma-2</span><span class="pill">phi-3</span><span class="pill">any HF repo id</span>
+          </div>
+        </div>
+        <div class="tok-group">
+          <h3 class="tok-group-title">no offline tokenizer <span class="pill pill--est">ESTIMATED</span></h3>
+          <div class="tok-list">
+            <span class="pill">Claude models</span><span class="pill">~4 chars/token</span><span class="pill pill--warn">WARNING, never ERROR</span>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ───────────────────────────────────────────  RULES GRID  ──────── -->
-  <section class="rules" id="rules">
-    <div class="container">
-      <div class="section-head">
-        <span class="kicker">/ 02 — what it checks</span>
-        <h2 class="section-title">Six rules. Every silent killer.</h2>
-        <p class="section-sub">
-          Every check maps to a real failure mode that has cost someone a training run.
-          Rules are pluggable; the v0.4 set is non-negotiable.
-        </p>
+  <!-- ───── 07 · FORMATS #formats ───── -->
+  <section id="formats">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <p class="kicker">07 · Formats</p>
+        <h2>Normalize formats once. Run every rule unchanged.</h2>
+        <p class="section-sub">Two formats ship today. Both collapse to the same internal message list at the parse boundary, and <code>--output</code> writes survivors back in the shape they came in.</p>
       </div>
 
-      <div class="rule-list">
+      <div class="fmt-grid" data-reveal>
+        <div class="card format-card" style="--i:0">
+          <h3>OpenAI chat <span class="pill">--format openai-chat · default</span></h3>
+          <pre class="mini-code"><code>{"messages":[{"role":"user","content":"…"}]}</code></pre>
+          <p class="format-arrow" aria-hidden="true">↓ normalized</p>
+        </div>
+        <div class="card format-card" style="--i:1">
+          <h3>ShareGPT <span class="pill">--format sharegpt</span></h3>
+          <pre class="mini-code"><code>{"conversations":[{"from":"human","value":"…"}]}</code></pre>
+          <p class="format-arrow" aria-hidden="true">↓ normalized</p>
+        </div>
+        <div class="card format-card format-card--internal" style="--i:2">
+          <h3>One internal message shape</h3>
+          <pre class="mini-code"><code>[Message(role, content), …]   # all six rules run here</code></pre>
+        </div>
+      </div>
 
-        <article class="rule-row reveal" data-reveal>
-          <div class="rule-meta">
-            <span class="rule-id">schema</span>
-            <span class="rule-sev sev-err">error</span>
-          </div>
-          <div class="rule-text">
-            <h3>Malformed records.</h3>
-            <p>Missing fields, wrong types, invalid roles. The first rule, because every other rule assumes it.</p>
-          </div>
-          <pre class="rule-snippet"><span class="s-dim">data.jsonl:84</span>
-{<span class="s-key">"messages"</span>: [{<span class="s-key">"role"</span>: <span class="s-bad">"owner"</span>, <span class="s-key">"content"</span>: <span class="s-str">"…"</span>}]}
-          <span class="s-caret">^^^^^^^</span> <span class="s-bad-text">invalid role: must be system|user|assistant|tool</span></pre>
-        </article>
-
-        <article class="rule-row reveal" data-reveal>
-          <div class="rule-meta">
-            <span class="rule-id">roles</span>
-            <span class="rule-sev sev-err">error</span>
-          </div>
-          <div class="rule-text">
-            <h3>Bad role sequences.</h3>
-            <p>System out of place. Doubled turns. Conversations that don't end on the assistant. The model learns to talk to itself.</p>
-          </div>
-          <pre class="rule-snippet"><span class="s-dim">data.jsonl:23</span>
-[user → user → assistant]
-        <span class="s-caret">^^^^</span> <span class="s-bad-text">role alternation broken at turn 1: expected 'assistant', got 'user'</span></pre>
-        </article>
-
-        <article class="rule-row reveal" data-reveal>
-          <div class="rule-meta">
-            <span class="rule-id">empty-content</span>
-            <span class="rule-sev sev-err">error</span>
-          </div>
-          <div class="rule-text">
-            <h3>Empty turns.</h3>
-            <p>Whitespace-only content slips past most validators. The model trains to produce silence.</p>
-          </div>
-          <pre class="rule-snippet"><span class="s-dim">data.jsonl:312</span>
-{<span class="s-key">"role"</span>: <span class="s-str">"user"</span>, <span class="s-key">"content"</span>: <span class="s-bad">"   "</span>}
-                        <span class="s-caret">^^^^^</span> <span class="s-bad-text">message 0 has empty content</span></pre>
-        </article>
-
-        <article class="rule-row reveal" data-reveal>
-          <div class="rule-meta">
-            <span class="rule-id">context-window</span>
-            <span class="rule-sev sev-err">error</span>
-          </div>
-          <div class="rule-text">
-            <h3>Context-window overflow.</h3>
-            <p>TRL truncates oversized records silently — usually severing the assistant turn. You train on noise and don't know. Counted with the model's own tokenizer — tiktoken for OpenAI, HuggingFace for open-weight, approximate by default.</p>
-          </div>
-          <pre class="rule-snippet"><span class="s-dim">data.jsonl:1209</span>
-~8512 tokens > <span class="s-key">max_seq_len</span> = 8192
-<span class="s-bad-text">will be silently truncated, severing the assistant response</span></pre>
-        </article>
-
-        <article class="rule-row reveal" data-reveal>
-          <div class="rule-meta">
-            <span class="rule-id">duplicates</span>
-            <span class="rule-sev sev-err">error</span>
-          </div>
-          <div class="rule-text">
-            <h3>Exact duplicates.</h3>
-            <p>Repeated examples push the model toward memorization, not generalization. We hash with normalized whitespace so trivial differences don't mask real dupes.</p>
-          </div>
-          <pre class="rule-snippet"><span class="s-dim">data.jsonl:147</span>
-duplicate of line 89  <span class="s-dim">(3 copies total at lines: [89, 147, 402])</span></pre>
-        </article>
-
-        <article class="rule-row reveal" data-reveal>
-          <div class="rule-meta">
-            <span class="rule-id">encoding</span>
-            <span class="rule-sev sev-warn">warning</span>
-          </div>
-          <div class="rule-text">
-            <h3>Mojibake &amp; BOM.</h3>
-            <p>UTF-8 → latin-1 → UTF-8 round-trips look fine in your editor and ruin your model's punctuation forever.</p>
-          </div>
-          <pre class="rule-snippet"><span class="s-dim">data.jsonl:401</span>
-"don<span class="s-bad">â€™</span>t do it" <span class="s-dim">→ should be:</span> "don't do it"
-      <span class="s-caret">^^^</span> <span class="s-bad-text">latin-1 → UTF-8 round-trip artifact</span></pre>
-        </article>
-
+      <div class="roadmap" data-reveal>
+        <div class="roadmap-head">
+          <span class="pill pill--planned">PLANNED</span>
+          <h3>Roadmap — not shipped yet</h3>
+        </div>
+        <p>None of this exists in v0.4.0. It's listed so you know where the project is going — not what you're installing today.</p>
+        <ul class="roadmap-items">
+          <li>raw-completion <span class="pill pill--info">next</span></li>
+          <li>Alpaca</li>
+          <li>Dolly</li>
+          <li>ChatML</li>
+          <li>TRL conversational</li>
+          <li>Axolotl variants</li>
+          <li>Unsloth-ready exports</li>
+          <li>dataset quality scoring</li>
+          <li>PII detection</li>
+          <li>semantic duplicate detection</li>
+        </ul>
       </div>
     </div>
   </section>
 
-  <!-- ─────────────────────────────────────────  COMPARE DEMO  ──────── -->
-  <section class="compare" id="compare">
-    <div class="container">
-      <div class="section-head">
-        <span class="kicker">/ in motion — input vs output</span>
-        <h2 class="section-title">Watch a broken dataset get walled off.</h2>
-        <p class="section-sub">
-          547 records in. Three errors and one warning identified. 543 records out, ready
-          to train. The rejected lines stay on your disk; nothing leaves your machine.
-        </p>
-        <button class="demo-resume compare-replay" type="button" id="compare-replay" hidden>↻ replay</button>
+  <!-- ───── 08 · BEFORE/AFTER #compare ───── -->
+  <section id="compare">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <p class="kicker">08 · Before / after</p>
+        <h2>Before Parallelogram / after Parallelogram.</h2>
+        <p class="section-sub">547 records in, 543 out — and you know exactly what happened to the other four. Nothing leaves your machine.</p>
       </div>
 
-      <div class="compare-grid reveal" data-reveal>
-        <div class="compare-pane in-pane">
-          <div class="compare-head">
-            <span class="compare-label">data.jsonl</span>
-            <span class="compare-meta"><span class="cm-num" id="cm-in">547</span> records</span>
+      <div class="static-grid" data-reveal>
+        <div class="card cmp-static cmp-static--before" style="--i:0">
+          <h3>Before</h3>
+          <ul>
+            <li>Training starts on unknown quality</li>
+            <li>Silent truncation of oversized records</li>
+            <li>Duplicates inflating eval metrics</li>
+            <li>Bad role orders training the model to talk to itself</li>
+            <li>Manual JSONL eyeballing as the last line of defense</li>
+          </ul>
+        </div>
+        <div class="card cmp-static cmp-static--after" style="--i:1">
+          <h3>After</h3>
+          <ul>
+            <li>Preflight diagnostics with exact file:line and rule id</li>
+            <li>Exact-or-estimated context-window checks, labeled as such</li>
+            <li>Safe fixes written to <code>--output</code>, originals untouched</li>
+            <li>Bad records dropped with reasons, never silently</li>
+            <li>CI-friendly exit codes: 0 / 1 / 2</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="cmp-grid" data-reveal>
+        <div class="cmp-card in-pane">
+          <div class="cmp-head">
+            <span class="cmp-label">data.jsonl</span>
+            <span class="cmp-meta"><span class="cm-num" id="cm-in">547</span> records</span>
           </div>
-          <div class="compare-stream" id="compare-stream-in"></div>
+          <div class="cmp-stream" id="compare-stream-in"></div>
         </div>
 
         <div class="compare-arrow" aria-hidden="true">
@@ -283,332 +653,286 @@ duplicate of line 89  <span class="s-dim">(3 copies total at lines: [89, 147, 40
           <span class="ca-label">parallelogram check</span>
         </div>
 
-        <div class="compare-pane out-pane">
-          <div class="compare-head">
-            <span class="compare-label">clean.jsonl</span>
-            <span class="compare-meta"><span class="cm-num cm-good" id="cm-out">543</span> records</span>
+        <div class="cmp-card out-pane">
+          <div class="cmp-head">
+            <span class="cmp-label">clean.jsonl</span>
+            <span class="cmp-meta"><span class="cm-num cm-good" id="cm-out">543</span> records</span>
           </div>
-          <div class="compare-stream" id="compare-stream-out"></div>
+          <div class="cmp-stream" id="compare-stream-out"></div>
         </div>
+      </div>
+
+      <button class="btn btn-ghost btn-sm compare-replay" type="button" id="compare-replay" hidden>↻ replay</button>
+    </div>
+  </section>
+
+  <!-- ───── 09 · QUICKSTART #quickstart ───── -->
+  <span class="anchor-alias" id="install"></span>
+  <section id="quickstart">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <p class="kicker">09 · Quickstart</p>
+        <h2>Install. Point it at a dataset. Read the diagnostics.</h2>
+        <p class="section-sub">No config file, no account, no network. Python ≥ 3.10.</p>
+      </div>
+
+      <div class="qs-steps">
+        <div class="codeblock" data-reveal style="--i:0">
+          <pre><code><span class="dim"># install — the extras add exact tokenizers (tiktoken + HF)</span>
+<span class="pr">$</span> pip install parallelogram
+<span class="pr">$</span> pip install 'parallelogram[tokenizer]'</code></pre>
+          <button class="copy-btn" type="button" data-copy="pip install parallelogram&#10;pip install 'parallelogram[tokenizer]'" aria-label="Copy: pip install parallelogram">
+            <svg class="copy-ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 2h7a1 1 0 0 1 1 1v7" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="5" width="8" height="9" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+            <span class="copy-label">Copy</span>
+          </button>
+        </div>
+
+        <div class="codeblock" data-reveal style="--i:1">
+          <pre><code><span class="dim"># validate — openai-chat is the default format</span>
+<span class="pr">$</span> parallelogram check data.jsonl</code></pre>
+          <button class="copy-btn" type="button" data-copy="parallelogram check data.jsonl" aria-label="Copy: parallelogram check data.jsonl">
+            <svg class="copy-ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 2h7a1 1 0 0 1 1 1v7" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="5" width="8" height="9" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+            <span class="copy-label">Copy</span>
+          </button>
+        </div>
+
+        <div class="codeblock" data-reveal style="--i:2">
+          <pre><code><span class="dim"># ShareGPT datasets — every rule runs identically</span>
+<span class="pr">$</span> parallelogram check data.jsonl --format sharegpt</code></pre>
+          <button class="copy-btn" type="button" data-copy="parallelogram check data.jsonl --format sharegpt" aria-label="Copy: parallelogram check data.jsonl --format sharegpt">
+            <svg class="copy-ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 2h7a1 1 0 0 1 1 1v7" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="5" width="8" height="9" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+            <span class="copy-label">Copy</span>
+          </button>
+        </div>
+
+        <div class="codeblock" data-reveal style="--i:3">
+          <pre><code><span class="dim"># repair what's mechanical, drop what isn't — with reasons</span>
+<span class="pr">$</span> parallelogram check data.jsonl --fix --output clean.jsonl</code></pre>
+          <button class="copy-btn" type="button" data-copy="parallelogram check data.jsonl --fix --output clean.jsonl" aria-label="Copy: parallelogram check data.jsonl --fix --output clean.jsonl">
+            <svg class="copy-ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 2h7a1 1 0 0 1 1 1v7" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="5" width="8" height="9" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+            <span class="copy-label">Copy</span>
+          </button>
+        </div>
+
+        <div class="codeblock" data-reveal style="--i:4">
+          <pre><code><span class="dim"># exact token counts against a budget</span>
+<span class="pr">$</span> parallelogram check data.jsonl --tokenizer gpt-4o --max-seq-len 4096</code></pre>
+          <button class="copy-btn" type="button" data-copy="parallelogram check data.jsonl --tokenizer gpt-4o --max-seq-len 4096" aria-label="Copy: parallelogram check data.jsonl --tokenizer gpt-4o --max-seq-len 4096">
+            <svg class="copy-ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 2h7a1 1 0 0 1 1 1v7" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="5" width="8" height="9" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+            <span class="copy-label">Copy</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="exit-codes" data-reveal>
+        <span class="exit-codes-label">exit codes</span>
+        <div class="exit-code-pill" id="ec-0"><span class="ec-num">0</span><span class="ec-text">clean</span></div>
+        <div class="exit-code-pill" id="ec-1"><span class="ec-num">1</span><span class="ec-text">warnings · partial fix</span></div>
+        <div class="exit-code-pill" id="ec-2"><span class="ec-num">2</span><span class="ec-text">errors · nothing fixable</span></div>
+      </div>
+
+      <div class="matrix-wrap" data-reveal tabindex="0" role="region" aria-label="Exit codes — scrollable">
+        <table class="matrix exit-table">
+          <thead>
+            <tr><th scope="col">Code</th><th scope="col">Meaning (check)</th><th scope="col">Meaning (--fix)</th></tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">0</th><td>Clean.</td><td>All records emitted clean.</td></tr>
+            <tr><th scope="row">1</th><td>Warnings only.</td><td>Some records dropped (partial fix).</td></tr>
+            <tr><th scope="row">2</th><td>Errors.</td><td>Nothing fixable.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="qs-guarantee" data-reveal>If it exits 0 with all rules enabled, your run won't fail because of data.</p>
+
+      <div class="codeblock" data-reveal>
+        <pre><code><span class="dim"># .github/workflows/data.yml — gate dataset PRs like code PRs</span>
+- run: pip install 'parallelogram[tokenizer]'
+- run: parallelogram check data/train.jsonl --tokenizer mistral --max-seq-len 32768</code></pre>
+        <button class="copy-btn" type="button" data-copy="- run: pip install 'parallelogram[tokenizer]'&#10;- run: parallelogram check data/train.jsonl --tokenizer mistral --max-seq-len 32768" aria-label="Copy: GitHub Actions workflow steps">
+          <svg class="copy-ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 2h7a1 1 0 0 1 1 1v7" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="5" width="8" height="9" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+          <span class="copy-label">Copy</span>
+        </button>
       </div>
     </div>
   </section>
 
-  <!-- ───────────────────────────────────────────  CI  ──────────────── -->
-  <section class="mobile-usecase" id="ci">
-    <div class="container two-col">
-      <div class="two-col-text">
-        <span class="kicker">/ 03 — anywhere a build runs</span>
-        <h2 class="section-title">Free CI integration.<br/>No config required.</h2>
-        <p class="section-sub">
-          Clean POSIX exit codes — <code>0</code> clean, <code>1</code> warnings, <code>2</code> errors —
-          plus a structured JSON report. Drop one line into your workflow and your training data
-          gets the same gate as your code.
-        </p>
-
-        <pre class="codeblock"><span class="comm"># .github/workflows/data.yml</span>
-<span class="k">- run:</span> pip install parallelogram
-<span class="k">- run:</span> parallelogram check data.jsonl <span class="g">--json</span></pre>
-
-        <div class="exit-codes">
-          <span class="exit-codes-label">exit codes</span>
-          <div class="exit-code-pill ec-0" id="ec-0"><span class="ec-num">0</span><span class="ec-text">clean</span></div>
-          <div class="exit-code-pill ec-1" id="ec-1"><span class="ec-num">1</span><span class="ec-text">warnings</span></div>
-          <div class="exit-code-pill ec-2" id="ec-2"><span class="ec-num">2</span><span class="ec-text">errors</span></div>
-        </div>
-
-        <ul class="bullet-list">
-          <li><span class="green-dot"></span>No telemetry. No upload boundary. No backend.</li>
-          <li><span class="green-dot"></span>Streams the file. Memory stays flat at 100k records.</li>
-          <li><span class="green-dot"></span>Pluggable rules — disable or extend without forking.</li>
-        </ul>
+  <!-- ───── 10 · USE CASES #use-cases ───── -->
+  <span class="anchor-alias" id="integrations"></span>
+  <section id="use-cases">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <p class="kicker">10 · Use cases</p>
+        <h2>Run it wherever a dataset meets a trainer.</h2>
+        <p class="section-sub">One command between your raw data and anything that consumes it.</p>
       </div>
 
-      <div class="ci-wrap reveal" data-reveal>
-        <div class="ci-card">
-          <div class="ci-card-head">
-            <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path fill="#9CA3AD" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"></path></svg>
-            <span class="ci-source">github.com / Thatayotlhe04 / openai-fine-tune</span>
-            <span class="ci-time">PR #847 · 2m ago</span>
-          </div>
-
-          <div class="ci-card-title">
-            <span class="badge badge-fail" aria-hidden="true">×</span>
-            <div>
-              <strong>Check failed</strong> · <span class="ci-action">parallelogram / data</span>
-              <p class="ci-sub">3 errors, 1 warning in <code>data.jsonl</code></p>
-            </div>
-          </div>
-
-          <div class="ci-issues">
-            <div class="ci-issue err">
-              <span class="line">L23</span>
-              <span class="rid">roles</span>
-              <span class="msg">Conversation must end on 'assistant', ended on 'user'</span>
-            </div>
-            <div class="ci-issue err">
-              <span class="line">L147</span>
-              <span class="rid">duplicates</span>
-              <span class="msg">Duplicate of line 89</span>
-            </div>
-            <div class="ci-issue err">
-              <span class="line">L312</span>
-              <span class="rid">context-window</span>
-              <span class="msg">Record exceeds max_seq_len: ~8512 &gt; 8192 tokens</span>
-            </div>
-            <div class="ci-issue warn">
-              <span class="line">L401</span>
-              <span class="rid">encoding</span>
-              <span class="msg">Likely mojibake: 'â€™'</span>
-            </div>
-          </div>
-
-          <div class="ci-foot">
-            <span class="ci-foot-pill"><span class="bullet b-err"></span>3 errors</span>
-            <span class="ci-foot-pill"><span class="bullet b-warn"></span>1 warning</span>
-            <span class="ci-foot-pill"><span class="bullet b-ok"></span>543 clean</span>
-            <span class="ci-foot-action">Re-run jobs</span>
-          </div>
-        </div>
+      <div class="card-grid">
+        <article class="card" data-reveal style="--i:0">
+          <h3>Before OpenAI fine-tuning</h3>
+          <p>Validate the JSONL before you upload it to the <a href="https://platform.openai.com/docs/guides/fine-tuning" target="_blank" rel="noopener">OpenAI fine-tuning API</a> — catch rejections and silent quality issues before the job is queued.</p>
+        </article>
+        <article class="card" data-reveal style="--i:1">
+          <h3>Before Axolotl / TRL / Unsloth runs</h3>
+          <p><a href="https://github.com/OpenAccess-AI-Collective/axolotl" target="_blank" rel="noopener">Axolotl</a>, <a href="https://github.com/huggingface/trl" target="_blank" rel="noopener">TRL</a>, and <a href="https://github.com/unslothai/unsloth" target="_blank" rel="noopener">Unsloth</a> assume your data is clean. None of them verify it. Run the preflight before the GPU bill starts.</p>
+        </article>
+        <article class="card" data-reveal style="--i:2">
+          <h3>Cleaning ShareGPT datasets</h3>
+          <p>Public ShareGPT dumps are full of duplicates, broken turn orders, and mojibake. <code>--format sharegpt --fix</code> writes the survivors back in ShareGPT shape.</p>
+        </article>
+        <article class="card" data-reveal style="--i:3">
+          <h3>Checking synthetic instruction data</h3>
+          <p>Generation pipelines drift: empty completions, repeated samples, truncated records. Validate the output before it contaminates a training mix.</p>
+        </article>
+        <article class="card" data-reveal style="--i:4">
+          <h3>CI gate for dataset PRs</h3>
+          <p>Exit codes 0/1/2 map directly to CI status with no extra wiring. A dataset PR that breaks role order fails the same way a code PR with a failing test does.</p>
+        </article>
+        <article class="card" data-reveal style="--i:5">
+          <h3>Preflight for SLM training data</h3>
+          <p>Small models are less forgiving of dirty data, and small-model runs repeat often. Make the structural check a fixed step, not a vibe check.</p>
+        </article>
       </div>
     </div>
   </section>
 
-  <!-- ───────────────────────────────────────────  INSTALL  ─────────── -->
-  <section class="install" id="install">
-    <div class="container">
-      <div class="section-head center">
-        <span class="kicker">/ 04 — quickstart</span>
-        <h2 class="section-title">A few commands.<br/>Then never lose a run again.</h2>
+  <!-- ───── 11 · TRUST #open-source ───── -->
+  <section id="open-source">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <p class="kicker">11 · Open source</p>
+        <h2>Open source, local, and honest about what it can't see.</h2>
+        <p class="section-sub">Apache-2.0. Runs entirely on your machine — no telemetry, no network, nothing uploaded. The source is on GitHub, the package is on PyPI, and a heuristic is always labeled as one.</p>
       </div>
 
-      <div class="install-grid">
-        <div class="install-card reveal" data-reveal>
-          <span class="step">01</span>
-          <h4>Install</h4>
-          <pre class="codeblock dark"><span class="prompt">$</span> pip install parallelogram<button class="install-copy-btn" type="button" aria-label="Copy install command" data-copy-text="pip install parallelogram"><svg viewBox="0 0 16 16" width="13" height="13"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M5 5V3a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1h-2M3 5h7a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"></path></svg></button></pre>
-          <p class="muted">One command, on PyPI. No GPU, no network, no config.</p>
+      <div class="trust-band" data-reveal>
+        <div class="trust-item">
+          <span class="trust-item-label">Apache-2.0</span>
+          <h3>Permissive license</h3>
+          <p>Use it anywhere, fork it, ship it. The <a href="https://github.com/Thatayotlhe04/Parallelogram/blob/main/LICENSE" target="_blank" rel="noopener">license</a> has no strings.</p>
         </div>
+        <div class="trust-item">
+          <span class="trust-item-label">local-only</span>
+          <h3>Nothing is uploaded</h3>
+          <p>Your dataset never leaves your disk. No telemetry, no network — the upload boundary doesn't exist.</p>
+        </div>
+        <div class="trust-item">
+          <span class="trust-item-label">on PyPI</span>
+          <h3>One pip install</h3>
+          <p><a href="https://pypi.org/project/parallelogram/" target="_blank" rel="noopener"><code>pip install parallelogram</code></a> — nothing else to set up, nothing to sign up for.</p>
+        </div>
+        <div class="trust-item">
+          <span class="trust-item-label">honest limits</span>
+          <h3>Labeled heuristics</h3>
+          <p>It validates structure and token budgets. It can't judge whether your answers are good — yet. That honesty is the point.</p>
+        </div>
+      </div>
 
-        <div class="install-card reveal" data-reveal style="--d:.08s">
-          <span class="step">02</span>
-          <h4>Validate</h4>
-          <pre class="codeblock dark"><span class="prompt">$</span> parallelogram check data.jsonl<button class="install-copy-btn" type="button" aria-label="Copy validate command" data-copy-text="parallelogram check data.jsonl"><svg viewBox="0 0 16 16" width="13" height="13"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M5 5V3a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1h-2M3 5h7a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"></path></svg></button></pre>
-          <p class="muted">Exits 0 if your data is fine. Otherwise, exact lines and rules.</p>
-        </div>
-
-        <div class="install-card reveal" data-reveal style="--d:.16s">
-          <span class="step">03</span>
-          <h4>Repair</h4>
-          <pre class="codeblock dark"><span class="prompt">$</span> parallelogram check data.jsonl <span class="g">\</span>
-    <span class="g">--fix --output</span> clean.jsonl<button class="install-copy-btn" type="button" aria-label="Copy repair command" data-copy-text="parallelogram check data.jsonl \&#10;  --fix --output clean.jsonl"><svg viewBox="0 0 16 16" width="13" height="13"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M5 5V3a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1h-2M3 5h7a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"></path></svg></button></pre>
-          <p class="muted">Mechanical fixes — dedupe, BOM strip, mojibake repair. Free, local, no network.</p>
-        </div>
-
-        <div class="install-card reveal" data-reveal style="--d:.24s">
-          <span class="step">04</span>
-          <h4>Ship</h4>
-          <pre class="codeblock dark"><span class="prompt">$</span> parallelogram check clean.jsonl<button class="install-copy-btn" type="button" aria-label="Copy ship command" data-copy-text="parallelogram check clean.jsonl"><svg viewBox="0 0 16 16" width="13" height="13"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M5 5V3a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1h-2M3 5h7a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"></path></svg></button></pre>
-          <p class="muted">Re-validates clean. Ready to feed your trainer.</p>
-        </div>
+      <div class="trust-cta" data-reveal>
+        <a class="btn btn-primary" href="https://github.com/Thatayotlhe04/Parallelogram/issues" target="_blank" rel="noopener">Try it on a real dataset and tell me what it misses.</a>
       </div>
     </div>
   </section>
 
-  <!-- ─────────────────────────────────────────  PIPELINE DIAGRAM  ──── -->
-  <section class="pipeline">
-    <div class="container">
-      <div class="section-head center">
-        <span class="kicker">/ where it sits</span>
-        <h2 class="section-title">One step. One file. No surprises downstream.</h2>
+  <!-- ───── 12 · VISION #vision ───── -->
+  <section id="vision">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <p class="kicker">12 · Vision</p>
+        <h2>From dataset validation to semantic data quality.</h2>
+        <p class="section-sub">Structural checks are the floor, not the ceiling. The plan, in the order it will ship:</p>
       </div>
 
-      <div class="pipeline-row reveal" data-reveal>
-        <div class="pipe-node pn-raw">
-          <span class="pn-icon">📄</span>
-          <span class="pn-label">raw.jsonl</span>
-          <span class="pn-meta">unverified</span>
-        </div>
-
-        <div class="pipe-link">
-          <div class="pipe-track"></div>
-          <div class="pipe-dot pd-1"></div>
-          <div class="pipe-dot pd-2"></div>
-          <div class="pipe-dot pd-3"></div>
-        </div>
-
-        <div class="pipe-node pn-tool">
-          <span class="pn-icon">
-            <svg viewBox="0 0 28 24" width="22" height="20" aria-hidden="true">
-              <path d="M7 3 L25 3 L21 21 L3 21 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
-            </svg>
-          </span>
-          <span class="pn-label">parallelogram</span>
-          <span class="pn-meta">6 rules</span>
-        </div>
-
-        <div class="pipe-link">
-          <div class="pipe-track"></div>
-          <div class="pipe-dot pd-1" style="animation-delay:.5s"></div>
-          <div class="pipe-dot pd-2" style="animation-delay:.5s"></div>
-          <div class="pipe-dot pd-3" style="animation-delay:.5s"></div>
-        </div>
-
-        <div class="pipe-node pn-clean">
-          <span class="pn-icon">✓</span>
-          <span class="pn-label">clean.jsonl</span>
-          <span class="pn-meta">verified</span>
-        </div>
-
-        <div class="pipe-link">
-          <div class="pipe-track"></div>
-          <div class="pipe-dot pd-1" style="animation-delay:1s"></div>
-          <div class="pipe-dot pd-2" style="animation-delay:1s"></div>
-          <div class="pipe-dot pd-3" style="animation-delay:1s"></div>
-        </div>
-
-        <div class="pipe-node pn-trainer">
-          <span class="pn-icon">⚙</span>
-          <span class="pn-label">trainer</span>
-          <span class="pn-meta">no nasty surprises</span>
-        </div>
-      </div>
+      <ol class="timeline">
+        <li class="tl-node" data-reveal style="--i:0">
+          <span class="tl-stage">Today · v0.4.0</span>
+          <h3>Structural preflight</h3>
+          <p>Schema, roles, duplicates, encoding, token budgets — shipped and running locally in v0.4.0.</p>
+        </li>
+        <li class="tl-node" data-reveal style="--i:1">
+          <span class="tl-stage">Next</span>
+          <h3>Wider surface</h3>
+          <p>More dataset formats (raw-completion first), CI reports, richer tokenizer support.</p>
+        </li>
+        <li class="tl-node" data-reveal style="--i:2">
+          <span class="tl-stage">Later</span>
+          <h3>Semantic data quality</h3>
+          <p>Semantic duplicate detection, PII and compliance scans, synthetic data quality scoring, SLM data tiers, dataset readiness reports, team workflows.</p>
+        </li>
+      </ol>
     </div>
   </section>
 
-  <!-- ───────────────────────────────────────────  INTEGRATIONS  ────── -->
-  <section class="integrations" id="integrations">
-    <div class="container">
-      <div class="section-head center">
-        <span class="kicker">/ 05 — works with</span>
-        <h2 class="section-title">Validates the formats your trainer already speaks.</h2>
-      </div>
-
-      <div class="integ-row">
-        <a class="integ-plate" href="https://github.com/OpenAccess-AI-Collective/axolotl" target="_blank" rel="noopener" aria-label="Axolotl">
-          <span class="wm wm-axolotl">axolotl</span>
-        </a>
-        <a class="integ-plate" href="https://github.com/unslothai/unsloth" target="_blank" rel="noopener" aria-label="Unsloth">
-          <span class="wm wm-unsloth">🦥 Unsloth</span>
-        </a>
-        <a class="integ-plate" href="https://github.com/huggingface/trl" target="_blank" rel="noopener" aria-label="TRL">
-          <span class="wm wm-trl">TRL</span>
-        </a>
-        <a class="integ-plate" href="https://huggingface.co" target="_blank" rel="noopener" aria-label="Hugging Face">
-          <span class="wm wm-hf">🤗 Hugging Face</span>
-        </a>
-        <a class="integ-plate" href="https://platform.openai.com/docs/guides/fine-tuning" target="_blank" rel="noopener" aria-label="OpenAI fine-tuning">
-          <span class="wm wm-oai">
-            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M22.282 9.821a5.985 5.985 0 0 0-.516-4.91 6.046 6.046 0 0 0-6.51-2.9A6.065 6.065 0 0 0 4.981 4.18a5.985 5.985 0 0 0-3.998 2.9 6.046 6.046 0 0 0 .743 7.097 5.98 5.98 0 0 0 .51 4.911 6.051 6.051 0 0 0 6.515 2.9A5.985 5.985 0 0 0 13.26 24a6.056 6.056 0 0 0 5.772-4.206 5.99 5.99 0 0 0 3.997-2.9 6.056 6.056 0 0 0-.747-7.073zM13.26 22.43a4.476 4.476 0 0 1-2.876-1.04l.141-.081 4.779-2.758a.795.795 0 0 0 .392-.681v-6.737l2.02 1.168a.071.071 0 0 1 .038.052v5.583a4.504 4.504 0 0 1-4.494 4.494zM3.6 18.304a4.47 4.47 0 0 1-.535-3.014l.142.085 4.783 2.759a.771.771 0 0 0 .78 0l5.843-3.369v2.332a.08.08 0 0 1-.033.062L9.74 19.95a4.5 4.5 0 0 1-6.14-1.646zM2.34 7.896a4.485 4.485 0 0 1 2.366-1.973V11.6a.766.766 0 0 0 .388.676l5.815 3.355-2.02 1.168a.076.076 0 0 1-.071 0l-4.83-2.786A4.504 4.504 0 0 1 2.34 7.872zm16.597 3.855l-5.833-3.387L15.119 7.15a.076.076 0 0 1 .071 0l4.83 2.791a4.494 4.494 0 0 1-.676 8.105v-5.678a.79.79 0 0 0-.407-.667zm2.01-3.023l-.141-.085-4.774-2.782a.776.776 0 0 0-.785 0L9.409 9.23V6.897a.066.066 0 0 1 .028-.061l4.83-2.787a4.5 4.5 0 0 1 6.68 4.66zm-12.64 4.135l-2.02-1.164a.08.08 0 0 1-.038-.057V6.075a4.5 4.5 0 0 1 7.375-3.453l-.142.08L8.704 5.46a.795.795 0 0 0-.393.681zm1.097-2.365l2.602-1.5 2.607 1.5v2.999l-2.597 1.5-2.607-1.5z"></path></svg>
-            OpenAI
-          </span>
-        </a>
-        <a class="integ-plate" href="https://github.com/features/actions" target="_blank" rel="noopener" aria-label="GitHub Actions">
-          <span class="wm wm-gha">
-            <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"></path></svg>
-            GitHub Actions
-          </span>
-        </a>
-      </div>
-
-      <p class="integ-note">
-        v0.4 supports OpenAI chat (<code>{"messages":[…]}</code>) and ShareGPT
-        (<code>{"conversations":[…]}</code>). raw-completion shipping next.
-      </p>
-    </div>
-  </section>
-
-  <!-- ─────────────────────────────────────────  STATS BAND  ────────── -->
-  <section class="stats">
-    <div class="container">
-      <div class="stats-row reveal" data-reveal>
-        <div class="stat">
-          <span class="stat-num"><span data-counter="0">0</span></span>
-          <span class="stat-label">records uploaded</span>
-          <span class="stat-sub">no telemetry, ever</span>
-        </div>
-        <div class="stat-divider" aria-hidden="true"></div>
-        <div class="stat">
-          <span class="stat-num"><span data-counter="6">0</span></span>
-          <span class="stat-label">rules in v0.4</span>
-          <span class="stat-sub">covering every silent killer</span>
-        </div>
-        <div class="stat-divider" aria-hidden="true"></div>
-        <div class="stat">
-          <span class="stat-num">~<span data-counter="100">0</span><span class="stat-unit">ms</span></span>
-          <span class="stat-label">per 1k records</span>
-          <span class="stat-sub">streaming, O(1) memory</span>
-        </div>
-        <div class="stat-divider" aria-hidden="true"></div>
-        <div class="stat">
-          <span class="stat-num">$<span data-counter="0">0</span></span>
-          <span class="stat-label">to use</span>
-          <span class="stat-sub">apache 2.0, forever</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ───────────────────────────────────────────  CTA  ─────────────── -->
-  <section class="final-cta">
-    <div class="container">
-      <div class="cta-inner reveal" data-reveal>
+  <!-- ───── 13 · FINAL CTA #cta ───── -->
+  <section id="cta">
+    <div class="wrap">
+      <div class="cta-panel" data-reveal>
         <span class="cta-glyph" aria-hidden="true">
           <svg viewBox="0 0 80 60" width="80" height="60"><path d="M22 8 L72 8 L58 52 L8 52 Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
         </span>
-        <h2>Run before you train.</h2>
-        <p>Free, open source, local. No telemetry, no upload, no account.</p>
-        <div class="cta-buttons">
-          <a class="btn btn-primary lg" href="#install">Get started <span class="arr">→</span></a>
-          <a class="btn btn-ghost lg" href="https://github.com/Thatayotlhe04/Parallelogram" target="_blank" rel="noopener">Read the source</a>
+        <h2>Run it before your next fine-tune.</h2>
+        <div class="cta-ctas">
+          <a class="btn btn-primary" href="https://pypi.org/project/parallelogram/" target="_blank" rel="noopener">Install from PyPI</a>
+          <a class="btn btn-ghost" href="https://github.com/Thatayotlhe04/Parallelogram" target="_blank" rel="noopener">Star on GitHub</a>
+          <a class="btn btn-ghost" href="https://github.com/Thatayotlhe04/Parallelogram#readme" target="_blank" rel="noopener">Read the README</a>
+        </div>
+        <div class="codeblock cta-install">
+          <pre><code><span class="pr">$</span> pip install parallelogram &amp;&amp; parallelogram check data.jsonl</code></pre>
+          <button class="copy-btn" type="button" data-copy="pip install parallelogram &amp;&amp; parallelogram check data.jsonl" aria-label="Copy: pip install parallelogram and check data.jsonl">
+            <svg class="copy-ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 2h7a1 1 0 0 1 1 1v7" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="5" width="8" height="9" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+            <span class="copy-label">Copy</span>
+          </button>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ───────────────────────────────────────────  FOOTER  ──────────── -->
-  <footer class="foot">
-    <div class="container foot-inner">
-      <div class="foot-brand">
+  </main>
+
+  <!-- ───── 14 · FOOTER + COOKIE BANNER ───── -->
+  <footer class="footer">
+    <div class="wrap">
+      <div class="footer-brand">
         <svg class="brand-mark" viewBox="0 0 28 24" aria-hidden="true">
           <path d="M7 3 L25 3 L21 21 L3 21 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
         </svg>
         <span>parallelogram.dev</span>
       </div>
-      <div class="foot-cols">
-        <div>
-          <h5>Product</h5>
-          <a href="#demo">Demo</a>
-          <a href="#rules">Rules</a>
-          <a href="#install">Install</a>
+      <div class="footer-grid">
+        <div class="footer-col">
+          <h3>Product</h3>
+          <a href="#product">Product</a>
+          <a href="#checks">Checks</a>
+          <a href="#formats">Formats</a>
+          <a href="#tokenizers">Tokenizers</a>
         </div>
-        <div>
-          <h5>Open Source</h5>
+        <div class="footer-col">
+          <h3>Open source</h3>
           <a href="https://github.com/Thatayotlhe04/Parallelogram" target="_blank" rel="noopener">GitHub</a>
+          <a href="https://pypi.org/project/parallelogram/" target="_blank" rel="noopener">PyPI</a>
           <a href="https://github.com/Thatayotlhe04/Parallelogram/releases" target="_blank" rel="noopener">Releases</a>
-          <a href="https://github.com/Thatayotlhe04/Parallelogram/blob/main/LICENSE" target="_blank" rel="noopener">License (Apache 2.0)</a>
+          <a href="https://github.com/Thatayotlhe04/Parallelogram/blob/main/LICENSE" target="_blank" rel="noopener">License (Apache-2.0)</a>
+          <a href="https://github.com/Thatayotlhe04/Parallelogram#readme" target="_blank" rel="noopener">Docs / README</a>
         </div>
-        <div>
-          <h5>Roadmap</h5>
-          <a href="#">--fix (mechanical) — shipped</a>
-          <a href="#">Model-specific tokenizers — shipped</a>
-          <a href="#">ShareGPT format — shipped</a>
-          <a href="#">raw-completion format</a>
+        <div class="footer-col">
+          <h3>Project</h3>
+          <p>Author — Thatayotlhe Tsenang</p>
+          <p>v0.4.0</p>
+          <a href="mailto:tsenangthatayotlhe04@gmail.com">Contact</a>
+          <p>Built local-first — no telemetry</p>
         </div>
-        <div>
-          <h5>Legal</h5>
+        <div class="footer-col">
+          <h3>Legal</h3>
           <a href="privacy.html">Privacy policy</a>
           <a href="terms.html">Terms of use</a>
-          <a href="mailto:tsenangthatayotlhe04@gmail.com">Contact</a>
         </div>
       </div>
-      <div class="foot-line">
-        <span>© 2026 parallelogram.dev</span>
-        <span class="muted">v0.4 · the linter for fine-tuning data</span>
+      <div class="footer-bottom">
+        <span>© 2026 parallelogram.dev · v0.4.0 · preflight validation for fine-tuning datasets</span>
       </div>
     </div>
   </footer>
-
 
   <div class="cookie-banner" id="cookie-banner" role="dialog" aria-live="polite" aria-label="Cookie notice" hidden>
     <p>We use a small cookie to remember your privacy choice. No tracking, ads, or analytics.</p>
@@ -618,8 +942,7 @@ duplicate of line 89  <span class="s-dim">(3 copies total at lines: [89, 147, 40
     </div>
   </div>
 
-  <!-- defer so these run after the deferred GSAP libs above, in document order -->
-  <script defer src="demo.js"></script>
-  <script defer src="script.js"></script>
+  <div id="copy-announce" class="visually-hidden" aria-live="polite"></div>
+
 </body>
 </html>
