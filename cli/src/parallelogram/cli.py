@@ -31,6 +31,8 @@ from .core.io import atomic_write_jsonl
 from .core.report import Severity
 from .core.runner import Runner
 from .core.rules import registry
+from .formats import supported_formats
+from .formats.sharegpt import to_sharegpt
 
 # Importing the rule modules triggers self-registration via @registry.register.
 from .rules import (  # noqa: F401
@@ -64,7 +66,7 @@ def check(
     dataset_format: str = typer.Option(
         "openai-chat",
         "--format", "-f",
-        help="Dataset format. Only 'openai-chat' is supported.",
+        help="Dataset format: 'openai-chat' or 'sharegpt'.",
     ),
     tokenizer: Optional[str] = typer.Option(
         None,
@@ -108,9 +110,10 @@ def check(
     no_color: bool = typer.Option(False, "--no-color", help="Disable colored output."),
 ) -> None:
     """Check a fine-tuning dataset for problems that would silently corrupt training."""
-    if dataset_format != "openai-chat":
+    if dataset_format not in supported_formats():
         typer.echo(
-            f"format {dataset_format!r} is not supported (only 'openai-chat').",
+            f"format {dataset_format!r} is not supported. "
+            f"Valid formats: {supported_formats()}",
             err=True,
         )
         raise typer.Exit(2)
@@ -169,7 +172,7 @@ def check(
         else:
             rules.append(rc())
 
-    runner = Runner(rules)
+    runner = Runner(rules, dataset_format=dataset_format)
     console = Console(no_color=no_color)
 
     if fix:
@@ -218,7 +221,12 @@ def check(
             typer.echo(f"  ! FIXER ERROR: {err}", err=True)
 
         if not dry_run and output:
-            lines = [json.dumps(rec, ensure_ascii=False)
+            # Records were normalized to OpenAI-chat shape at parse time. When the
+            # input was ShareGPT, map them back so --fix emits the same format.
+            def _to_disk(rec):
+                return to_sharegpt(rec) if dataset_format == "sharegpt" else rec
+
+            lines = [json.dumps(_to_disk(rec), ensure_ascii=False)
                      for _, rec in fix_report.clean_records]
             atomic_write_jsonl(output, lines)
             if not json_output:

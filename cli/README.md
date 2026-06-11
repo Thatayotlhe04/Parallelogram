@@ -52,6 +52,14 @@ Write only the clean records to a new file:
 parallelogram check data.jsonl --output clean.jsonl
 ```
 
+ShareGPT datasets (`{"conversations": [{"from": ..., "value": ...}, ...]}`) are
+validated with `--format sharegpt` — every rule runs identically, and `--output`
+(with or without `--fix`) writes the surviving records back in ShareGPT shape:
+
+```bash
+parallelogram check data.jsonl --format sharegpt
+```
+
 ## `--fix` — mechanical repair
 
 When `parallelogram check` finds errors, `--fix` attempts to repair what it can without
@@ -114,7 +122,7 @@ left enabled passed — which may or may not be enough.
 
 | Flag | Description |
 |------|-------------|
-| `--format`, `-f` | Dataset format. Only `openai-chat` in v0.1. |
+| `--format`, `-f` | Dataset format: `openai-chat` (default) or `sharegpt`. |
 | `--tokenizer`, `-t` | Model or tokenizer for the context-window check — an OpenAI model (`gpt-4o`), or an HF repo/alias (`Qwen/Qwen2.5-7B`, `mistral`). Optional: omit for an approximate count. |
 | `--max-seq-len` | Token budget per record (default 4096). |
 | `--output`, `-o` | Write error-free records to this file. With `--fix`, writes the repaired dataset. |
@@ -147,15 +155,14 @@ These map directly to CI gates without any extra wiring.
 
 ## Status
 
-v0.3 — solo dev, local, pre-training run. No telemetry, no network, no upload boundary.
+v0.4 — solo dev, local, pre-training run. No telemetry, no network, no upload boundary.
 
 ## Roadmap
 
-- ShareGPT and raw-completion formats
 - ~~`--fix` mechanical tier (dedupe, truncate, normalize encoding)~~ ✓ shipped in v0.2
 - ~~Model-specific tokenizers (tiktoken/HF) with approximate fallback~~ ✓ shipped in v0.3
-- Opt-in anonymized error-type analytics (informs SLM tier scope)
-- `--fix --slm` paid hosted tier — repairs broken role sequences, incomplete turns
+- ~~ShareGPT format (`{"conversations": [...]}`)~~ ✓ shipped in v0.4
+- raw-completion format
 
 ## License
 

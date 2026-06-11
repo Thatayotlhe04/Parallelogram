@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from .report import Report, Issue, Severity
 from .rules import Rule
-from ..formats.openai_chat import iter_jsonl
+from ..formats import get_parser
 
 
 class Runner:
@@ -14,8 +14,9 @@ class Runner:
     duplicates that fire in finalize().
     """
 
-    def __init__(self, rules: list[Rule]):
+    def __init__(self, rules: list[Rule], dataset_format: str = "openai-chat"):
         self.rules = rules
+        self._iter_jsonl = get_parser(dataset_format)
 
     def run(self, path: str) -> tuple[Report, list[tuple[int, str]]]:
         """Validate and return (report, clean_raw_lines).
@@ -50,7 +51,7 @@ class Runner:
         for rule in self.rules:
             rule.reset()
 
-        for parsed in iter_jsonl(path):
+        for parsed in self._iter_jsonl(path):
             report.total_records += 1
             line_no = parsed.line_no
 

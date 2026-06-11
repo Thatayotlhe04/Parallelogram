@@ -19,6 +19,7 @@ from parallelogram.rules.duplicates import DuplicatesRule
 from parallelogram.rules.encoding import EncodingRule
 from parallelogram.rules.context_window import ContextWindowRule
 from parallelogram.core.tokenization import TokenCounter, resolve_counter
+from parallelogram.formats.sharegpt import iter_jsonl as sharegpt_iter, to_sharegpt
 
 
 def _record(messages):
@@ -246,3 +247,81 @@ def test_runner_end_to_end(tmp_path):
     assert report.valid_records == 2
     clean_lines = {ln for ln, _ in clean}
     assert clean_lines == {1, 5}
+
+
+# ShareGPT format --------------------------------------------------------------
+
+
+def _sharegpt_record(turns, system=None):
+    rec = {"conversations": turns}
+    if system is not None:
+        rec["system"] = system
+    return rec
+
+
+def test_sharegpt_normalizes_roles(tmp_path):
+    p = tmp_path / "sg.jsonl"
+    p.write_text(
+        json.dumps(_sharegpt_record(
+            [{"from": "human", "value": "Hi"}, {"from": "gpt", "value": "Hello"}],
+            system="You are helpful.",
+        )) + "\n",
+        encoding="utf-8",
+    )
+    results = list(sharegpt_iter(str(p)))
+    assert len(results) == 1
+    msgs = results[0].record["messages"]
+    # Top-level system is prepended; human→user, gpt→assistant.
+    assert [m["role"] for m in msgs] == ["system", "user", "assistant"]
+    assert [m["content"] for m in msgs] == ["You are helpful.", "Hi", "Hello"]
+
+
+def test_sharegpt_unknown_from_passes_through_for_schema(tmp_path):
+    # An unrecognized `from` must NOT be silently coerced — it should reach the
+    # schema rule as an invalid role.
+    p = tmp_path / "sg.jsonl"
+    p.write_text(
+        json.dumps(_sharegpt_record(
+            [{"from": "wizard", "value": "Hi"}, {"from": "gpt", "value": "Hello"}],
+        )) + "\n",
+        encoding="utf-8",
+    )
+    runner = Runner([SchemaRule(), RolesRule()], dataset_format="sharegpt")
+    report, clean = runner.run(str(p))
+    assert report.has_errors
+    assert not clean
+
+
+def test_sharegpt_end_to_end_clean(tmp_path):
+    p = tmp_path / "sg.jsonl"
+    p.write_text(
+        json.dumps(_sharegpt_record(
+            [{"from": "human", "value": "What is 2+2?"}, {"from": "gpt", "value": "4"}],
+        )) + "\n"
+        + json.dumps(_sharegpt_record(
+            [{"from": "human", "value": "Capital of France?"}, {"from": "gpt", "value": "Paris."}],
+        )) + "\n",
+        encoding="utf-8",
+    )
+    runner = Runner(
+        [SchemaRule(), RolesRule(), EmptyContentRule(), DuplicatesRule(), EncodingRule()],
+        dataset_format="sharegpt",
+    )
+    report, clean = runner.run(str(p))
+    assert report.total_records == 2
+    assert report.valid_records == 2
+    assert not report.has_errors
+
+
+def test_to_sharegpt_round_trip():
+    record = _record([
+        {"role": "system", "content": "S"},
+        {"role": "user", "content": "U"},
+        {"role": "assistant", "content": "A"},
+    ])
+    sg = to_sharegpt(record)
+    assert sg == {"conversations": [
+        {"from": "system", "value": "S"},
+        {"from": "human", "value": "U"},
+        {"from": "gpt", "value": "A"},
+    ]}

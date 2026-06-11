@@ -3,23 +3,17 @@
 iter_jsonl streams the file and yields a ParseResult per non-empty line.
 JSON errors are captured rather than raised so the runner can report them
 as schema issues alongside other findings.
+
+``ParseResult`` and ``VALID_ROLES`` live in the package ``__init__`` now that
+they're shared across formats; they're re-exported here for back-compat with
+existing imports (e.g. the schema rule).
 """
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
-from typing import Iterator, Optional
+from typing import Iterator
 
-
-VALID_ROLES = {"system", "user", "assistant", "tool"}
-
-
-@dataclass
-class ParseResult:
-    line_no: int
-    raw: str
-    record: Optional[dict]
-    parse_error: Optional[str] = None
+from . import ParseResult, VALID_ROLES  # noqa: F401 — re-exported for back-compat
 
 
 def iter_jsonl(path: str) -> Iterator[ParseResult]:
