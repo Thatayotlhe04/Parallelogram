@@ -31,6 +31,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
 
   <link rel="stylesheet" href="styles.css" />
+
+  <!-- Motion: GSAP + ScrollTrigger. Loaded defer; the page is fully usable
+       without it (script.js falls back to IntersectionObserver reveals). -->
+  <script defer src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
 </head>
 <body>
 
@@ -70,7 +75,7 @@
     <div class="container hero-inner">
       <span class="eyebrow">
         <span class="eyebrow-dot"></span>
-        v0.3 · open source · --fix shipped
+        v0.4 · open source · --fix shipped
       </span>
 
       <h1 class="headline">
@@ -107,19 +112,44 @@
         <h2 class="section-title">See what it catches.</h2>
         <p class="section-sub">
           One command before you train. Errors report the exact line and rule.
-          A clean exit is a guarantee.
+          It auto-runs the real checks below — <strong>click a sample or edit the
+          data</strong> to lint your own, right here in the browser.
         </p>
       </div>
 
-      <div class="terminal-frame reveal" data-reveal>
-        <div class="terminal-chrome">
-          <span class="dot dot-r" aria-hidden="true"></span>
-          <span class="dot dot-y" aria-hidden="true"></span>
-          <span class="dot dot-g" aria-hidden="true"></span>
-          <span class="terminal-title">~/projects/finetune-llama3 — parallelogram</span>
-          <span class="terminal-tabs" aria-hidden="true">⌘1</span>
+      <div class="demo-shell reveal" data-reveal>
+        <div class="demo-controls" role="group" aria-label="Demo controls">
+          <div class="demo-samples">
+            <span class="demo-samples-label">sample</span>
+            <button class="demo-chip" type="button" data-demo-sample="broken">broken.jsonl</button>
+            <button class="demo-chip" type="button" data-demo-sample="clean">clean.jsonl</button>
+            <button class="demo-chip demo-chip-ghost" type="button" id="demo-edit-toggle"
+                    aria-expanded="false" aria-controls="demo-editor-wrap">edit ▾</button>
+          </div>
+          <div class="demo-actions">
+            <button class="demo-resume" type="button" id="demo-resume" hidden>↻ auto-demo</button>
+            <button class="demo-run" type="button" id="demo-run">▶ run</button>
+          </div>
         </div>
-        <div class="terminal-body" id="terminal-body" aria-live="polite"></div>
+
+        <div class="demo-editor-wrap" id="demo-editor-wrap">
+          <textarea id="demo-editor" class="demo-editor" spellcheck="false"
+                    autocomplete="off" autocapitalize="off" rows="6"
+                    aria-label="JSONL input — one record per line"
+                    placeholder='{"messages":[{"role":"user","content":"…"},{"role":"assistant","content":"…"}]}'></textarea>
+          <p class="demo-editor-hint">One JSON record per line. Runs entirely in your browser — nothing is uploaded.</p>
+        </div>
+
+        <div class="terminal-frame">
+          <div class="terminal-chrome">
+            <span class="dot dot-r" aria-hidden="true"></span>
+            <span class="dot dot-y" aria-hidden="true"></span>
+            <span class="dot dot-g" aria-hidden="true"></span>
+            <span class="terminal-title">~/projects/finetune-llama3 — parallelogram</span>
+            <span class="terminal-tabs" aria-hidden="true">⌘1</span>
+          </div>
+          <div class="terminal-body" id="terminal-body" aria-live="polite"></div>
+        </div>
       </div>
     </div>
   </section>
@@ -132,7 +162,7 @@
         <h2 class="section-title">Six rules. Every silent killer.</h2>
         <p class="section-sub">
           Every check maps to a real failure mode that has cost someone a training run.
-          Rules are pluggable; the v0.3 set is non-negotiable.
+          Rules are pluggable; the v0.4 set is non-negotiable.
         </p>
       </div>
 
@@ -235,6 +265,7 @@ duplicate of line 89  <span class="s-dim">(3 copies total at lines: [89, 147, 40
           547 records in. Three errors and one warning identified. 543 records out, ready
           to train. The rejected lines stay on your disk; nothing leaves your machine.
         </p>
+        <button class="demo-resume compare-replay" type="button" id="compare-replay" hidden>↻ replay</button>
       </div>
 
       <div class="compare-grid reveal" data-reveal>
@@ -481,8 +512,8 @@ duplicate of line 89  <span class="s-dim">(3 copies total at lines: [89, 147, 40
       </div>
 
       <p class="integ-note">
-        v0.3 supports OpenAI chat (<code>{"messages":[…]}</code>).
-        ShareGPT and raw-completion shipping next.
+        v0.4 supports OpenAI chat (<code>{"messages":[…]}</code>) and ShareGPT
+        (<code>{"conversations":[…]}</code>). raw-completion shipping next.
       </p>
     </div>
   </section>
@@ -499,7 +530,7 @@ duplicate of line 89  <span class="s-dim">(3 copies total at lines: [89, 147, 40
         <div class="stat-divider" aria-hidden="true"></div>
         <div class="stat">
           <span class="stat-num"><span data-counter="6">0</span></span>
-          <span class="stat-label">rules in v0.3</span>
+          <span class="stat-label">rules in v0.4</span>
           <span class="stat-sub">covering every silent killer</span>
         </div>
         <div class="stat-divider" aria-hidden="true"></div>
@@ -561,8 +592,8 @@ duplicate of line 89  <span class="s-dim">(3 copies total at lines: [89, 147, 40
           <h5>Roadmap</h5>
           <a href="#">--fix (mechanical) — shipped</a>
           <a href="#">Model-specific tokenizers — shipped</a>
-          <a href="#">ShareGPT format</a>
-          <a href="#">--fix (SLM tier) — Phase 2</a>
+          <a href="#">ShareGPT format — shipped</a>
+          <a href="#">raw-completion format</a>
         </div>
         <div>
           <h5>Legal</h5>
@@ -573,7 +604,7 @@ duplicate of line 89  <span class="s-dim">(3 copies total at lines: [89, 147, 40
       </div>
       <div class="foot-line">
         <span>© 2026 parallelogram.dev</span>
-        <span class="muted">v0.3 · the linter for fine-tuning data</span>
+        <span class="muted">v0.4 · the linter for fine-tuning data</span>
       </div>
     </div>
   </footer>
@@ -587,6 +618,8 @@ duplicate of line 89  <span class="s-dim">(3 copies total at lines: [89, 147, 40
     </div>
   </div>
 
-  <script src="script.js"></script>
+  <!-- defer so these run after the deferred GSAP libs above, in document order -->
+  <script defer src="demo.js"></script>
+  <script defer src="script.js"></script>
 </body>
 </html>

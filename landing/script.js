@@ -1,98 +1,149 @@
 /* parallelogram.dev — landing interactions
-   Three things happen here:
-   1. The terminal demo "video" — typed commands and streaming output on loop.
+   The interactive terminal demo lives in demo.js. This file handles the
+   surrounding motion and micro-interactions:
+   1. Motion foundation — GSAP-driven reveals (with an IntersectionObserver
+      fallback), hero parallax, magnetic buttons, brand draw-on, scroll-spy.
    2. The hero install chip — click to copy.
-   3. Scroll reveals via IntersectionObserver.
+   3. The compare demo (input vs output stream) + replay control.
+   4. Exit-code cycler, stat counters, cookie banner.
+   Everything degrades gracefully without GSAP and respects reduced-motion.
 */
 
-// ── 1. terminal demo ────────────────────────────────────────────────
-const term = document.getElementById('terminal-body');
-
-const seq = [
-  { t: 'cmd',     text: 'parallelogram check data.jsonl --tokenizer meta-llama/Llama-3-8B' },
-  { t: 'wait',    ms: 450 },
-  { t: 'err',     line: 23,  rule: 'roles',          msg: "Conversation must end on 'assistant', ended on 'user'" },
-  { t: 'wait',    ms: 90 },
-  { t: 'err',     line: 147, rule: 'duplicates',     msg: 'Duplicate of line 89' },
-  { t: 'wait',    ms: 90 },
-  { t: 'err',     line: 312, rule: 'context-window', msg: 'Record exceeds max_seq_len: ~8512 > 8192 tokens' },
-  { t: 'wait',    ms: 90 },
-  { t: 'warn',    line: 401, rule: 'encoding',       msg: "Message 0 contains likely mojibake: 'â\u20AC™'" },
-  { t: 'blank' },
-  { t: 'summary', text: '547 records  543 clean  3 errors  1 warnings' },
-  { t: 'wait',    ms: 1900 },
-  { t: 'clear' },
-  { t: 'cmd',     text: 'parallelogram check data.jsonl --output clean.jsonl' },
-  { t: 'wait',    ms: 450 },
-  { t: 'ok',      text: '✓ Clean: 547 records validated' },
-  { t: 'note',    text: '→ Wrote 547 clean records to clean.jsonl' },
-  { t: 'wait',    ms: 2400 },
-  { t: 'clear' },
-];
-
 const sleep = ms => new Promise(r => setTimeout(r, ms));
+const prefersReducedMotion =
+  window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const hasGSAP = !!window.gsap && !prefersReducedMotion;
+if (hasGSAP && window.ScrollTrigger) gsap.registerPlugin(ScrollTrigger);
 
-function appendLine(cls, html) {
-  const el = document.createElement('span');
-  el.className = `t-line ${cls}`;
-  el.innerHTML = html;
-  term.appendChild(el);
-  return el;
-}
-
-async function typeCmd(text) {
-  const el = appendLine('cmd', '<span class="pr">$</span>');
-  const cur = document.createElement('span');
-  cur.className = 'cur';
-  el.appendChild(cur);
-  for (const ch of text) {
-    cur.insertAdjacentText('beforebegin', ch);
-    // small jitter so it feels human-typed
-    await sleep(18 + Math.random() * 26);
-  }
-  await sleep(180);
-  cur.remove();
-}
-
-function clearTerm() { term.innerHTML = ''; }
-
-function fmtIssue(line, rule, msg, mark, markCls) {
-  return `  <span class="${markCls}">${mark}</span> data.jsonl:<span class="lno">${line}</span> <span class="rid">[${rule}]</span> ${msg}`;
-}
-
-async function runTerminal() {
-  // run once to start (no clear flicker on first paint)
-  while (true) {
-    for (const step of seq) {
-      switch (step.t) {
-        case 'cmd':     await typeCmd(step.text); break;
-        case 'err':     appendLine('err',     fmtIssue(step.line, step.rule, step.msg, '✗', 'err')); break;
-        case 'warn':    appendLine('warn',    fmtIssue(step.line, step.rule, step.msg, '!', 'warn')); break;
-        case 'ok':      appendLine('ok',      `  ${step.text}`); break;
-        case 'note':    appendLine('note',    `  ${step.text}`); break;
-        case 'summary': appendLine('summary', step.text); break;
-        case 'blank':   appendLine('blank', '&nbsp;'); break;
-        case 'wait':    await sleep(step.ms); break;
-        case 'clear':   clearTerm(); break;
+// ── 1. reveal-on-scroll ─────────────────────────────────────────────
+/*
+  With GSAP present we batch the reveals so a cluster entering the viewport
+  staggers in; otherwise an IntersectionObserver toggles the same .in class.
+  Both paths rely on the CSS transition on .reveal, so the visual is identical
+  bar the stagger — and reduced-motion users just see content appear.
+*/
+const reveals = Array.from(document.querySelectorAll('[data-reveal]'));
+if (prefersReducedMotion) {
+  reveals.forEach(el => el.classList.add('in'));
+} else if (hasGSAP && window.ScrollTrigger) {
+  ScrollTrigger.batch('[data-reveal]', {
+    start: 'top 88%',
+    onEnter: batch => batch.forEach((el, i) =>
+      setTimeout(() => el.classList.add('in'), i * 90)),
+  });
+} else {
+  const revealObs = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      if (e.isIntersecting) {
+        e.target.classList.add('in');
+        revealObs.unobserve(e.target);
       }
     }
-  }
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  reveals.forEach(el => revealObs.observe(el));
 }
 
-// only animate when the terminal is on screen — saves CPU when scrolled past
-let started = false;
-const startWhenVisible = new IntersectionObserver((entries) => {
-  for (const e of entries) {
-    if (e.isIntersecting && !started) {
-      started = true;
-      runTerminal();
-      startWhenVisible.disconnect();
-    }
-  }
-}, { threshold: 0.2 });
-startWhenVisible.observe(term);
+// ── 2. hero parallax ────────────────────────────────────────────────
+/*
+  Subtle pointer-reactive drift on the hero grid and headline. Throttled to
+  one update per frame; only runs with GSAP, a fine pointer, and motion on.
+*/
+(() => {
+  if (!hasGSAP) return;
+  if (!window.matchMedia('(pointer: fine)').matches) return;
+  const hero = document.querySelector('.hero');
+  const grid = document.querySelector('.grid-bg');
+  const headline = document.querySelector('.headline');
+  if (!hero || !grid) return;
 
-// ── 2. install-chip copy-to-clipboard ───────────────────────────────
+  let raf = 0, mx = 0, my = 0;
+  hero.addEventListener('pointermove', (e) => {
+    const r = hero.getBoundingClientRect();
+    mx = (e.clientX - r.left) / r.width - 0.5;   // -0.5 … 0.5
+    my = (e.clientY - r.top) / r.height - 0.5;
+    if (!raf) raf = requestAnimationFrame(apply);
+  });
+  hero.addEventListener('pointerleave', () => { mx = 0; my = 0; if (!raf) raf = requestAnimationFrame(apply); });
+
+  function apply() {
+    raf = 0;
+    gsap.to(grid, { x: mx * 18, y: my * 18, duration: 0.6, ease: 'power2.out' });
+    if (headline) gsap.to(headline, { x: mx * 6, y: my * 5, duration: 0.6, ease: 'power2.out' });
+  }
+})();
+
+// ── 3. magnetic buttons ─────────────────────────────────────────────
+/*
+  Primary buttons lean toward the cursor when hovered, capped so it stays
+  tasteful. Pure transform, reset on leave. Skipped without GSAP / on touch.
+*/
+(() => {
+  if (!hasGSAP) return;
+  if (!window.matchMedia('(pointer: fine)').matches) return;
+  document.querySelectorAll('.btn-primary').forEach((btn) => {
+    btn.addEventListener('pointermove', (e) => {
+      const r = btn.getBoundingClientRect();
+      const x = (e.clientX - r.left - r.width / 2) * 0.3;
+      const y = (e.clientY - r.top - r.height / 2) * 0.4;
+      gsap.to(btn, { x: Math.max(-7, Math.min(7, x)), y: Math.max(-5, Math.min(5, y)), duration: 0.3, ease: 'power2.out' });
+    });
+    btn.addEventListener('pointerleave', () => {
+      gsap.to(btn, { x: 0, y: 0, duration: 0.4, ease: 'elastic.out(1, 0.4)' });
+    });
+  });
+})();
+
+// ── 4. brand mark draw-on ───────────────────────────────────────────
+/*
+  The parallelogram outline traces itself once on load. Reduced-motion users
+  see the finished mark immediately (we never touch it).
+*/
+(() => {
+  if (prefersReducedMotion) return;
+  const paths = document.querySelectorAll('.cta-glyph path, .hero .brand-mark path');
+  paths.forEach((path) => {
+    const len = path.getTotalLength ? path.getTotalLength() : 0;
+    if (!len) return;
+    path.style.strokeDasharray = len;
+    path.style.strokeDashoffset = len;
+    if (hasGSAP) {
+      gsap.to(path, { strokeDashoffset: 0, duration: 1.4, ease: 'power2.inOut',
+        scrollTrigger: window.ScrollTrigger ? { trigger: path, start: 'top 92%' } : undefined });
+    } else {
+      // CSS-less fallback: just clear it after a tick so it's never stuck hidden
+      requestAnimationFrame(() => { path.style.transition = 'stroke-dashoffset 1.4s ease'; path.style.strokeDashoffset = 0; });
+    }
+  });
+})();
+
+// ── 5. nav scroll-spy ───────────────────────────────────────────────
+/*
+  Marks the nav link for whichever section currently owns the viewport, so
+  the underline reflects where you are without any scroll math.
+*/
+(() => {
+  const links = Array.from(document.querySelectorAll('.nav-links a[href^="#"]'));
+  if (!links.length) return;
+  const map = new Map();
+  links.forEach((a) => {
+    const id = a.getAttribute('href').slice(1);
+    const sec = document.getElementById(id);
+    if (sec) map.set(sec, a);
+  });
+  if (!map.size) return;
+
+  const spy = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      if (e.isIntersecting) {
+        links.forEach(a => a.removeAttribute('aria-current'));
+        map.get(e.target)?.setAttribute('aria-current', 'true');
+      }
+    }
+  }, { rootMargin: '-45% 0px -50% 0px', threshold: 0 });
+  map.forEach((_, sec) => spy.observe(sec));
+})();
+
+// ── 6. install-chip copy-to-clipboard ───────────────────────────────
 const chip = document.getElementById('install-chip');
 chip?.addEventListener('click', async () => {
   try {
@@ -104,27 +155,17 @@ chip?.addEventListener('click', async () => {
   }
 });
 
-// ── 3. reveal-on-scroll ─────────────────────────────────────────────
-const reveals = document.querySelectorAll('[data-reveal]');
-const revealObs = new IntersectionObserver((entries) => {
-  for (const e of entries) {
-    if (e.isIntersecting) {
-      e.target.classList.add('in');
-      revealObs.unobserve(e.target);
-    }
-  }
-}, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
-reveals.forEach(el => revealObs.observe(el));
-
-// ── 4. compare demo (input vs output stream) ────────────────────────
+// ── 7. compare demo (input vs output stream) ────────────────────────
 /*
   Streams rows into both panes on a loop. The "in" pane shows raw records
-  with three errors and a warning interleaved among 18 valid rows; the
-  "out" pane shows only the valid rows in the same order, so the eye can
-  see the exact records being held back.
+  with three errors and a warning interleaved among valid rows; the "out"
+  pane shows only the rows that survive, so the eye can see exactly which
+  records are held back (each flashes red before it's dropped). A replay
+  control restarts the cycle from the top.
 */
 const inPane  = document.getElementById('compare-stream-in');
 const outPane = document.getElementById('compare-stream-out');
+const compareReplay = document.getElementById('compare-replay');
 
 if (inPane && outPane) {
   // [line, kind, label, badge?]
@@ -152,9 +193,11 @@ if (inPane && outPane) {
     return div;
   }
 
+  let compareToken = 0;
+
   async function runCompare() {
-    // start fresh every loop
-    while (true) {
+    const myToken = ++compareToken;
+    while (myToken === compareToken) {
       inPane.innerHTML = '';
       outPane.innerHTML = '';
       const inCounter  = document.getElementById('cm-in');
@@ -166,15 +209,15 @@ if (inPane && outPane) {
       let totalOut = 0;
 
       for (const [line, kind, label, tag] of dataset) {
+        if (myToken !== compareToken) return;
         const row = makeRow(line, kind, label, tag);
         inPane.appendChild(row);
-        // keep only the latest 8 rows visible
         while (inPane.children.length > 8) inPane.firstChild.remove();
         totalIn++;
         if (inCounter) inCounter.textContent = totalIn * 39; // scale up for drama (547 by end)
 
-        // valid rows also appear on the right, slightly delayed
         if (kind === 'good' || kind === 'warn') {
+          // valid rows (and recoverable warnings) echo to the clean side
           await sleep(220);
           const outRow = makeRow(line, kind, label, tag);
           outPane.appendChild(outRow);
@@ -182,17 +225,20 @@ if (inPane && outPane) {
           totalOut++;
           if (outCounter) outCounter.textContent = totalOut * 39;
         } else {
-          // errors: pause briefly, no echo to the clean side
+          // errors: flash the held-back row, then pause — no echo to clean side
+          row.classList.add('flash-out');
           await sleep(380);
         }
       }
 
-      // settle on final tallies
       if (inCounter)  inCounter.textContent  = '547';
       if (outCounter) outCounter.textContent = '543';
-      await sleep(2400);
+      compareReplay?.removeAttribute('hidden');
+      await sleep(2600);
     }
   }
+
+  compareReplay?.addEventListener('click', () => runCompare());
 
   let compareStarted = false;
   const compareObs = new IntersectionObserver((entries) => {
@@ -207,7 +253,7 @@ if (inPane && outPane) {
   compareObs.observe(inPane);
 }
 
-// ── 5. exit-code cycler ─────────────────────────────────────────────
+// ── 8. exit-code cycler ─────────────────────────────────────────────
 /*
   Highlights one of the three exit codes at a time, on a slow rotation,
   so the visual eye can land on the meaning rather than reading three
@@ -225,7 +271,7 @@ if (ecPills.length === 3) {
   setInterval(cycleExitCode, 1800);
 }
 
-// ── 6. stat counters ────────────────────────────────────────────────
+// ── 9. stat counters ────────────────────────────────────────────────
 /*
   Each [data-counter] element knows its target value. When the stats
   band scrolls into view, count up from 0 to the target over ~1.2s.
@@ -236,8 +282,8 @@ const counterObs = new IntersectionObserver((entries) => {
     if (!e.isIntersecting) continue;
     const el = e.target;
     const target = parseInt(el.dataset.counter, 10);
-    if (target === 0) {
-      el.textContent = '0';
+    if (target === 0 || prefersReducedMotion) {
+      el.textContent = String(target);
       counterObs.unobserve(el);
       continue;
     }
@@ -245,8 +291,7 @@ const counterObs = new IntersectionObserver((entries) => {
     const duration = 1200;
     function tick(now) {
       const t = Math.min(1, (now - start) / duration);
-      // ease-out cubic
-      const eased = 1 - Math.pow(1 - t, 3);
+      const eased = 1 - Math.pow(1 - t, 3); // ease-out cubic
       el.textContent = Math.round(target * eased).toString();
       if (t < 1) requestAnimationFrame(tick);
     }
@@ -256,7 +301,7 @@ const counterObs = new IntersectionObserver((entries) => {
 }, { threshold: 0.4 });
 counters.forEach(c => counterObs.observe(c));
 
-// ── 7. cookie consent banner ───────────────────────────────────────
+// ── 10. cookie consent banner ───────────────────────────────────────
 const cookieBanner = document.getElementById('cookie-banner');
 const cookieAccept = document.getElementById('cookie-accept');
 const cookieDecline = document.getElementById('cookie-decline');
