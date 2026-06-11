@@ -71,15 +71,43 @@
       reveals.forEach(el => el.classList.add('in'));
       return;
     }
+    const pending = new Set(reveals);
     const revealObs = new IntersectionObserver((entries) => {
       for (const e of entries) {
-        if (e.isIntersecting) {
-          e.target.classList.add('in');
-          revealObs.unobserve(e.target);
-        }
+        if (e.isIntersecting) mark(e.target);
       }
     }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+    function mark(el) {
+      el.classList.add('in');
+      pending.delete(el);
+      revealObs.unobserve(el);
+    }
     reveals.forEach(el => revealObs.observe(el));
+
+    /* Backstop: the observer can miss elements inside
+       content-visibility:auto sections when the page jumps instantly
+       (deep links, anchor clicks) — Chromium reports stale rects until
+       the next layout. A rAF-throttled sweep marks anything the
+       viewport already contains, then unhooks itself when done. */
+    let raf = 0;
+    function sweep() {
+      raf = 0;
+      for (const el of pending) {
+        const r = el.getBoundingClientRect();
+        if ((r.width || r.height) && r.top < innerHeight - 40 && r.bottom > 0) {
+          mark(el);
+        }
+      }
+      if (!pending.size) {
+        removeEventListener('scroll', onScroll);
+        removeEventListener('hashchange', onScroll);
+      }
+    }
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(sweep); };
+    addEventListener('scroll', onScroll, { passive: true });
+    addEventListener('hashchange', onScroll);
+    sweep();
   })();
 
   // ── 5. nav scroll-spy ───────────────────────────────────────────────

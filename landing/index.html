@@ -61,20 +61,21 @@
     ───────────────────────────────────────────────────────────────────
     TOC
       00 · header        #site-header
-      01 · hero          #product
-      02 · pain grid     #failures
-      03 · architecture  #architecture
-      04 · live demo     #demo
-      05 · checks matrix #checks        (alias #rules)
-      06 · tokenizers    #tokenizers
-      07 · formats       #formats
-      08 · before/after  #compare
-      09 · quickstart    #quickstart    (alias #install)
-      10 · use cases     #use-cases     (alias #integrations)
-      11 · trust         #open-source
-      12 · vision        #vision
-      13 · final CTA     #cta
-      14 · footer + cookie banner
+      01 · hero          #product       (three-pane console + eater strip)
+      02 · ecosystem     #ecosystem
+      03 · pain grid     #failures
+      04 · architecture  #architecture
+      05 · live demo     #demo
+      06 · checks matrix #checks        (alias #rules)
+      07 · tokenizers    #tokenizers
+      08 · formats       #formats       (schema-normalization diagram)
+      09 · before/after  #compare       (record-flow graph)
+      10 · quickstart    #quickstart    (alias #install)
+      11 · use cases     #use-cases     (alias #integrations)
+      12 · trust         #open-source
+      13 · vision        #vision
+      14 · final CTA     #cta
+      15 · footer + cookie banner
     ───────────────────────────────────────────────────────────────────
   -->
 
@@ -135,74 +136,108 @@
           encoding artifacts, context-window overflows — locally, before the training run.
         </p>
 
-        <div class="hero-install">
-          <div class="codeblock">
+        <div class="hero-actions">
+          <div class="codeblock hero-install">
             <pre><code><span class="pr">$</span> pip install parallelogram</code></pre>
             <button class="copy-btn" type="button" data-copy="pip install parallelogram" aria-label="Copy: pip install parallelogram">
               <svg class="copy-ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 2h7a1 1 0 0 1 1 1v7" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="5" width="8" height="9" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
               <span class="copy-label">Copy</span>
             </button>
           </div>
-        </div>
-
-        <div class="hero-ctas">
           <a class="btn btn-primary" href="#quickstart">Install from PyPI</a>
           <a class="btn btn-ghost" href="https://github.com/Thatayotlhe04/Parallelogram" target="_blank" rel="noopener">View GitHub</a>
-        </div>
-
-        <div class="trust-row" aria-label="Project facts">
-          <span class="pill">Apache-2.0</span>
-          <span class="pill">PyPI</span>
-          <span class="pill">OpenAI chat JSONL</span>
-          <span class="pill">ShareGPT</span>
-          <span class="pill">exact tokenizers</span>
         </div>
 
         <p class="hero-guarantee">If it exits 0 with all rules enabled, your run won't fail because of data.</p>
       </div>
 
-      <figure class="term hero-term" id="hero-term" data-reveal>
-        <figcaption class="term-bar">
-          <span class="term-dots" aria-hidden="true"><i></i><i></i><i></i></span>
-          <div class="term-tabs" role="tablist" aria-label="Hero demo views">
-            <button class="term-tab" role="tab" id="hero-tab-dirty" aria-controls="hero-pane-dirty" aria-selected="false" data-hero-tab="dirty" type="button">dirty.jsonl</button>
-            <button class="term-tab" role="tab" id="hero-tab-check" aria-controls="hero-pane-check" aria-selected="true" data-hero-tab="check" type="button">parallelogram check</button>
-            <button class="term-tab" role="tab" id="hero-tab-clean" aria-controls="hero-pane-clean" aria-selected="false" data-hero-tab="clean" type="button">clean.jsonl</button>
+      <div class="hero-console corners" id="hero-console" data-reveal>
+        <div class="console-pane console-pane--side" id="hero-pane-dirty">
+          <header class="console-head">
+            <span class="console-file">dirty.jsonl</span>
+            <span class="pill pill--error">3 issues</span>
+          </header>
+          <div class="term-body">
+            <span class="t-line dim"><span class="lno"> 41 </span>{"messages":[…,{"role":"assistant","content":"Three breaking changes: …"}]}</span>
+            <span class="t-line" data-line="42"><span class="lno"> 42 </span>{"messages":[…,{"role":"user","content":"Actually, make it shorter."}]} <span class="err">← ends on 'user'</span></span>
+            <span class="t-line dim"><span class="lno">  ⋮ </span></span>
+            <span class="t-line" data-line="97"><span class="lno"> 97 </span>{"messages":[…,"<span class="warn">Don&#226;&#8364;&#8482;t worry, it&#226;&#8364;&#8482;s handled.</span>"]} <span class="warn">← mojibake</span></span>
+            <span class="t-line dim"><span class="lno">  ⋮ </span></span>
+            <span class="t-line" data-line="131"><span class="lno">131 </span>{"messages":[{"role":"user","content":"[full 40-page transcript…]"},…]} <span class="err">← 5234 &gt; 4096 tokens</span></span>
+            <span class="t-line dim"><span class="lno">  ⋮ </span></span>
+            <span class="t-line detail"><span class="dim">547 records — nothing here crashes a trainer</span></span>
           </div>
-        </figcaption>
-
-        <div class="term-body" id="hero-pane-dirty" role="tabpanel" aria-labelledby="hero-tab-dirty" hidden>
-          <span class="t-line dim"><span class="lno">  41 </span>{"messages":[{"role":"user","content":"Summarize this changelog."},{"role":"assistant","content":"Three breaking changes: …"}]}</span>
-          <span class="t-line"><span class="lno">  42 </span><span class="err">{"messages":[{"role":"user","content":"Draft the follow-up email."},{"role":"user","content":"Actually, make it shorter."}]}</span>  <span class="err">← ends on 'user'</span></span>
-          <span class="t-line dim"><span class="lno">   ⋮ </span></span>
-          <span class="t-line"><span class="lno">  97 </span>{"messages":[{"role":"user","content":"Check the apostrophes."},{"role":"assistant","content":"<span class="warn">Don&#226;&#8364;&#8482;t worry, it&#226;&#8364;&#8482;s handled.</span>"}]}  <span class="warn">← mojibake</span></span>
-          <span class="t-line dim"><span class="lno">   ⋮ </span></span>
-          <span class="t-line"><span class="lno"> 131 </span><span class="err">{"messages":[{"role":"user","content":"Here is the full 40-page transcript: [&#8230;]"},{"role":"assistant","content":"…"}]}</span>  <span class="err">← 5234 &gt; 4096 tokens</span></span>
-          <span class="t-line blank"> </span>
-          <span class="t-line detail"><span class="dim">train.jsonl · 547 records · 2 errors and 1 warning, none of which crash a trainer</span></span>
         </div>
 
-        <div class="term-body" id="hero-pane-check" role="tabpanel" aria-labelledby="hero-tab-check"><span class="t-line cmd" id="hero-type-target"><span class="pr">$</span> </span></div>
-
-        <div class="term-body" id="hero-pane-clean" role="tabpanel" aria-labelledby="hero-tab-clean" hidden>
-          <span class="t-line dim"><span class="lno">  41 </span>{"messages":[{"role":"user","content":"Summarize this changelog."},{"role":"assistant","content":"Three breaking changes: …"}]}</span>
-          <span class="t-line detail"><span class="lno">     </span><span class="dim">— line 42 dropped → roles (unfixable)</span></span>
-          <span class="t-line dim"><span class="lno">   ⋮ </span></span>
-          <span class="t-line"><span class="lno">  97 </span>{"messages":[{"role":"user","content":"Check the apostrophes."},{"role":"assistant","content":"<span class="ok">Don't worry, it's handled.</span>"}]}  <span class="ok">← mojibake repaired</span></span>
-          <span class="t-line dim"><span class="lno">   ⋮ </span></span>
-          <span class="t-line"><span class="lno"> 131 </span>{"messages":[{"role":"user","content":"Here is the full 40-page transcript: [&#8230;]"},{"role":"assistant","content":"…"}]}  <span class="ok">← truncated to fit 4096</span></span>
-          <span class="t-line blank"> </span>
-          <span class="t-line"><span class="ok">✓ 546 records — exit 0 on re-check</span></span>
+        <div class="console-pane console-pane--main" id="hero-pane-check">
+          <header class="console-head">
+            <span class="console-file">parallelogram check</span>
+            <span class="pill pill--info">preflight</span>
+          </header>
+          <div class="term-body" id="hero-check-body"><span class="t-line cmd" id="hero-type-target"><span class="pr">$</span> </span></div>
         </div>
-      </figure>
+
+        <div class="console-pane console-pane--side" id="hero-pane-clean">
+          <header class="console-head">
+            <span class="console-file">clean.jsonl</span>
+            <span class="pill pill--fixed">546 records</span>
+          </header>
+          <div class="term-body">
+            <span class="t-line dim is-pending"><span class="lno"> 41 </span>{"messages":[…,{"role":"assistant","content":"Three breaking changes: …"}]}</span>
+            <span class="t-line detail is-pending"><span class="dim">— line 42 dropped → roles (unfixable)</span></span>
+            <span class="t-line dim is-pending"><span class="lno">  ⋮ </span></span>
+            <span class="t-line is-pending"><span class="lno"> 97 </span>{"messages":[…,"<span class="ok">Don't worry, it's handled.</span>"]} <span class="ok">← repaired</span></span>
+            <span class="t-line dim is-pending"><span class="lno">  ⋮ </span></span>
+            <span class="t-line is-pending"><span class="lno">131 </span>{"messages":[{"role":"user","content":"[transcript, truncated to fit]"},…]} <span class="ok">← fits 4096</span></span>
+            <span class="t-line dim is-pending"><span class="lno">  ⋮ </span></span>
+            <span class="t-line is-pending"><span class="ok">✓ 546 records — exit 0 on re-check</span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="eater-strip" id="eater-strip" aria-hidden="true">
+        <span class="eater-agent" id="eater-agent"></span>
+        <span class="eater-token" style="--x:14%">roles</span>
+        <span class="eater-token" style="--x:27%">dupe</span>
+        <span class="eater-token" style="--x:41%">&#226;&#8364;&#8482;</span>
+        <span class="eater-token" style="--x:55%">empty</span>
+        <span class="eater-token" style="--x:69%">JSON</span>
+        <span class="eater-token" style="--x:83%">&gt;ctx</span>
+      </div>
     </div>
   </section>
 
-  <!-- ───── 02 · PAIN GRID #failures ───── -->
+  <!-- ───── 02 · ECOSYSTEM #ecosystem ───── -->
+  <section id="ecosystem">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <p class="kicker">02 · Ecosystem</p>
+        <h2>Works with your fine-tuning stack.</h2>
+        <p class="section-sub">Parallelogram is designed to sit between your dataset and anything that trains on it — no SDK, no lock-in. It reads the formats and tokenizers your stack already uses, and its exit codes drop into any CI.</p>
+      </div>
+
+      <ul class="eco-grid" data-reveal>
+        <li class="eco-chip" style="--i:0"><span class="eco-name">OpenAI chat JSONL</span><span class="eco-role">format · supported</span></li>
+        <li class="eco-chip" style="--i:1"><span class="eco-name">ShareGPT</span><span class="eco-role">format · supported</span></li>
+        <li class="eco-chip" style="--i:2"><span class="eco-name">tiktoken</span><span class="eco-role">exact tokenizer</span></li>
+        <li class="eco-chip" style="--i:3"><span class="eco-name">Hugging Face tokenizers</span><span class="eco-role">exact tokenizer</span></li>
+        <li class="eco-chip" style="--i:4"><a href="https://github.com/OpenAccess-AI-Collective/axolotl" target="_blank" rel="noopener" class="eco-name">Axolotl</a><span class="eco-role">sits before</span></li>
+        <li class="eco-chip" style="--i:5"><a href="https://github.com/huggingface/trl" target="_blank" rel="noopener" class="eco-name">TRL</a><span class="eco-role">sits before</span></li>
+        <li class="eco-chip" style="--i:6"><a href="https://github.com/unslothai/unsloth" target="_blank" rel="noopener" class="eco-name">Unsloth</a><span class="eco-role">sits before</span></li>
+        <li class="eco-chip" style="--i:7"><a href="https://github.com/features/actions" target="_blank" rel="noopener" class="eco-name">GitHub Actions</a><span class="eco-role">CI gate</span></li>
+        <li class="eco-chip" style="--i:8"><a href="https://pypi.org/project/parallelogram/" target="_blank" rel="noopener" class="eco-name">PyPI</a><span class="eco-role">distribution</span></li>
+        <li class="eco-chip" style="--i:9"><a href="https://github.com/Thatayotlhe04/Parallelogram" target="_blank" rel="noopener" class="eco-name">GitHub</a><span class="eco-role">source</span></li>
+      </ul>
+
+      <p class="eco-note" data-reveal>Compatibility means file formats, tokenizers, and exit codes — no partnership or endorsement implied.</p>
+    </div>
+  </section>
+
+  <!-- ───── 03 · PAIN GRID #failures ───── -->
   <section id="failures">
     <div class="wrap">
       <div class="section-head" data-reveal>
-        <p class="kicker">02 · Silent failure modes</p>
+        <p class="kicker">03 · Silent failure modes</p>
         <h2>Your dataset can be broken without looking broken.</h2>
         <p class="section-sub">Bad JSONL doesn't always crash the trainer. It trains anyway — on poisoned data. Eight failure modes Parallelogram catches:</p>
       </div>
@@ -275,11 +310,11 @@ max_seq_len: 4096 tokens</code></pre>
     </div>
   </section>
 
-  <!-- ───── 03 · ARCHITECTURE #architecture ───── -->
+  <!-- ───── 04 · ARCHITECTURE #architecture ───── -->
   <section id="architecture">
     <div class="wrap">
       <div class="section-head" data-reveal>
-        <p class="kicker">03 · Architecture</p>
+        <p class="kicker">04 · Architecture</p>
         <h2>One parser boundary. Every rule runs on the same representation.</h2>
         <p class="section-sub">Raw formats are normalized once, at parse time. Downstream, the structural checks, the tokenizer-aware context checks, and the safe fixer all operate on a single internal message shape — no rule ever special-cases a format.</p>
       </div>
@@ -330,11 +365,11 @@ max_seq_len: 4096 tokens</code></pre>
     </div>
   </section>
 
-  <!-- ───── 04 · LIVE DEMO #demo ───── -->
+  <!-- ───── 05 · LIVE DEMO #demo ───── -->
   <section id="demo">
     <div class="wrap">
       <div class="section-head" data-reveal>
-        <p class="kicker">04 · Live demo</p>
+        <p class="kicker">05 · Live demo</p>
         <h2>Paste nothing. Upload nothing. It runs locally — so does this demo.</h2>
         <p class="section-sub">The same six rules, ported to the browser. Pick a fixture or edit the JSONL yourself; the diagnostics below are exactly what the CLI prints.</p>
       </div>
@@ -390,12 +425,12 @@ max_seq_len: 4096 tokens</code></pre>
     </div>
   </section>
 
-  <!-- ───── 05 · CHECKS MATRIX #checks ───── -->
+  <!-- ───── 06 · CHECKS MATRIX #checks ───── -->
   <span class="anchor-alias" id="rules"></span>
   <section id="checks">
     <div class="wrap">
       <div class="section-head" data-reveal>
-        <p class="kicker">05 · Checks</p>
+        <p class="kicker">06 · Checks</p>
         <h2>Checks built for fine-tuning data, not generic JSON.</h2>
         <p class="section-sub">A JSON schema validator can tell you a record is well-formed. It can't tell you the conversation ends on the wrong speaker, repeats itself, or won't fit the model's context window.</p>
       </div>
@@ -488,11 +523,11 @@ max_seq_len: 4096 tokens</code></pre>
     </div>
   </section>
 
-  <!-- ───── 06 · TOKENIZERS #tokenizers ───── -->
+  <!-- ───── 07 · TOKENIZERS #tokenizers ───── -->
   <section id="tokenizers">
     <div class="wrap">
       <div class="section-head" data-reveal>
-        <p class="kicker">06 · Tokenizers</p>
+        <p class="kicker">07 · Tokenizers</p>
         <h2>Context-window checks with exact tokenizers when possible.</h2>
         <p class="section-sub">When an exact tokenizer is available — tiktoken for OpenAI models, Hugging Face tokenizers for open-weight models — overflow is a hard ERROR. Otherwise Parallelogram falls back to a ~4 chars/token estimate and reports a WARNING. A heuristic never deletes records or fails CI. Claude models have no offline tokenizer, so they always use the estimate.</p>
       </div>
@@ -522,6 +557,7 @@ max_seq_len: 4096 tokens</code></pre>
         </div>
         </div>
 
+        <div class="meter-stack">
         <div class="meter" id="token-meter">
         <div class="meter-head"><span class="meter-label">record tokens</span>
           <span class="meter-count"><span id="meter-count" class="num">0</span> / 4096</span>
@@ -529,6 +565,15 @@ max_seq_len: 4096 tokens</code></pre>
         <div class="meter-track"><div class="meter-zone" aria-hidden="true"></div><div class="meter-fill" id="meter-fill"></div><div class="meter-marker" aria-hidden="true"><span>max_seq_len</span></div></div>
         <p class="t-line err meter-diag" id="meter-diag" hidden>✗ train.jsonl:131 [context-window] 5234 &gt; 4096 tokens — assistant response at risk of truncation</p>
           <button class="btn btn-ghost btn-sm" id="meter-replay" type="button">Replay</button>
+        </div>
+
+        <div class="meter meter--est">
+          <div class="meter-head"><span class="meter-label">same record · no tokenizer</span>
+            <span class="meter-count"><span class="num">~5,234</span> / 4096</span>
+            <span class="pill pill--est">ESTIMATED · ~4 chars/token</span></div>
+          <div class="meter-track"><div class="meter-zone" aria-hidden="true"></div><div class="meter-fill" style="--fill:.952"></div><div class="meter-marker" aria-hidden="true"><span>max_seq_len</span></div></div>
+          <p class="t-line warn meter-diag">! train.jsonl:131 [context-window] ~5234 &gt; 4096 tokens (estimated) — a WARNING, never a hard failure</p>
+        </div>
         </div>
       </div>
 
@@ -558,29 +603,49 @@ max_seq_len: 4096 tokens</code></pre>
     </div>
   </section>
 
-  <!-- ───── 07 · FORMATS #formats ───── -->
+  <!-- ───── 08 · FORMATS #formats ───── -->
   <section id="formats">
     <div class="wrap">
       <div class="section-head" data-reveal>
-        <p class="kicker">07 · Formats</p>
+        <p class="kicker">08 · Formats</p>
         <h2>Normalize formats once. Run every rule unchanged.</h2>
         <p class="section-sub">Two formats ship today. Both collapse to the same internal message list at the parse boundary, and <code>--output</code> writes survivors back in the shape they came in.</p>
       </div>
 
-      <div class="fmt-grid" data-reveal>
-        <div class="card format-card" style="--i:0">
-          <h3>OpenAI chat <span class="pill">--format openai-chat · default</span></h3>
-          <pre class="mini-code"><code>{"messages":[{"role":"user","content":"…"}]}</code></pre>
-          <p class="format-arrow" aria-hidden="true">↓ normalized</p>
+      <div class="schema" data-reveal>
+        <div class="schema-srcs">
+          <div class="schema-box corners">
+            <header class="schema-box-head"><span>ShareGPT</span><span class="pill">--format sharegpt</span></header>
+            <pre class="schema-code"><code>{"conversations": [
+  {"<span class="sk p1">from</span>": "<span class="sk p2">human</span>", "<span class="sk p3">value</span>": "Hi"},
+  {"<span class="sk p1">from</span>": "<span class="sk p2">gpt</span>", "<span class="sk p3">value</span>": "Hello!"}
+]}</code></pre>
+          </div>
+          <div class="schema-box corners">
+            <header class="schema-box-head"><span>OpenAI chat JSONL</span><span class="pill">--format openai-chat · default</span></header>
+            <pre class="schema-code"><code>{"messages": [
+  {"role": "user", "content": "Hi"},
+  {"role": "assistant", "content": "Hello!"}
+]}</code></pre>
+          </div>
         </div>
-        <div class="card format-card" style="--i:1">
-          <h3>ShareGPT <span class="pill">--format sharegpt</span></h3>
-          <pre class="mini-code"><code>{"conversations":[{"from":"human","value":"…"}]}</code></pre>
-          <p class="format-arrow" aria-hidden="true">↓ normalized</p>
+
+        <div class="schema-join" aria-hidden="true"></div>
+
+        <div class="schema-box schema-box--norm corners">
+          <header class="schema-box-head"><span>normalized internal messages</span><span class="pill pill--fixed">parse boundary</span></header>
+          <pre class="schema-code"><code>[{"<span class="sk p1">role</span>": "<span class="sk p2">user</span>", "<span class="sk p3">content</span>": "Hi"},
+ {"<span class="sk p1">role</span>": "<span class="sk p2">assistant</span>", "<span class="sk p3">content</span>": "Hello!"}]</code></pre>
         </div>
-        <div class="card format-card format-card--internal" style="--i:2">
-          <h3>One internal message shape</h3>
-          <pre class="mini-code"><code>[Message(role, content), …]   # all six rules run here</code></pre>
+
+        <div class="schema-pipe" aria-hidden="true"></div>
+
+        <div class="schema-box schema-box--engine corners">
+          <header class="schema-box-head"><span>one rule engine — runs unchanged on both formats</span></header>
+          <div class="schema-rules">
+            <span class="pill">schema</span><span class="pill">roles</span><span class="pill">empty-content</span>
+            <span class="pill">context-window</span><span class="pill">duplicates</span><span class="pill">encoding</span>
+          </div>
         </div>
       </div>
 
@@ -606,13 +671,35 @@ max_seq_len: 4096 tokens</code></pre>
     </div>
   </section>
 
-  <!-- ───── 08 · BEFORE/AFTER #compare ───── -->
+  <!-- ───── 09 · BEFORE/AFTER #compare ───── -->
   <section id="compare">
     <div class="wrap">
       <div class="section-head" data-reveal>
-        <p class="kicker">08 · Before / after</p>
+        <p class="kicker">09 · Before / after</p>
         <h2>Before Parallelogram / after Parallelogram.</h2>
         <p class="section-sub">547 records in, 543 out — and you know exactly what happened to the other four. Nothing leaves your machine.</p>
+      </div>
+
+      <div class="flow-graph corners" data-reveal>
+        <div class="fg-head">
+          <span class="fg-title">record flow</span>
+          <span class="pill pill--est">ILLUSTRATIVE</span>
+        </div>
+        <div class="fg-row">
+          <span class="fg-end">547 raw</span>
+          <div class="fg-bar" role="img" aria-label="Of 547 raw records: 544 unchanged, 2 fixed, 1 dropped">
+            <span class="fg-seg fg-seg--unchanged" style="--w:544"></span>
+            <span class="fg-seg fg-seg--fixed" style="--w:2"></span>
+            <span class="fg-seg fg-seg--dropped" style="--w:1"></span>
+          </div>
+          <span class="fg-end fg-end--ok">546 written</span>
+        </div>
+        <div class="fg-legend">
+          <span><i class="fg-dot fg-dot--unchanged"></i>544 unchanged</span>
+          <span><i class="fg-dot fg-dot--fixed"></i>2 fixed</span>
+          <span><i class="fg-dot fg-dot--dropped"></i>1 dropped, with reason</span>
+        </div>
+        <p class="fg-note">Numbers from the demo run above — not usage telemetry.</p>
       </div>
 
       <div class="static-grid" data-reveal>
@@ -666,12 +753,12 @@ max_seq_len: 4096 tokens</code></pre>
     </div>
   </section>
 
-  <!-- ───── 09 · QUICKSTART #quickstart ───── -->
+  <!-- ───── 10 · QUICKSTART #quickstart ───── -->
   <span class="anchor-alias" id="install"></span>
   <section id="quickstart">
     <div class="wrap">
       <div class="section-head" data-reveal>
-        <p class="kicker">09 · Quickstart</p>
+        <p class="kicker">10 · Quickstart</p>
         <h2>Install. Point it at a dataset. Read the diagnostics.</h2>
         <p class="section-sub">No config file, no account, no network. Python ≥ 3.10.</p>
       </div>
@@ -758,12 +845,12 @@ max_seq_len: 4096 tokens</code></pre>
     </div>
   </section>
 
-  <!-- ───── 10 · USE CASES #use-cases ───── -->
+  <!-- ───── 11 · USE CASES #use-cases ───── -->
   <span class="anchor-alias" id="integrations"></span>
   <section id="use-cases">
     <div class="wrap">
       <div class="section-head" data-reveal>
-        <p class="kicker">10 · Use cases</p>
+        <p class="kicker">11 · Use cases</p>
         <h2>Run it wherever a dataset meets a trainer.</h2>
         <p class="section-sub">One command between your raw data and anything that consumes it.</p>
       </div>
@@ -797,11 +884,11 @@ max_seq_len: 4096 tokens</code></pre>
     </div>
   </section>
 
-  <!-- ───── 11 · TRUST #open-source ───── -->
+  <!-- ───── 12 · TRUST #open-source ───── -->
   <section id="open-source">
     <div class="wrap">
       <div class="section-head" data-reveal>
-        <p class="kicker">11 · Open source</p>
+        <p class="kicker">12 · Open source</p>
         <h2>Open source, local, and honest about what it can't see.</h2>
         <p class="section-sub">Apache-2.0. Runs entirely on your machine — no telemetry, no network, nothing uploaded. The source is on GitHub, the package is on PyPI, and a heuristic is always labeled as one.</p>
       </div>
@@ -830,16 +917,16 @@ max_seq_len: 4096 tokens</code></pre>
       </div>
 
       <div class="trust-cta" data-reveal>
-        <a class="btn btn-primary" href="https://github.com/Thatayotlhe04/Parallelogram/issues" target="_blank" rel="noopener">Try it on a real dataset and tell me what it misses.</a>
+        <a class="btn btn-primary" href="https://github.com/Thatayotlhe04/Parallelogram/issues" target="_blank" rel="noopener">Try it on a real dataset and tell us what it misses.</a>
       </div>
     </div>
   </section>
 
-  <!-- ───── 12 · VISION #vision ───── -->
+  <!-- ───── 13 · VISION #vision ───── -->
   <section id="vision">
     <div class="wrap">
       <div class="section-head" data-reveal>
-        <p class="kicker">12 · Vision</p>
+        <p class="kicker">13 · Vision</p>
         <h2>From dataset validation to semantic data quality.</h2>
         <p class="section-sub">Structural checks are the floor, not the ceiling. The plan, in the order it will ship:</p>
       </div>
@@ -917,10 +1004,11 @@ max_seq_len: 4096 tokens</code></pre>
         </div>
         <div class="footer-col">
           <h3>Project</h3>
-          <p>Author — Thatayotlhe Tsenang</p>
+          <p>Built by Parallelogram</p>
           <p>v0.4.0</p>
-          <a href="mailto:tsenangthatayotlhe04@gmail.com">Contact</a>
-          <p>Built local-first — no telemetry</p>
+          <a href="mailto:tsenangthatayotlhe04@gmail.com">Contact us</a>
+          <p>Designed for teams preparing fine-tuning data</p>
+          <p>Local-first — no telemetry</p>
         </div>
         <div class="footer-col">
           <h3>Legal</h3>

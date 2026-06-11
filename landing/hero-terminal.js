@@ -1,16 +1,26 @@
-/* parallelogram.dev — hero terminal
+/* parallelogram.dev — hero console + data eater
    ────────────────────────────────────────────────────────────────────────
-   The scripted demo at the top of the page: three tabs (dirty.jsonl /
-   parallelogram check / clean.jsonl). The dirty and clean panes are static
-   HTML; this file owns the check pane, typing the command and streaming a
-   transcript that matches the real CLI's output format byte-for-byte
-   (cli/src/parallelogram/output/terminal.py + the --fix summary in cli.py).
+   The three-pane product surface at the top of the page: dirty.jsonl on
+   the left, the live `parallelogram check` transcript in the middle,
+   clean.jsonl on the right. This file owns the middle pane's typing and
+   keeps the side panes in sync with it:
 
-   The animation is deterministic: per-character delays come from a fixed
-   table, never Math.random(), so every visit renders the identical run.
-   It plays once on scroll-in (the live demo further down is the one that
-   loops), pauses while the tab is hidden, and paints the finished
-   transcript instantly under prefers-reduced-motion.
+   - when a diagnostic prints, the matching dirty row (data-line="N")
+     lights up in the left pane;
+   - when the fix summary prints, the clean pane's rows materialize
+     (.is-pending is lifted with a stagger).
+
+   The transcript matches the real CLI's output format byte-for-byte
+   (cli/src/parallelogram/output/terminal.py + the --fix summary in
+   cli.py). Typing is deterministic: per-character delays come from a
+   fixed table, never Math.random(), so every visit renders the same run.
+   It plays once on scroll-in; reduced motion paints the finished state.
+
+   Below the console, the eater strip: a small square agent travels the
+   grid line and eats corrupted-data tokens (roles, dupe, mojibake, empty,
+   JSON, >ctx), each collapsing into a clean status dot — bad data goes
+   in, clean data comes out. Loops while visible; static under reduced
+   motion; entirely aria-hidden (it is decoration, not content).
 
    NOTE: the mojibake glyph is written as \u escapes — the Windows-1252
    reading of the right single quote's UTF-8 bytes — same convention as
@@ -19,60 +29,52 @@
 (() => {
   'use strict';
 
-  const root = document.getElementById('hero-term');
+  const console_ = document.getElementById('hero-console');
+  const pane = document.getElementById('hero-check-body');
   const target = document.getElementById('hero-type-target');
-  if (!root || !target) return;
+  if (!console_ || !pane || !target) return;
 
-  const pane = target.parentElement; // #hero-pane-check
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const MOJIBAKE_APOS = 'â€™';
 
-  // ── tabs ───────────────────────────────────────────────────────────
-  const tabs = Array.from(root.querySelectorAll('[data-hero-tab]'));
-  const paneOf = tab => document.getElementById(tab.getAttribute('aria-controls'));
+  const esc = s => String(s).replace(/[&<>]/g,
+    c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
 
-  function selectTab(tab) {
-    tabs.forEach((t) => {
-      const on = t === tab;
-      t.setAttribute('aria-selected', on ? 'true' : 'false');
-      paneOf(t)?.toggleAttribute('hidden', !on);
-    });
-    tab.focus({ preventScroll: true });
+  function flagRow(n) {
+    console_.querySelector(`[data-line="${n}"]`)?.classList.add('is-flagged');
   }
 
-  tabs.forEach((tab, i) => {
-    tab.addEventListener('click', () => selectTab(tab));
-    tab.addEventListener('keydown', (e) => {
-      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
-      e.preventDefault();
-      const next = e.key === 'ArrowRight' ? i + 1 : i - 1;
-      selectTab(tabs[(next + tabs.length) % tabs.length]);
+  function revealClean(stagger) {
+    const rows = Array.from(console_.querySelectorAll('#hero-pane-clean .is-pending'));
+    rows.forEach((row, i) => {
+      if (stagger) setTimeout(() => row.classList.remove('is-pending'), i * 110);
+      else row.classList.remove('is-pending');
     });
-  });
+  }
 
   // ── the transcript ─────────────────────────────────────────────────
   const CMD =
     'parallelogram check train.jsonl --tokenizer gpt-4o --fix --output clean.jsonl';
 
-  const esc = s => String(s).replace(/[&<>]/g,
-    c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
-
-  // [pause-before-ms, css-class, html]
+  // [pause-before-ms, css-class, html, side-effect?]
   const LINES = [
     [340, 'blank', '&nbsp;'],
     [120, '',
       `  <span class="err">✗</span> <span class="lno">train.jsonl:42</span> ` +
-      `<span class="rid">[roles]</span> Conversation must end on 'assistant', ended on 'user'`],
+      `<span class="rid">[roles]</span> Conversation must end on 'assistant', ended on 'user'`,
+      () => flagRow(42)],
     [90, 'detail',
       `      <span class="dim">→ unfixable — record will be dropped</span>`],
     [320, '',
       `  <span class="warn">!</span> <span class="lno">train.jsonl:97</span> ` +
-      `<span class="rid">[encoding]</span> Message 1 contains likely mojibake: '${esc(MOJIBAKE_APOS)}'`],
+      `<span class="rid">[encoding]</span> Message 1 contains likely mojibake: '${esc(MOJIBAKE_APOS)}'`,
+      () => flagRow(97)],
     [90, 'detail',
       `      <span class="dim">→ fixed — UTF-8 → latin-1 → UTF-8 round-trip artifact</span>`],
     [320, '',
       `  <span class="err">✗</span> <span class="lno">train.jsonl:131</span> ` +
-      `<span class="rid">[context-window]</span> Record exceeds max_seq_len: 5234 &gt; 4096 tokens`],
+      `<span class="rid">[context-window]</span> Record exceeds max_seq_len: 5234 &gt; 4096 tokens`,
+      () => flagRow(131)],
     [90, 'detail',
       `      <span class="dim">→ counted with tiktoken o200k_base (gpt-4o) — truncated to fit</span>`],
     [380, 'blank', '&nbsp;'],
@@ -91,7 +93,8 @@
       `<span class="err">1 dropped</span>  ` +
       `<span class="dim">0 unparseable</span></span>`],
     [240, '',
-      `  <span class="ok">→ clean.jsonl written · 546 records · exit 1</span>`],
+      `  <span class="ok">→ clean.jsonl written · 546 records · exit 1</span>`,
+      () => revealClean(true)],
   ];
 
   // Fixed per-character delay table — cycled, so the cadence reads human
@@ -106,7 +109,6 @@
     pane.scrollTop = pane.scrollHeight;
   }
 
-  // ── the run (once; cancellable; hidden-tab aware) ──────────────────
   const sleep = ms => new Promise(r => setTimeout(r, ms));
   const whileVisible = async () => {
     while (document.hidden) await sleep(250);
@@ -114,7 +116,11 @@
 
   function paintFinal() {
     target.insertAdjacentText('beforeend', CMD);
-    for (const [, cls, html] of LINES) appendLine(cls, html);
+    for (const [, cls, html, fx] of LINES) {
+      appendLine(cls, html);
+      if (fx) fx();
+    }
+    revealClean(false);
     pane.scrollTop = 0; // show the command first; the pane scrolls
   }
 
@@ -135,14 +141,14 @@
     await sleep(180);
     cur.remove();
 
-    for (const [pause, cls, html] of LINES) {
+    for (const [pause, cls, html, fx] of LINES) {
       await whileVisible();
       await sleep(pause);
       appendLine(cls, html);
+      if (fx) fx();
     }
   }
 
-  // ── start on scroll-in, once ───────────────────────────────────────
   let started = false;
   const io = new IntersectionObserver((entries) => {
     for (const e of entries) {
@@ -152,6 +158,85 @@
         io.disconnect();
       }
     }
-  }, { threshold: 0.25 });
-  io.observe(root);
+  }, { threshold: 0.2 });
+  io.observe(console_);
+})();
+
+/* ── the data eater ──────────────────────────────────────────────────── */
+(() => {
+  'use strict';
+
+  const strip = document.getElementById('eater-strip');
+  const agent = document.getElementById('eater-agent');
+  if (!strip || !agent) return;
+
+  const tokens = Array.from(strip.querySelectorAll('.eater-token'));
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (reduceMotion) {
+    // Static frame: agent mid-track, everything behind it already eaten.
+    agent.style.left = '60%';
+    tokens.forEach((t) => {
+      if (parseFloat(t.style.getPropertyValue('--x')) < 60) t.classList.add('eaten');
+    });
+    return;
+  }
+
+  const TRAVEL_MS = 7000;
+  const REST_MS = 1800;
+  let rafId = 0;
+  let startAt = 0;
+  let visible = false;
+
+  function frame(now) {
+    if (!visible) return; // resumes from the IO callback
+    if (!startAt) startAt = now;
+    const t = (now - startAt) / TRAVEL_MS;
+
+    if (t >= 1) {
+      // park off the right edge, rest, then reset for the next pass
+      agent.style.left = '101%';
+      strip.classList.remove('is-running');
+      setTimeout(() => {
+        tokens.forEach(tok => tok.classList.remove('eaten'));
+        startAt = 0;
+        agent.style.left = '-2%';
+        if (visible) rafId = requestAnimationFrame(frame);
+      }, REST_MS);
+      return;
+    }
+
+    const x = -2 + t * 103; // -2% → 101%
+    agent.style.left = x + '%';
+    for (const tok of tokens) {
+      if (!tok.classList.contains('eaten')
+          && x >= parseFloat(tok.style.getPropertyValue('--x'))) {
+        tok.classList.add('eaten');
+      }
+    }
+    rafId = requestAnimationFrame(frame);
+  }
+
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      visible = e.isIntersecting && !document.hidden;
+      strip.classList.toggle('is-running', visible);
+      if (visible) {
+        startAt = 0; // restart timing cleanly after being scrolled away
+        cancelAnimationFrame(rafId);
+        rafId = requestAnimationFrame(frame);
+      } else {
+        cancelAnimationFrame(rafId);
+      }
+    }
+  }, { threshold: 0.3 });
+  io.observe(strip);
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      visible = false;
+      strip.classList.remove('is-running');
+      cancelAnimationFrame(rafId);
+    }
+  });
 })();
