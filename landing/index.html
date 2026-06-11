@@ -386,49 +386,29 @@ duplicate of line 89  <span class="s-dim">(3 copies total at lines: [89, 147, 40
         <div class="install-card reveal" data-reveal>
           <span class="step">01</span>
           <h4>Install</h4>
-          <div class="install-code-wrapper">
-            <pre class="codeblock dark"><span class="prompt">$</span> pip install parallelogram</pre>
-            <button class="install-code-copy" type="button" aria-label="Copy install command" data-copy-text="pip install parallelogram">
-              <svg viewBox="0 0 16 16" width="13" height="13"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M5 5V3a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1h-2M3 5h7a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"></path></svg>
-            </button>
-          </div>
+          <pre class="codeblock dark"><span class="prompt">$</span> pip install parallelogram<button class="install-copy-btn" type="button" aria-label="Copy install command" data-copy-text="pip install parallelogram"><svg viewBox="0 0 16 16" width="13" height="13"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M5 5V3a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1h-2M3 5h7a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"></path></svg></button></pre>
           <p class="muted">One command, on PyPI. No GPU, no network, no config.</p>
         </div>
 
         <div class="install-card reveal" data-reveal style="--d:.08s">
           <span class="step">02</span>
           <h4>Validate</h4>
-          <div class="install-code-wrapper">
-            <pre class="codeblock dark"><span class="prompt">$</span> parallelogram check data.jsonl</pre>
-            <button class="install-code-copy" type="button" aria-label="Copy validate command" data-copy-text="parallelogram check data.jsonl">
-              <svg viewBox="0 0 16 16" width="13" height="13"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M5 5V3a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1h-2M3 5h7a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"></path></svg>
-            </button>
-          </div>
+          <pre class="codeblock dark"><span class="prompt">$</span> parallelogram check data.jsonl<button class="install-copy-btn" type="button" aria-label="Copy validate command" data-copy-text="parallelogram check data.jsonl"><svg viewBox="0 0 16 16" width="13" height="13"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M5 5V3a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1h-2M3 5h7a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"></path></svg></button></pre>
           <p class="muted">Exits 0 if your data is fine. Otherwise, exact lines and rules.</p>
         </div>
 
         <div class="install-card reveal" data-reveal style="--d:.16s">
           <span class="step">03</span>
           <h4>Repair</h4>
-          <div class="install-code-wrapper">
-            <pre class="codeblock dark"><span class="prompt">$</span> parallelogram check data.jsonl <span class="g">\</span>
-    <span class="g">--fix --output</span> clean.jsonl</pre>
-            <button class="install-code-copy" type="button" aria-label="Copy repair command" data-copy-text="parallelogram check data.jsonl \&#10;  --fix --output clean.jsonl">
-              <svg viewBox="0 0 16 16" width="13" height="13"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M5 5V3a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1h-2M3 5h7a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"></path></svg>
-            </button>
-          </div>
+          <pre class="codeblock dark"><span class="prompt">$</span> parallelogram check data.jsonl <span class="g">\</span>
+    <span class="g">--fix --output</span> clean.jsonl<button class="install-copy-btn" type="button" aria-label="Copy repair command" data-copy-text="parallelogram check data.jsonl \&#10;  --fix --output clean.jsonl"><svg viewBox="0 0 16 16" width="13" height="13"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M5 5V3a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1h-2M3 5h7a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"></path></svg></button></pre>
           <p class="muted">Mechanical fixes — dedupe, BOM strip, mojibake repair. Free, local, no network.</p>
         </div>
 
         <div class="install-card reveal" data-reveal style="--d:.24s">
           <span class="step">04</span>
           <h4>Ship</h4>
-          <div class="install-code-wrapper">
-            <pre class="codeblock dark"><span class="prompt">$</span> parallelogram check clean.jsonl</pre>
-            <button class="install-code-copy" type="button" aria-label="Copy ship command" data-copy-text="parallelogram check clean.jsonl">
-              <svg viewBox="0 0 16 16" width="13" height="13"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M5 5V3a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1h-2M3 5h7a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"></path></svg>
-            </button>
-          </div>
+          <pre class="codeblock dark"><span class="prompt">$</span> parallelogram check clean.jsonl<button class="install-copy-btn" type="button" aria-label="Copy ship command" data-copy-text="parallelogram check clean.jsonl"><svg viewBox="0 0 16 16" width="13" height="13"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M5 5V3a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1h-2M3 5h7a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"></path></svg></button></pre>
           <p class="muted">Re-validates clean. Ready to feed your trainer.</p>
         </div>
       </div>
