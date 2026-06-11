@@ -69,7 +69,9 @@ def check(
     tokenizer: Optional[str] = typer.Option(
         None,
         "--tokenizer", "-t",
-        help="HuggingFace tokenizer name (e.g. meta-llama/Llama-3-8B). Required for context-window check.",
+        help="Model or tokenizer for the context-window check — an OpenAI model "
+             "(gpt-4o), an HF repo or alias (Qwen/Qwen2.5-7B, mistral, llama-3). "
+             "Omit for an approximate length-based count (reported as warnings).",
     ),
     max_seq_len: int = typer.Option(
         4096,

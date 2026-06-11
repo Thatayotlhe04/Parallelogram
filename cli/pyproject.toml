@@ -1,6 +1,6 @@
 [project]
 name = "parallelogram"
-version = "0.2.1"
+version = "0.3.0"
 description = "Strict validator for fine-tuning datasets. Run before you train."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -26,7 +26,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-tokenizer = ["tokenizers>=0.15"]
+tokenizer = ["tokenizers>=0.15", "tiktoken>=0.7"]
 dev = ["pytest>=8", "ruff>=0.5"]
 
 [project.scripts]

@@ -45,6 +45,8 @@ A strict pre-flight validator for fine-tuning datasets. Six rules covering the f
 
 In v0.2, `--fix` adds free local mechanical repair — strip BOM markers, replace mojibake, drop empty turns, truncate context-window overflow, deduplicate. Anything that still errors after the fix attempt is dropped from the output. SLM-tier fixes (rewriting broken role sequences, filling in incomplete assistant turns) are scoped but deferred — the architecture is in place, the implementation lands when there's user traction to inform what to build.
 
+v0.3 makes the context-window check model-specific: it uses `tiktoken` for OpenAI models and HuggingFace `tokenizers` for open-weight models, and falls back to an approximate length-based count (reported as warnings, not errors) when no tokenizer is supplied or a model has no offline tokenizer — so the check always runs instead of silently disabling itself.
+
 Open source under Apache 2.0. No telemetry. No backend. Pure local.
 
 ## landing/ — the marketing page
@@ -63,9 +65,9 @@ See `landing/README.md` for design notes.
 
 ## status
 
-**CLI v0.2.0** — Phase 1 (six validation rules) and Phase 2 step 1 (mechanical `--fix`) shipped and tested. Published to PyPI. 109 checks across smoke and end-to-end suites, all passing.
+**CLI v0.3.0** — Phase 1 (six validation rules) and Phase 2 step 1 (mechanical `--fix`) shipped and tested. v0.3 adds model-specific tokenizers (tiktoken/HF) with an approximate fallback for the context-window check. Published to PyPI. Smoke and end-to-end suites all passing.
 
-**Landing page v0.2** — quickstart section shows `--fix`, hero includes one-click pip install copy, cookie consent banner for privacy compliance, terms-of-use scopes warranty to v0.2 rules.
+**Landing page v0.3** — quickstart section shows `--fix`, hero includes one-click pip install copy, cookie consent banner for privacy compliance, terms-of-use scopes warranty to the current rule set.
 
 ## roadmap
 

@@ -18,11 +18,15 @@ your run won't fail because of data.**
 pip install parallelogram
 ```
 
-For the context-window check, also install the tokenizer extras:
+For an **exact** context-window count, install the tokenizer extras — HuggingFace
+`tokenizers` for open-weight models and `tiktoken` for OpenAI models:
 
 ```bash
 pip install 'parallelogram[tokenizer]'
 ```
+
+Without the extras (or for a model with no offline tokenizer, like Claude), the
+context-window check still runs using an approximate length-based count.
 
 ## Use
 
@@ -30,13 +34,17 @@ pip install 'parallelogram[tokenizer]'
 parallelogram check data.jsonl
 ```
 
-With a tokenizer for context-window validation:
+With a model-specific tokenizer for an exact context-window count — an OpenAI model,
+or any HuggingFace repo or short alias (`mistral`, `qwen`, `llama-3`, …):
 
 ```bash
 parallelogram check data.jsonl \
-  --tokenizer meta-llama/Llama-3-8B \
+  --tokenizer Qwen/Qwen2.5-7B \
   --max-seq-len 8192
 ```
+
+Omit `--tokenizer` and the check still runs with an approximate count, reported as
+warnings instead of errors.
 
 Write only the clean records to a new file:
 
@@ -107,7 +115,7 @@ left enabled passed — which may or may not be enough.
 | Flag | Description |
 |------|-------------|
 | `--format`, `-f` | Dataset format. Only `openai-chat` in v0.1. |
-| `--tokenizer`, `-t` | HuggingFace tokenizer name. Required for context-window check. |
+| `--tokenizer`, `-t` | Model or tokenizer for the context-window check — an OpenAI model (`gpt-4o`), or an HF repo/alias (`Qwen/Qwen2.5-7B`, `mistral`). Optional: omit for an approximate count. |
 | `--max-seq-len` | Token budget per record (default 4096). |
 | `--output`, `-o` | Write error-free records to this file. With `--fix`, writes the repaired dataset. |
 | `--fix` | Attempt mechanical repair of fixable issues. |
@@ -133,18 +141,19 @@ These map directly to CI gates without any extra wiring.
 | `schema` | error | malformed records, missing fields, wrong types |
 | `roles` | error | bad role sequences (system out of place, no alternation, doesn't end on assistant) |
 | `empty-content` | error | empty or whitespace-only message content |
-| `context-window` | error | records exceeding `max_seq_len` (TRL truncates these silently) |
+| `context-window` | error / warning | records exceeding `max_seq_len` (TRL truncates these silently) — error with an exact tokenizer, warning when the count is approximate |
 | `duplicates` | error | exact-content duplicate records (memorization → poor generalization) |
 | `encoding` | warning | BOM markers, mojibake patterns |
 
 ## Status
 
-v0.2 — solo dev, local, pre-training run. No telemetry, no network, no upload boundary.
+v0.3 — solo dev, local, pre-training run. No telemetry, no network, no upload boundary.
 
 ## Roadmap
 
 - ShareGPT and raw-completion formats
 - ~~`--fix` mechanical tier (dedupe, truncate, normalize encoding)~~ ✓ shipped in v0.2
+- ~~Model-specific tokenizers (tiktoken/HF) with approximate fallback~~ ✓ shipped in v0.3
 - Opt-in anonymized error-type analytics (informs SLM tier scope)
 - `--fix --slm` paid hosted tier — repairs broken role sequences, incomplete turns
 

@@ -50,7 +50,7 @@
     <div class="container hero-inner">
       <span class="eyebrow">
         <span class="eyebrow-dot"></span>
-        v0.2 · open source · --fix shipped
+        v0.3 · open source · --fix shipped
       </span>
 
       <h1 class="headline">
@@ -112,7 +112,7 @@
         <h2 class="section-title">Six rules. Every silent killer.</h2>
         <p class="section-sub">
           Every check maps to a real failure mode that has cost someone a training run.
-          Rules are pluggable; the v0.2 set is non-negotiable.
+          Rules are pluggable; the v0.3 set is non-negotiable.
         </p>
       </div>
 
@@ -167,7 +167,7 @@
           </div>
           <div class="rule-text">
             <h3>Context-window overflow.</h3>
-            <p>TRL truncates oversized records silently — usually severing the assistant turn. You train on noise and don't know.</p>
+            <p>TRL truncates oversized records silently — usually severing the assistant turn. You train on noise and don't know. Counted with the model's own tokenizer — tiktoken for OpenAI, HuggingFace for open weights — or an approximate fallback when none is available.</p>
           </div>
           <pre class="rule-snippet"><span class="s-dim">data.jsonl:1209</span>
 ~8512 tokens > <span class="s-key">max_seq_len</span> = 8192
@@ -461,7 +461,7 @@ duplicate of line 89  <span class="s-dim">(3 copies total at lines: [89, 147, 40
       </div>
 
       <p class="integ-note">
-        v0.2 supports OpenAI chat (<code>{"messages":[…]}</code>).
+        v0.3 supports OpenAI chat (<code>{"messages":[…]}</code>).
         ShareGPT and raw-completion shipping next.
       </p>
     </div>
@@ -479,7 +479,7 @@ duplicate of line 89  <span class="s-dim">(3 copies total at lines: [89, 147, 40
         <div class="stat-divider" aria-hidden="true"></div>
         <div class="stat">
           <span class="stat-num"><span data-counter="6">0</span></span>
-          <span class="stat-label">rules in v0.2</span>
+          <span class="stat-label">rules in v0.3</span>
           <span class="stat-sub">covering every silent killer</span>
         </div>
         <div class="stat-divider" aria-hidden="true"></div>
@@ -540,6 +540,7 @@ duplicate of line 89  <span class="s-dim">(3 copies total at lines: [89, 147, 40
         <div>
           <h5>Roadmap</h5>
           <a href="#">--fix (mechanical) — shipped</a>
+          <a href="#">Model-specific tokenizers — shipped</a>
           <a href="#">ShareGPT format</a>
           <a href="#">--fix (SLM tier) — Phase 2</a>
         </div>
@@ -552,7 +553,7 @@ duplicate of line 89  <span class="s-dim">(3 copies total at lines: [89, 147, 40
       </div>
       <div class="foot-line">
         <span>© 2026 parallelogram.dev</span>
-        <span class="muted">v0.2 · the linter for fine-tuning data</span>
+        <span class="muted">v0.3 · the linter for fine-tuning data</span>
       </div>
     </div>
   </footer>

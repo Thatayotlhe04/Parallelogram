@@ -1,13 +1,17 @@
 """Context window rule.
 
-Tokenizes each record using the user-supplied HuggingFace tokenizer and flags
-records that exceed max_seq_len. This catches the silent-truncation failure
-mode in TRL and Axolotl, where samples over the context window are quietly
-chopped — typically severing the assistant response and turning the example
-into noise the model still trains on.
+Counts tokens per record and flags records that exceed max_seq_len. This
+catches the silent-truncation failure mode in TRL and Axolotl, where samples
+over the context window are quietly chopped — typically severing the assistant
+response and turning the example into noise the model still trains on.
 
-The rule self-disables if no tokenizer is supplied. Tokenizer load is lazy
-so users who pass --disable context-window pay no startup cost.
+Token counting is model-specific where possible (tiktoken for OpenAI models,
+HuggingFace tokenizers for open-weight models — see core.tokenization). When
+no tokenizer is supplied or the requested one can't be loaded, the rule falls
+back to a length-based estimate so the check still runs. Estimated overflows
+are reported as warnings rather than errors, since a heuristic shouldn't fail
+a CI gate or drop records on a guess. Counter resolution is lazy, so a run
+that disables this rule pays no startup cost.
 """
 from __future__ import annotations
 
@@ -15,6 +19,7 @@ from typing import Any, Iterable, Optional
 
 from ..core.rules import Rule, registry
 from ..core.report import Issue, Severity
+from ..core.tokenization import TokenCounter, resolve_counter
 
 
 @registry.register
@@ -24,43 +29,34 @@ class ContextWindowRule(Rule):
     severity = Severity.ERROR
     fixable = True  # truncation is mechanical; semantically lossy fixes are SLM-tier
 
+    # Per-message overhead approximating chat-template scaffolding (role tags,
+    # turn separators). Deliberately conservative — we'd rather over- than
+    # under-count and miss a record that will be silently truncated.
+    _PER_MESSAGE_OVERHEAD = 4
+
     def __init__(self, config: dict[str, Any] | None = None):
         super().__init__(config)
         self.tokenizer_name: Optional[str] = self.config.get("tokenizer")
         self.max_seq_len: int = int(self.config.get("max_seq_len", 4096))
-        self._tokenizer = None
-        self._disabled = self.tokenizer_name is None
-        self._load_error: Optional[str] = None
-        self._warned_disabled = False
+        self._counter: Optional[TokenCounter] = None
+        self._note_emitted = False
 
-    def _ensure_tokenizer(self) -> None:
-        if self._tokenizer is not None or self._disabled:
-            return
-        try:
-            from tokenizers import Tokenizer  # type: ignore
-        except ImportError:
-            self._load_error = (
-                "tokenizers package not installed. "
-                "Install with: pip install 'parallelogram[tokenizer]'"
-            )
-            self._disabled = True
-            return
-        try:
-            self._tokenizer = Tokenizer.from_pretrained(self.tokenizer_name)
-        except Exception as e:  # noqa: BLE001 — surface any HF load failure
-            self._load_error = f"Failed to load tokenizer {self.tokenizer_name!r}: {e}"
-            self._disabled = True
+    def reset(self) -> None:
+        # Re-emit the one-time "counts are approximate" note on each run.
+        self._note_emitted = False
+
+    def _ensure_counter(self) -> None:
+        if self._counter is None:
+            self._counter = resolve_counter(self.tokenizer_name)
 
     def _count_tokens(self, role: str, content: str) -> int:
-        """Approximate token count for a single message including chat
-        template scaffolding. +4 covers role tags and turn separators —
-        deliberately conservative so we over- not under-estimate.
-        """
-        if self._tokenizer is None:
-            return 0
+        """Token count for a single message, including chat-template
+        scaffolding overhead."""
         try:
-            return len(self._tokenizer.encode(f"<{role}>\n{content}").ids) + 4
-        except Exception:  # noqa: BLE001
+            return self._counter.encode_len(
+                f"<{role}>\n{content}"
+            ) + self._PER_MESSAGE_OVERHEAD
+        except Exception:  # noqa: BLE001 — a tokenizer hiccup shouldn't crash the run
             return 0
 
     def _record_total(self, messages: list) -> int:
@@ -76,22 +72,21 @@ class ContextWindowRule(Rule):
         return total
 
     def check_record(self, record: Any, line_no: int) -> Iterable[Issue]:
-        if self._disabled and self._load_error and not self._warned_disabled:
-            self._warned_disabled = True
+        self._ensure_counter()
+
+        # One-time advisory whenever we're estimating rather than tokenizing,
+        # so a clean-looking context-window pass is never mistaken for an
+        # authoritative one.
+        if not self._note_emitted and not self._counter.exact:
+            self._note_emitted = True
             yield Issue(
                 rule_id=self.id,
                 severity=Severity.WARNING,
                 line_no=None,
-                message="Context window check disabled",
-                detail=self._load_error,
+                message="Context-window counts are approximate",
+                detail=self._counter.note,
             )
-            return
-        if self._disabled:
-            return
 
-        self._ensure_tokenizer()
-        if self._tokenizer is None:
-            return
         if not isinstance(record, dict):
             return
         messages = record.get("messages")
@@ -99,16 +94,33 @@ class ContextWindowRule(Rule):
             return
 
         total = self._record_total(messages)
+        if total <= self.max_seq_len:
+            return
 
-        if total > self.max_seq_len:
+        if self._counter.exact:
+            # Exact count → high confidence → error (fails the gate, drops on --fix).
             yield Issue(
                 rule_id=self.id,
                 severity=Severity.ERROR,
                 line_no=line_no,
-                message=f"Record exceeds max_seq_len: ~{total} > {self.max_seq_len} tokens",
+                message=f"Record exceeds max_seq_len: {total} > {self.max_seq_len} tokens",
                 detail="Will be silently truncated by TRL/Axolotl, likely severing the assistant response",
                 fixable=True,
-                context={"approx_token_count": total, "max_seq_len": self.max_seq_len},
+                context={"token_count": total, "max_seq_len": self.max_seq_len,
+                         "counting_method": self._counter.method, "exact": True},
+            )
+        else:
+            # Estimated count → advisory only → warning, not a hard failure.
+            yield Issue(
+                rule_id=self.id,
+                severity=Severity.WARNING,
+                line_no=line_no,
+                message=f"Record may exceed max_seq_len: ~{total} > {self.max_seq_len} tokens (estimated)",
+                detail="Estimated with a length heuristic; over-long records are truncated "
+                       "silently. Pass --tokenizer <model> to confirm.",
+                fixable=True,
+                context={"approx_token_count": total, "max_seq_len": self.max_seq_len,
+                         "counting_method": self._counter.method, "exact": False},
             )
 
     def fix_record(self, record: Any, issue: Issue) -> Optional[Any]:
@@ -121,9 +133,7 @@ class ContextWindowRule(Rule):
         we can't fit even with all user messages truncated, drop the
         record — it's irrecoverable without an SLM.
         """
-        self._ensure_tokenizer()
-        if self._tokenizer is None or self._disabled:
-            return record
+        self._ensure_counter()
 
         if not isinstance(record, dict):
             return record

@@ -17,6 +17,8 @@ from parallelogram.rules.roles import RolesRule
 from parallelogram.rules.empty_content import EmptyContentRule
 from parallelogram.rules.duplicates import DuplicatesRule
 from parallelogram.rules.encoding import EncodingRule
+from parallelogram.rules.context_window import ContextWindowRule
+from parallelogram.core.tokenization import TokenCounter, resolve_counter
 
 
 def _record(messages):
@@ -142,6 +144,86 @@ def test_encoding_flags_mojibake():
     ]))
     assert any("mojibake" in i.message for i in issues)
     assert all(i.severity == Severity.WARNING for i in issues)
+
+
+# Context window ---------------------------------------------------------------
+
+def test_resolve_counter_falls_back_when_no_tokenizer():
+    counter = resolve_counter(None)
+    assert counter.exact is False
+    assert counter.note
+    # Length-based estimate: ~4 chars/token.
+    assert counter.encode_len("a" * 40) == 10
+
+
+def test_resolve_counter_claude_has_no_offline_tokenizer():
+    counter = resolve_counter("claude-opus-4-8")
+    assert counter.exact is False
+    assert "count_tokens" in (counter.note or "")
+
+
+def test_context_window_approximate_emits_warning_not_error():
+    # No tokenizer → approximate counting → findings are warnings, never
+    # errors (a heuristic shouldn't fail a CI gate or drop records).
+    rule = ContextWindowRule({"max_seq_len": 10})
+    rule.reset()
+    long_user = {"role": "user", "content": "word " * 200}
+    issues = _check(rule, _record([long_user, {"role": "assistant", "content": "ok"}]))
+
+    assert issues, "expected the over-long record to be flagged"
+    assert all(i.severity == Severity.WARNING for i in issues)
+    # One of the warnings is the one-time "counts are approximate" note.
+    assert any(i.line_no is None and "approximate" in i.message.lower() for i in issues)
+    assert any("estimated" in i.message.lower() for i in issues)
+
+
+def test_context_window_approximate_note_emitted_once_per_run():
+    rule = ContextWindowRule({"max_seq_len": 4096})
+    rule.reset()
+    rec = _record([{"role": "user", "content": "Hi"}, {"role": "assistant", "content": "Hello"}])
+    first = _check(rule, rec, line_no=1)
+    second = _check(rule, rec, line_no=2)
+    note_count = sum(1 for i in first + second if i.line_no is None)
+    assert note_count == 1
+
+
+def test_context_window_exact_emits_error():
+    # Inject a fake exact tokenizer (1 token per whitespace-split word) so the
+    # test needs no tiktoken/HF download. Exact counts surface as errors.
+    rule = ContextWindowRule({"max_seq_len": 5})
+    rule._counter = TokenCounter(
+        encode_len=lambda t: len(t.split()), method="fake", exact=True,
+    )
+    rule._note_emitted = True  # exact path emits no note anyway
+
+    issues = _check(rule, _record([
+        {"role": "user", "content": "one two three four five six seven"},
+        {"role": "assistant", "content": "ok"},
+    ]))
+    assert issues
+    assert all(i.severity == Severity.ERROR for i in issues)
+    assert "exceeds max_seq_len" in issues[0].message
+
+
+def test_context_window_fix_truncates_to_fit():
+    # Budget must leave room for the untouched assistant turn plus per-message
+    # overhead, or the record is genuinely irrecoverable (and fix returns None).
+    rule = ContextWindowRule({"max_seq_len": 14})
+    rule._counter = TokenCounter(
+        encode_len=lambda t: len(t.split()), method="fake", exact=True,
+    )
+    rule._note_emitted = True
+
+    rec = _record([
+        {"role": "user", "content": "one two three four five six seven eight"},
+        {"role": "assistant", "content": "answer"},
+    ])
+    issue = _check(rule, rec)[0]
+    fixed = rule.fix_record(rec, issue)
+    assert fixed is not None
+    assert rule._record_total(fixed["messages"]) <= rule.max_seq_len
+    # The assistant turn (training target) is never touched.
+    assert fixed["messages"][1]["content"] == "answer"
 
 
 # End-to-end runner ------------------------------------------------------------
