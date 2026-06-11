@@ -20,3 +20,8 @@ dist/
 .mypy_cache/
 .coverage
 htmlcov/
+
+# Stress-test datasets and generation scripts
+make_stress_dataset.py
+parallelogram_stress.jsonl
+stress_clean*.jsonl
