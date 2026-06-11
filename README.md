@@ -1,8 +1,22 @@
 # parallelogram
 
-The linter for fine-tuning data. If `parallelogram check` exits 0 with all rules enabled, your training run won't fail because of data.
+The linter for fine-tuning data. **If `parallelogram check` exits 0 with all rules enabled, your training run won't fail because of data.**
 
-Two parts in this bundle:
+[![PyPI version](https://img.shields.io/pypi/v/parallelogram)](https://pypi.org/project/parallelogram/)
+[![Python](https://img.shields.io/pypi/pyversions/parallelogram)](https://pypi.org/project/parallelogram/)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue)](cli/LICENSE)
+
+## The problem
+
+Every fine-tuning framework assumes your data is clean. None of them verify it:
+
+- **Axolotl** starts a run on malformed data and either crashes mid-way or — worse — completes silently while producing a broken model.
+- **TRL** truncates samples that exceed the context window without telling you.
+- **Unsloth** trains on duplicates that cause your model to memorize instead of generalize.
+
+`parallelogram` sits between your raw dataset and your training run. It hard-blocks on anything that would silently corrupt training.
+
+## Repository layout
 
 ```
 .
@@ -10,70 +24,205 @@ Two parts in this bundle:
 └── landing/    — the parallelogram.dev marketing page
 ```
 
-## quickstart
+---
+
+## Quickstart
 
 Install from PyPI:
 
 ```bash
 pip install parallelogram
-parallelogram check examples/broken.jsonl
-parallelogram check examples/broken.jsonl --fix --output clean.jsonl
+parallelogram check data.jsonl
 ```
 
-Or develop locally:
+For an exact context-window token count (instead of approximate), install the tokenizer extras:
+
+```bash
+pip install 'parallelogram[tokenizer]'
+```
+
+This pulls in `tiktoken` (for OpenAI models) and HuggingFace `tokenizers` (for open-weight models). Without the extras the context-window check still runs — it uses an approximate length-based count and reports warnings instead of errors.
+
+---
+
+## Usage
+
+### Basic check
+
+```bash
+parallelogram check data.jsonl
+```
+
+### Check with a model-specific tokenizer
+
+Pass any OpenAI model name, HuggingFace repo, or short alias (`mistral`, `qwen`, `llama-3`, …):
+
+```bash
+parallelogram check data.jsonl \
+  --tokenizer Qwen/Qwen2.5-7B \
+  --max-seq-len 8192
+```
+
+### Write only clean records to a new file
+
+```bash
+parallelogram check data.jsonl --output clean.jsonl
+```
+
+### Mechanical repair with `--fix`
+
+`--fix` attempts free, local, network-free repair on everything it can touch:
+
+```bash
+parallelogram check data.jsonl --fix --output clean.jsonl
+```
+
+After fixes are applied, the dataset is **re-validated**. Anything still erroring is dropped. The CLI tells you exactly what happened:
+
+```
+✓ encoding · 4 fixes
+✓ duplicates · 12 fixes
+
+✗ dropped:
+    data.jsonl:23 → roles (unfixable)
+    data.jsonl:147 → schema (unfixable)
+
+547 records  531 unchanged  4 fixed  11 dropped  1 unparseable
+```
+
+Fixes applied in order:
+
+| Step | Fix |
+|------|-----|
+| 1 | **encoding** — strip BOM markers, replace mojibake (`donâ€™t` → `don't`) |
+| 2 | **empty-content** — drop empty/whitespace-only message turns |
+| 3 | **context-window** — truncate the longest user message until the record fits |
+| 4 | **duplicates** — keep the first occurrence, drop subsequent |
+
+Use `--dry-run` to preview without writing output:
+
+```bash
+parallelogram check data.jsonl --fix --dry-run
+```
+
+---
+
+## Rules
+
+| id | severity | catches |
+|----|----------|---------|
+| `schema` | error | malformed records, missing fields, wrong types |
+| `roles` | error | bad role sequences — system out of place, no alternation, doesn't end on assistant |
+| `empty-content` | error | empty or whitespace-only message content |
+| `context-window` | error / warning | records exceeding `--max-seq-len` (TRL truncates these silently) — error with an exact tokenizer, warning when the count is approximate |
+| `duplicates` | error | exact-content duplicate records (cause memorization → poor generalization) |
+| `encoding` | warning | BOM markers, mojibake patterns |
+
+### Disabling rules
+
+Rules can be disabled by id. Three constraints apply:
+
+- `schema` **cannot be disabled** — every other rule depends on its structural guarantees.
+- Unknown ids are **rejected** — typos like `--disable encding` exit non-zero with a list of valid options rather than silently doing nothing.
+- Any disabled rule triggers a **loud stderr warning** naming exactly which ones and reminding you the exit-0 guarantee no longer applies. The JSON report (`disabled_rules` field) also surfaces this so CI tooling can refuse to merge a PR that disabled rules.
+
+```bash
+parallelogram check data.jsonl --disable encoding --disable duplicates
+```
+
+---
+
+## CLI options
+
+| Flag | Description |
+|------|-------------|
+| `--format`, `-f` | Dataset format. `openai-chat` supported in v0.3. |
+| `--tokenizer`, `-t` | Model or tokenizer for the context-window check — an OpenAI model (`gpt-4o`) or an HF repo/alias (`Qwen/Qwen2.5-7B`, `mistral`). Omit for an approximate count. |
+| `--max-seq-len` | Token budget per record (default 4096). |
+| `--output`, `-o` | Write error-free records to this file. With `--fix`, writes the repaired dataset. |
+| `--fix` | Attempt mechanical repair of fixable issues. |
+| `--dry-run` | With `--fix`, report what would change without writing. |
+| `--json` | Machine-readable report on stdout. |
+| `--disable` | Disable a rule by id. Repeatable. |
+| `--no-color` | Plain output. |
+
+---
+
+## Exit codes
+
+| Code | `check` | `check --fix` |
+|------|---------|---------------|
+| `0`  | Clean — no errors or warnings. | All records emitted clean. |
+| `1`  | Warnings only. | Some records dropped (partial fix). |
+| `2`  | Errors. | Nothing fixable. |
+
+These map directly to CI gates without any extra wiring.
+
+### Example CI step
+
+```yaml
+- name: Validate training data
+  run: |
+    pip install 'parallelogram[tokenizer]'
+    parallelogram check data/train.jsonl \
+      --tokenizer mistral \
+      --max-seq-len 32768
+```
+
+---
+
+## Development
 
 ```bash
 cd cli
-pip install -e .
-parallelogram check examples/broken.jsonl
-parallelogram check examples/broken.jsonl --fix --output clean.jsonl
+pip install -e '.[dev]'
+
+# Run the full test suite
+pytest tests/
+
+# Smoke-test the engine without any external dependencies
+python smoke.py        # 32 stdlib-only checks (all six rules)
+python smoke_fix.py    # 22 stdlib-only checks (fix tier)
+
+# Lint
+ruff check src/
 ```
 
-To verify the engine without installing anything:
+---
 
-```bash
-cd cli
-python smoke.py        # 32 stdlib-only checks (Phase 1 — all rules)
-python smoke_fix.py    # 22 stdlib-only checks (Phase 2 — fix tier)
-```
-
-See `cli/README.md` for full docs and exit-code semantics.
-
-## cli/ — the validator
-
-A strict pre-flight validator for fine-tuning datasets. Six rules covering the failure modes that silently corrupt training: schema, role sequences, empty turns, context-window overflow, exact duplicates, encoding artifacts.
-
-In v0.2, `--fix` adds free local mechanical repair — strip BOM markers, replace mojibake, drop empty turns, truncate context-window overflow, deduplicate. Anything that still errors after the fix attempt is dropped from the output. SLM-tier fixes (rewriting broken role sequences, filling in incomplete assistant turns) are scoped but deferred — the architecture is in place, the implementation lands when there's user traction to inform what to build.
-
-v0.3 makes the context-window check model-specific: it uses `tiktoken` for OpenAI models and HuggingFace `tokenizers` for open-weight models, and falls back to an approximate length-based count (reported as warnings, not errors) when no tokenizer is supplied or a model has no offline tokenizer — so the check always runs instead of silently disabling itself.
-
-Open source under Apache 2.0. No telemetry. No backend. Pure local.
-
-## landing/ — the marketing page
+## Landing page
 
 Static HTML/CSS/JS for `parallelogram.dev`. No build step.
 
 ```bash
 cd landing
-# open index.html in any browser, or:
 python -m http.server 8000
+# then open http://localhost:8000
 ```
 
-Drop the `landing/` folder on Vercel, Netlify, Cloudflare Pages, or GitHub Pages and point `parallelogram.dev` at it.
+Deploy by dropping `landing/` on Vercel, Netlify, Cloudflare Pages, or GitHub Pages and pointing `parallelogram.dev` at it.
 
-See `landing/README.md` for design notes.
+---
 
-## status
+## Status
 
-**CLI v0.3.0** — Phase 1 (six validation rules) and Phase 2 step 1 (mechanical `--fix`) shipped and tested. v0.3 adds model-specific tokenizers (tiktoken/HF) with an approximate fallback for the context-window check. Published to PyPI. Smoke and end-to-end suites all passing.
+**CLI v0.3.0** — Phase 1 (six validation rules) and Phase 2 step 1 (mechanical `--fix`) shipped and tested. v0.3 adds model-specific tokenizers (tiktoken / HuggingFace) with an approximate fallback for the context-window check. Published to PyPI. All smoke and end-to-end suites passing.
 
-**Landing page v0.3** — quickstart section shows `--fix`, hero includes one-click pip install copy, cookie consent banner for privacy compliance, terms-of-use scopes warranty to the current rule set.
+**Landing page v0.3** — quickstart shows `--fix`, hero includes one-click pip install copy, cookie consent banner, privacy policy, and terms of use.
 
-## roadmap
+No telemetry. No backend. No upload boundary. Pure local.
 
-- ShareGPT and raw-completion format coverage
+---
+
+## Roadmap
+
+- ShareGPT and raw-completion format support
 - Opt-in anonymized error-type analytics — informs whether the SLM-fix tier is worth building
-- `--fix` SLM tier (paid, hosted) — gated on traction data from analytics phase
+- `--fix --slm` paid hosted tier — repairs broken role sequences and incomplete assistant turns (gated on traction data from the analytics phase)
 - Additional validation rules based on user feedback
 
-Licensed under Apache 2.0.
+---
+
+## License
+
+Apache 2.0 — see [`cli/LICENSE`](cli/LICENSE).
