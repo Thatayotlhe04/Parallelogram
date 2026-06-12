@@ -1,0 +1,29 @@
+name: Landing site checks
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "landing/**"
+      - "scripts/check_csp.py"
+      - ".github/workflows/landing-ci.yml"
+  pull_request:
+    paths:
+      - "landing/**"
+      - "scripts/check_csp.py"
+      - ".github/workflows/landing-ci.yml"
+
+jobs:
+  csp:
+    name: CSP consistency
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Check every loaded resource against the CSP in vercel.json
+        run: python scripts/check_csp.py

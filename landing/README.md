@@ -16,7 +16,9 @@ no third-party requests: serve the folder and it works.
 | `privacy.html` / `terms.html` | Legal pages, styled by the `legal` CSS layer |
 | `fonts/` | Self-hosted Geist + Geist Mono variable woff2 (OFL) — no Google Fonts |
 | `og.png` | 1200×630 social preview (`og-image.png` is the legacy image, kept so previously shared links don't break) |
-| `vercel.json` | Immutable cache headers for `/fonts/*` |
+| `vercel.json` | Security headers (strict CSP, anti-framing, HSTS, …), immutable cache for `/fonts/*`, `/security.txt` redirect |
+| `robots.txt` / `sitemap.xml` | Crawler signals |
+| `.well-known/security.txt` | Vulnerability-reporting contacts (expires yearly — bump `Expires:` before 2027-06-12) |
 
 ## Local development
 
@@ -35,6 +37,13 @@ command, no output directory. Any other static host works identically.
 
 - **No external resources.** No GSAP, no CDN scripts, no Google Fonts —
   everything is first-party (the privacy policy now promises exactly this).
+- **The CSP enforces the previous point.** `vercel.json` ships
+  `default-src 'none'` with self-only scripts/images/fonts, so an external
+  script, analytics tag, iframe, badge, or `fetch()` call will be blocked in
+  production. This is intentional. `scripts/check_csp.py` runs in CI
+  (`landing-ci.yml`) and fails the build naming the exact directive to extend,
+  so a violation can never land silently — when adding such a resource, widen
+  the CSP in `vercel.json` in the same commit.
 - **Legacy anchors** `#rules`, `#install`, and `#integrations` are kept as
   zero-height alias anchors so old inbound links and the legal pages keep working.
 - **Reduced motion** is fully supported: typing paints its final frame,
