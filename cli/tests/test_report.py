@@ -17,7 +17,12 @@ from parallelogram.rules import (  # noqa: F401
     schema, roles, empty_content, context_window, duplicates, encoding,
 )
 
-runner = CliRunner(mix_stderr=False)
+try:
+    # click < 8.2: stderr is mixed into stdout unless told otherwise
+    runner = CliRunner(mix_stderr=False)
+except TypeError:
+    # click >= 8.2: mix_stderr is gone; stderr is always captured separately
+    runner = CliRunner()
 
 
 def _rules(tokenizer=None, max_seq_len=4096):
