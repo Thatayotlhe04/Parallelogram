@@ -1,0 +1,6 @@
+Contact: https://github.com/Thatayotlhe04/Parallelogram/security/advisories/new
+Contact: mailto:bradleytsenang9@gmail.com
+Expires: 2027-06-12T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://parallelogram.dev/.well-known/security.txt
+Policy: https://github.com/Thatayotlhe04/Parallelogram/blob/main/SECURITY.md
