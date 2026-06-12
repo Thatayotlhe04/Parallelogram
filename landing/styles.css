@@ -19,7 +19,7 @@
 @layer tokens {
 
   @font-face {
-    font-family: "Geist";
+    font-family: "GeistSans";
     src: url("fonts/Geist-Variable.woff2") format("woff2");
     font-weight: 100 900;
     font-style: normal;
@@ -27,27 +27,21 @@
   }
 
   @font-face {
-    font-family: "Geist Mono";
+    font-family: "GeistMono";
     src: url("fonts/GeistMono-Variable.woff2") format("woff2");
     font-weight: 100 900;
     font-style: normal;
     font-display: swap;
   }
 
-  /* Metric-tuned fallbacks — minimize CLS while the variable fonts load */
+  /* Machine0-compatible fallback metrics for the Geist Sans variable font */
   @font-face {
-    font-family: "Geist Fallback";
+    font-family: "GeistSans Fallback";
     src: local("Arial");
-    size-adjust: 105%;
-    ascent-override: 95%;
-    descent-override: 24%;
-    line-gap-override: 9%;
-  }
-
-  @font-face {
-    font-family: "Geist Mono Fallback";
-    src: local("Menlo");
-    size-adjust: 103%;
+    ascent-override: 94.56%;
+    descent-override: 27.76%;
+    line-gap-override: 0%;
+    size-adjust: 106.28%;
   }
 
   :root {
@@ -61,8 +55,8 @@
     --amber:#FBBF24; --amber-soft:rgba(251,191,36,.12); --amber-line:rgba(251,191,36,.35);
     --cyan:#67E8F9;  --cyan-soft:rgba(103,232,249,.10); --cyan-line:rgba(103,232,249,.35);
     --violet:#A78BFA; --violet-soft:rgba(167,139,250,.12); --violet-line:rgba(167,139,250,.35);
-    --f-sans:"Geist","Geist Fallback",-apple-system,system-ui,sans-serif;
-    --f-mono:"Geist Mono","Geist Mono Fallback",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --f-sans:"GeistSans","GeistSans Fallback",ui-sans-serif,system-ui,sans-serif;
+    --f-mono:"GeistMono",ui-monospace,SFMono-Regular,"Roboto Mono",Menlo,Monaco,"Liberation Mono","DejaVu Sans Mono","Courier New",monospace;
     --radius:2px; --radius-sm:2px;
     --container:1180px; --pad:28px; --header-h:64px;
     --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px;
@@ -99,10 +93,10 @@
     min-height: 100svh;
     background: var(--bg);
     color: var(--text);
-    font-family: var(--f-sans);
+    font-family: var(--f-mono);
     font-size: 16px;
     line-height: 1.55;
-    letter-spacing: -0.004em;
+    letter-spacing: 0;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
     overflow-x: clip;
@@ -148,6 +142,7 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
+    font-family: var(--f-sans);
     font-weight: 600;
     line-height: 1.1;
     letter-spacing: -0.025em;
