@@ -56,14 +56,14 @@
     --border:#1E2228; --border-strong:#2A2F36; --border-glow:#3A4049;
     --text:#ECEDEF; --text-2:#B6BBC2; --text-dim:#888E98; /* AA on --bg */
     --text-mute:#565B64; /* decorative only — never for readable text */
-    --green:#4ADE80; --green-2:#22C55E; --green-soft:rgba(74,222,128,.12); --green-line:rgba(74,222,128,.35);
+    --green:#86EFAC; --green-2:#4ADE80; --green-soft:rgba(134,239,172,.12); --green-line:rgba(134,239,172,.35);
     --red:#FB7185;   --red-deep:#F43F5E; --red-soft:rgba(244,63,94,.14);  --red-line:rgba(244,63,94,.4);
     --amber:#FBBF24; --amber-soft:rgba(251,191,36,.12); --amber-line:rgba(251,191,36,.35);
     --cyan:#67E8F9;  --cyan-soft:rgba(103,232,249,.10); --cyan-line:rgba(103,232,249,.35);
     --violet:#A78BFA; --violet-soft:rgba(167,139,250,.12); --violet-line:rgba(167,139,250,.35);
     --f-sans:"Geist","Geist Fallback",-apple-system,system-ui,sans-serif;
     --f-mono:"Geist Mono","Geist Mono Fallback",ui-monospace,SFMono-Regular,Menlo,monospace;
-    --radius:14px; --radius-sm:8px;
+    --radius:2px; --radius-sm:2px;
     --container:1180px; --pad:28px; --header-h:64px;
     --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px;
     --space-6:32px; --space-7:48px; --space-8:64px; --space-9:96px;
@@ -182,7 +182,7 @@
   }
 
   ::selection {
-    background: rgba(74, 222, 128, .25);
+    background: rgba(134, 239, 172, .25);
     color: var(--text);
   }
 
@@ -335,7 +335,7 @@
     border-color: var(--green-line);
     box-shadow: 0 0 0 1px var(--green-line), var(--shadow-sm);
     background:
-      linear-gradient(180deg, rgba(74, 222, 128, .06), transparent 70%),
+      linear-gradient(180deg, rgba(134, 239, 172, .06), transparent 70%),
       var(--surface);
   }
 
@@ -430,13 +430,13 @@
     background: var(--green);
     border-color: var(--green);
     color: #071109;
-    box-shadow: 0 0 0 1px rgba(74, 222, 128, .12), 0 10px 28px -16px rgba(74, 222, 128, .55);
+    box-shadow: 0 0 0 1px rgba(134, 239, 172, .12), 0 10px 28px -16px rgba(134, 239, 172, .55);
   }
 
   .btn-primary:hover {
-    background: #63E794;
+    background: #A7F3C9;
     border-color: #63E794;
-    box-shadow: 0 0 0 1px rgba(74, 222, 128, .2), 0 12px 32px -14px rgba(74, 222, 128, .6);
+    box-shadow: 0 0 0 1px rgba(134, 239, 172, .2), 0 12px 32px -14px rgba(134, 239, 172, .6);
   }
 
   .btn-ghost {
@@ -680,7 +680,7 @@
   }
 
   .cs-row.good {
-    border-color: rgba(74, 222, 128, .2);
+    border-color: rgba(134, 239, 172, .2);
     color: var(--text-2);
   }
 
@@ -934,7 +934,7 @@
     left: 74.5%;
     right: 0;
     background: var(--amber-soft);
-    border-radius: 0 7px 7px 0;
+    border-radius: 0 2px 2px 0;
     pointer-events: none;
   }
 
@@ -1053,7 +1053,7 @@
   /* ── section-head ─────────────────────────────────────────────── */
   .section-head {
     max-width: 760px;
-    margin-bottom: var(--space-7);
+    margin-bottom: var(--space-6);
   }
 
   .section-head.center {
@@ -1134,7 +1134,7 @@
     background: linear-gradient(180deg, var(--surface) 0%, var(--bg-2) 140%);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    box-shadow: var(--shadow-lg), 0 0 0 1px rgba(74, 222, 128, .03);
+    box-shadow: var(--shadow-lg), 0 0 0 1px rgba(134, 239, 172, .03);
     overflow: hidden;
   }
 
@@ -1318,8 +1318,8 @@
 
   .t-panel.border-green {
     border-color: var(--green-line);
-    background: rgba(74, 222, 128, .05);
-    box-shadow: 0 0 0 1px rgba(74, 222, 128, .1);
+    background: rgba(134, 239, 172, .05);
+    box-shadow: 0 0 0 1px rgba(134, 239, 172, .1);
   }
 
   @media (max-width: 380px) {
@@ -1341,6 +1341,7 @@
 @layer sections {
 
   /* Shared vertical rhythm */
+  #ecosystem,
   #failures,
   #architecture,
   #demo,
@@ -1354,7 +1355,7 @@
   #vision,
   #cta {
     position: relative;
-    padding: var(--space-9) 0;
+    padding: 72px 0;
   }
 
   /* NOTE: content-visibility:auto was removed deliberately — its
@@ -1645,7 +1646,7 @@
     z-index: -1;
     pointer-events: none;
     background:
-      radial-gradient(ellipse 58% 40% at 50% -4%, rgba(74, 222, 128, .08), transparent 70%),
+      radial-gradient(ellipse 58% 40% at 50% -4%, rgba(134, 239, 172, .08), transparent 70%),
       radial-gradient(ellipse 140% 50% at 50% 112%, var(--bg) 30%, transparent 72%);
   }
 
@@ -1884,7 +1885,7 @@
   }
 
   #demo-run:hover {
-    background: #63E794;
+    background: #A7F3C9;
     transform: translateY(-1px);
     box-shadow: 0 0 18px -6px var(--green-line);
   }
@@ -2286,7 +2287,7 @@
     border: 1px solid var(--border);
     border-radius: var(--radius);
     background:
-      radial-gradient(ellipse 60% 70% at 50% 0%, rgba(74, 222, 128, .04), transparent 65%),
+      radial-gradient(ellipse 60% 70% at 50% 0%, rgba(134, 239, 172, .04), transparent 65%),
       var(--surface);
     padding: var(--space-7) var(--space-6);
     box-shadow: var(--shadow-sm);
@@ -2424,7 +2425,7 @@
     border: 1px solid var(--border);
     border-radius: 2px;
     background:
-      radial-gradient(ellipse 60% 65% at 50% 0%, rgba(74, 222, 128, .07), transparent 65%),
+      radial-gradient(ellipse 60% 65% at 50% 0%, rgba(134, 239, 172, .07), transparent 65%),
       var(--surface);
     padding: var(--space-9) var(--space-7);
     box-shadow: var(--shadow-md);
@@ -3090,7 +3091,7 @@
     grid-column: 1 / -1;
     border-color: var(--green-line);
     background:
-      linear-gradient(180deg, rgba(74, 222, 128, .05), transparent 70%),
+      linear-gradient(180deg, rgba(134, 239, 172, .05), transparent 70%),
       var(--surface);
   }
 
@@ -3369,7 +3370,7 @@
 
   .hero {
     min-height: 0;
-    padding: calc(var(--header-h) + 88px) 0 var(--space-8);
+    padding: calc(var(--header-h) + 56px) 0 var(--space-7);
   }
 
   .hero-copy {
@@ -3756,7 +3757,7 @@
     margin-top: 14px;
     border-color: var(--green-line);
     background:
-      linear-gradient(180deg, rgba(74, 222, 128, .04), transparent 70%),
+      linear-gradient(180deg, rgba(134, 239, 172, .04), transparent 70%),
       var(--surface);
   }
 
@@ -3864,7 +3865,7 @@
     min-width: 6px;
   }
 
-  .fg-seg--unchanged { background: rgba(74, 222, 128, .45); }
+  .fg-seg--unchanged { background: rgba(134, 239, 172, .45); }
   .fg-seg--fixed     { background: var(--cyan); }
   .fg-seg--dropped   { background: var(--red-deep); }
 
@@ -3890,7 +3891,7 @@
     border-radius: 1px;
   }
 
-  .fg-dot--unchanged { background: rgba(74, 222, 128, .45); }
+  .fg-dot--unchanged { background: rgba(134, 239, 172, .45); }
   .fg-dot--fixed     { background: var(--cyan); }
   .fg-dot--dropped   { background: var(--red-deep); }
 
@@ -3933,5 +3934,103 @@
     .schema .sk {
       animation: none !important;
     }
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   REFINEMENT PASS — DAG layout, ecosystem logos, compare cleanup
+   ═══════════════════════════════════════════════════════════════════ */
+@layer sections {
+
+  /* 04 · architecture — directed-pipeline layout: two inputs fan in,
+     stages run left to right, the fixer fans out to clean / dropped */
+  .arch-grid--dag {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-areas:
+      "a c d e f g"
+      "b c d e f h";
+    gap: 28px 44px;
+    align-items: center;
+  }
+
+  .arch-grid--dag .arch-node {
+    align-self: center;
+    width: 100%;
+  }
+
+  .arch-svg {
+    color: var(--border-glow); /* arrowhead fill */
+    overflow: visible;
+  }
+
+  .arch-node--in {
+    border-style: dashed;
+  }
+
+  .arch-node--ok {
+    border-color: var(--green-line);
+  }
+
+  .arch-node--drop {
+    border-color: var(--red-line);
+  }
+
+  .arch-node--drop .arch-node-title {
+    color: var(--red);
+  }
+
+  @media (max-width: 1024px) {
+    .arch-grid--dag {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-areas:
+        "a b"
+        "c c"
+        "d e"
+        "f f"
+        "g h";
+      gap: 14px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .arch-grid--dag {
+      grid-template-columns: 1fr;
+      grid-template-areas: "a" "b" "c" "d" "e" "f" "g" "h";
+    }
+  }
+
+  /* 02 · ecosystem — brand marks */
+  .eco-chip {
+    position: relative;
+    padding-left: 46px;
+  }
+
+  .eco-ic {
+    position: absolute;
+    left: 16px;
+    top: 20px;
+    width: 18px;
+    height: 18px;
+    color: var(--text-dim);
+    transition: color .18s var(--ease);
+  }
+
+  .eco-chip:hover .eco-ic {
+    color: var(--green);
+  }
+
+  /* 12 · trust — the long CTA must wrap on narrow screens */
+  .trust-cta .btn {
+    white-space: normal;
+    text-align: center;
+    max-width: 100%;
+  }
+
+  /* 09 · compare — pointer back to the live hero pipeline */
+  .cmp-note {
+    margin-top: var(--space-4);
+    font-family: var(--f-mono);
+    font-size: 12px;
+    color: var(--text-dim);
   }
 }

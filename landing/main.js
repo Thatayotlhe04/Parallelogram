@@ -493,12 +493,14 @@
     const nodes = Array.from(document.querySelectorAll('button.arch-node[data-arch]'));
 
     const COPY = {
-      formats: 'OpenAI chat JSONL and ShareGPT come in as-is — no preprocessing required.',
+      openai: 'OpenAI chat JSONL comes in as-is — {"messages": […]} — no preprocessing required.',
+      sharegpt: "ShareGPT comes in as-is — {\"conversations\": […]} with from/value turns. Pass --format sharegpt and it's handled at the boundary.",
       parser: "The normalization boundary. ShareGPT's from/value turns map to role/content here, so every rule downstream sees one internal message shape.",
       structural: 'schema, roles, empty-content, duplicates — pure structure, no tokenizer needed.',
       context: 'Token counts per record against --max-seq-len. Exact when a tokenizer is available, estimated otherwise — and an estimate is never a hard failure.',
-      fixer: 'Mechanical repairs only: dedupe, truncate, strip BOM, fix mojibake. Unfixable records are dropped with a reason, never silently.',
+      fixer: 'Mechanical repairs only: dedupe, truncate, strip BOM, fix mojibake. Anything still failing re-validation is routed to dropped, never papered over.',
       output: 'Only records that pass every rule are written. Exit 0 means trainable.',
+      dropped: 'Records the mechanical tier cannot fix leave the pipeline here — each with the rule that condemned it, never silently.',
     };
 
     const defaultDesc = desc ? desc.textContent : '';
@@ -521,6 +523,52 @@
     });
 
     if (!arch) return;
+
+    /* DAG edges, drawn in pixel space after layout so they always align:
+       fan-in from the two formats, the sequential rule stages, then
+       fan-out from the fixer to clean.jsonl / dropped. Orthogonal paths
+       (square corners — house style), arrowheads via SVG marker. */
+    const stage = document.getElementById('arch-stage');
+    const svg = document.getElementById('arch-svg');
+    const edgesG = document.getElementById('arch-edges');
+    const EDGES = [
+      ['openai', 'parser'], ['sharegpt', 'parser'],
+      ['parser', 'structural'], ['structural', 'context'],
+      ['context', 'fixer'],
+      ['fixer', 'output'], ['fixer', 'dropped'],
+    ];
+
+    function drawEdges() {
+      if (!stage || !svg || !edgesG) return;
+      if (window.innerWidth < 1024) { edgesG.innerHTML = ''; return; }
+      const sr = stage.getBoundingClientRect();
+      if (!sr.width) return;
+      svg.setAttribute('viewBox', `0 0 ${Math.round(sr.width)} ${Math.round(sr.height)}`);
+      let html = '';
+      for (const [a, b] of EDGES) {
+        const A = stage.querySelector(`[data-arch="${a}"]`)?.getBoundingClientRect();
+        const B = stage.querySelector(`[data-arch="${b}"]`)?.getBoundingClientRect();
+        if (!A || !B) continue;
+        const x1 = Math.round(A.right - sr.left);
+        const y1 = Math.round(A.top + A.height / 2 - sr.top);
+        const x2 = Math.round(B.left - sr.left) - 7; // leave room for the arrowhead
+        const y2 = Math.round(B.top + B.height / 2 - sr.top);
+        const mid = Math.round((x1 + x2) / 2);
+        const d = y1 === y2
+          ? `M${x1} ${y1} H${x2}`
+          : `M${x1} ${y1} H${mid} V${y2} H${x2}`;
+        html += `<path class="arch-edge" d="${d}" marker-end="url(#arch-arrow)"></path>`;
+        html += `<path class="arch-edge arch-edge-flow" d="${d}"></path>`;
+      }
+      edgesG.innerHTML = html;
+    }
+
+    if (stage && 'ResizeObserver' in window) {
+      new ResizeObserver(() => drawEdges()).observe(stage);
+    }
+    addEventListener('load', drawEdges);
+    drawEdges();
+
     if (prefersReducedMotion) {
       arch.classList.add('in');
       return;
