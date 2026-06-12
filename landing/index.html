@@ -68,13 +68,10 @@
       05 · live demo     #demo
       06 · checks matrix #checks        (alias #rules)
       07 · tokenizers    #tokenizers
-      08 · formats       #formats       (schema-normalization diagram)
-      09 · before/after  #compare       (record-flow graph)
-      10 · quickstart    #quickstart    (alias #install)
-      11 · use cases     #use-cases     (alias #integrations)
-      12 · trust         #open-source
-      13 · final CTA     #cta
-      14 · footer + cookie banner
+      08 · quickstart    #quickstart    (alias #install)
+      09 · use cases     #use-cases     (alias #integrations)
+      10 · trust / CTA   #open-source   (alias #cta)
+      11 · footer + cookie banner
     ───────────────────────────────────────────────────────────────────
   -->
 
@@ -95,8 +92,9 @@
       <div id="nav-menu">
         <nav class="nav-links" aria-label="Primary">
           <a href="#product">Product</a>
+          <a href="#architecture">Architecture</a>
+          <a href="#demo">Demo</a>
           <a href="#checks">Checks</a>
-          <a href="#formats">Formats</a>
           <a href="#tokenizers">Tokenizers</a>
           <a href="https://github.com/Thatayotlhe04/Parallelogram#readme" target="_blank" rel="noopener">Docs</a>
           <a href="https://github.com/Thatayotlhe04/Parallelogram" target="_blank" rel="noopener" class="nav-gh">
@@ -311,97 +309,74 @@ max_seq_len: 4096 tokens</code></pre>
     </div>
   </section>
 
+  <span class="anchor-alias" id="formats"></span>
   <!-- ───── 04 · ARCHITECTURE #architecture ───── -->
   <section id="architecture">
     <div class="wrap">
       <div class="section-head" data-reveal>
         <p class="kicker">04 · Architecture</p>
-        <h2>One parser boundary. Every rule runs on the same representation.</h2>
-        <p class="section-sub">Raw formats are normalized once, at parse time. Downstream, the structural checks, the tokenizer-aware context checks, and the safe fixer all operate on a single internal message shape — no rule ever special-cases a format.</p>
+        <h2>Diagnostics first. Formats disappear at the parse boundary.</h2>
+        <p class="section-sub">Parallelogram turns OpenAI chat JSONL and ShareGPT records into one internal message list, then prints the same rule diagnostics, safe-fix notes, and output reasons for both.</p>
       </div>
 
-      <div class="arch arch-map" data-reveal>
-        <div class="arch-canvas" id="arch-stage" aria-label="Parallelogram validation flow from raw datasets through preview checks to clean output or dropped records">
-          <svg class="arch-routes" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-            <path class="arch-route arch-route--dashed" d="M21 53 V68 Q21 76 30 76 H40" />
-            <path class="arch-route arch-route--dashed" d="M34 53 V35 Q34 27 43 27 H50" />
-            <path class="arch-route arch-route--dashed" d="M65 53 V68 Q65 76 74 76 H82" />
-            <path class="arch-route arch-route--green" d="M55 27 H78 Q82 27 82 34 V53" />
-            <path class="arch-route arch-route--red" d="M40 76 H59" />
-          </svg>
+      <div class="arch arch-console" data-reveal>
+        <div class="arch-canvas" id="arch-stage" aria-label="Parallelogram console flow from raw dataset input through diagnostics and clean output">
+          <div class="arch-lane arch-lane--input">
+            <button class="arch-panel arch-panel--input arch-hotspot" type="button" data-arch="input" aria-pressed="false">
+              <span class="arch-panel-label">input</span>
+              <span class="arch-panel-title">data/train.jsonl</span>
+              <span class="arch-code">
+                <span><b>001</b> {"messages":[...]}</span>
+                <span><b>023</b> {"conversations":[...]}</span>
+                <span><b>147</b> {"messages":[...]}</span>
+              </span>
+            </button>
+            <div class="arch-format-strip" aria-label="Supported input formats normalize into the same message shape">
+              <span>openai-chat</span>
+              <span>sharegpt</span>
+              <span>role + content</span>
+            </div>
+          </div>
 
-          <div class="arch-mainline" aria-hidden="true"></div>
-          <span class="arch-dot arch-dot--a" aria-hidden="true"></span>
-          <span class="arch-dot arch-dot--b" aria-hidden="true"></span>
-          <span class="arch-dot arch-dot--c" aria-hidden="true"></span>
-          <span class="arch-dot arch-dot--d" aria-hidden="true"></span>
-          <span class="arch-dot arch-dot--e" aria-hidden="true"></span>
-          <span class="arch-dot arch-dot--f" aria-hidden="true"></span>
-          <span class="arch-tick arch-tick--a">parse</span>
-          <span class="arch-tick arch-tick--b">normalize</span>
-          <span class="arch-tick arch-tick--c">validate</span>
-          <span class="arch-tick arch-tick--d">re-check</span>
+          <div class="arch-lane arch-lane--console">
+            <button class="arch-panel arch-panel--parser arch-hotspot" type="button" data-arch="parser" aria-pressed="false">
+              <span class="arch-panel-label">parse boundary</span>
+              <span class="arch-panel-title">internal message list</span>
+              <span class="arch-shape">[{ role, content }, { role, content }]</span>
+            </button>
 
-          <button class="arch-live arch-hotspot" type="button" data-arch="parser" aria-pressed="false">
-            <span class="arch-badge arch-badge--live">RAW</span>
-            <span>incoming datasets</span>
-          </button>
+            <button class="arch-panel arch-panel--diag arch-hotspot" type="button" data-arch="diagnostics" aria-pressed="false">
+              <span class="arch-panel-label">diagnostics</span>
+              <span class="arch-log">
+                <span><b class="arch-error">ERROR</b> L23 roles.final_user</span>
+                <span><b class="arch-error">ERROR</b> L147 duplicates.hash</span>
+                <span><b class="arch-warn">WARN</b> L312 context.estimated</span>
+              </span>
+            </button>
 
-          <button class="arch-change arch-change--formats arch-hotspot" type="button" data-arch="openai" aria-pressed="false">
-            <span class="arch-change-icon">↔</span>
-            <span class="arch-muted">Changed</span>
-            <span>formats</span>
-          </button>
+            <button class="arch-panel arch-panel--fix arch-hotspot" type="button" data-arch="fixer" aria-pressed="false">
+              <span class="arch-panel-label">safe fix</span>
+              <span class="arch-panel-title">repair mechanical issues, re-run checks</span>
+              <span class="arch-fix-row"><b>2 fixed</b><b>1 held back</b></span>
+            </button>
+          </div>
 
-          <button class="arch-change arch-change--rules arch-hotspot" type="button" data-arch="structural" aria-pressed="false">
-            <span class="arch-change-icon arch-change-icon--warn">!</span>
-            <span class="arch-muted">Changed</span>
-            <span>rules</span>
-          </button>
-
-          <button class="arch-change arch-change--context arch-hotspot" type="button" data-arch="context" aria-pressed="false">
-            <span class="arch-change-icon arch-change-icon--blue">∿</span>
-            <span class="arch-muted">Changed</span>
-            <span>token budget</span>
-          </button>
-
-          <button class="arch-branch arch-branch--parse arch-hotspot" type="button" data-arch="parser" aria-pressed="false">
-            <span class="arch-badge">PREVIEW</span>
-            <span>normalized-message-shape</span>
-          </button>
-
-          <button class="arch-branch arch-branch--fix arch-hotspot" type="button" data-arch="fixer" aria-pressed="false">
-            <span class="arch-badge">PREVIEW</span>
-            <span>safe-fix-pass</span>
-          </button>
-
-          <button class="arch-branch arch-branch--context arch-hotspot" type="button" data-arch="context" aria-pressed="false">
-            <span class="arch-badge">PREVIEW</span>
-            <span>tokenizer-scan</span>
-          </button>
-
-          <button class="arch-status arch-status--pass arch-hotspot" type="button" data-arch="output" aria-pressed="false">
-            <span class="arch-status-label">All Rules Passed</span>
-            <span class="arch-status-mark">✓</span>
-          </button>
-
-          <button class="arch-status arch-status--ship arch-hotspot" type="button" data-arch="output" aria-pressed="false">
-            <span class="arch-status-label">Write Clean File</span>
-            <span class="arch-status-mark">↑</span>
-          </button>
-
-          <button class="arch-status arch-status--fail arch-hotspot" type="button" data-arch="dropped" aria-pressed="false">
-            <span class="arch-status-mark">!</span>
-            <span class="arch-status-label">Still Invalid</span>
-          </button>
-
-          <button class="arch-status arch-status--drop arch-hotspot" type="button" data-arch="dropped" aria-pressed="false">
-            <span class="arch-status-mark">×</span>
-            <span class="arch-status-label">Drop Record</span>
-          </button>
+          <div class="arch-lane arch-lane--output">
+            <button class="arch-panel arch-panel--output arch-hotspot" type="button" data-arch="output" aria-pressed="false">
+              <span class="arch-panel-label">output</span>
+              <span class="arch-result arch-result--clean">
+                <b>clean.jsonl</b>
+                <em>546 written · exit 1</em>
+              </span>
+              <span class="arch-result arch-result--drop">
+                <b>dropped.ndjson</b>
+                <em>L23 roles.final_user</em>
+              </span>
+            </button>
+          </div>
         </div>
 
-        <p class="arch-desc" id="arch-desc" aria-live="polite">Click a node to inspect it. Raw datasets travel on the baseline, preview branches test changes in isolation, and only clean records return to the output path.</p>
+        <p class="arch-desc" id="arch-desc" aria-live="polite">Click a panel to inspect it. The console is the source of truth: raw records in, normalized diagnostics in the middle, clean output and held-back reasons on the right.</p>
       </div>
     </div>
   </section>
@@ -652,129 +627,14 @@ max_seq_len: 4096 tokens</code></pre>
     </div>
   </section>
 
-  <!-- ───── 08 · FORMATS #formats ───── -->
-  <section id="formats">
-    <div class="wrap">
-      <div class="section-head" data-reveal>
-        <p class="kicker">08 · Formats</p>
-        <h2>Normalize formats once. Run every rule unchanged.</h2>
-        <p class="section-sub">The pipeline above shows <em>where</em> the rules run — this is the exact field mapping that makes it possible. Both formats collapse to one internal message list at the parse boundary, and <code>--output</code> writes survivors back in the shape they came in.</p>
-      </div>
+  <span class="anchor-alias" id="compare"></span>
 
-      <div class="schema" data-reveal>
-        <div class="schema-srcs">
-          <div class="schema-box corners">
-            <header class="schema-box-head"><span>ShareGPT</span><span class="pill">--format sharegpt</span></header>
-            <pre class="schema-code"><code>{"conversations": [
-  {"<span class="sk p1">from</span>": "<span class="sk p2">human</span>", "<span class="sk p3">value</span>": "Hi"},
-  {"<span class="sk p1">from</span>": "<span class="sk p2">gpt</span>", "<span class="sk p3">value</span>": "Hello!"}
-]}</code></pre>
-          </div>
-          <div class="schema-box corners">
-            <header class="schema-box-head"><span>OpenAI chat JSONL</span><span class="pill">--format openai-chat · default</span></header>
-            <pre class="schema-code"><code>{"messages": [
-  {"role": "user", "content": "Hi"},
-  {"role": "assistant", "content": "Hello!"}
-]}</code></pre>
-          </div>
-        </div>
-
-        <div class="schema-join" aria-hidden="true"></div>
-
-        <div class="schema-box schema-box--norm corners">
-          <header class="schema-box-head"><span>normalized internal messages</span><span class="pill pill--fixed">parse boundary</span></header>
-          <pre class="schema-code"><code>[{"<span class="sk p1">role</span>": "<span class="sk p2">user</span>", "<span class="sk p3">content</span>": "Hi"},
- {"<span class="sk p1">role</span>": "<span class="sk p2">assistant</span>", "<span class="sk p3">content</span>": "Hello!"}]</code></pre>
-        </div>
-
-      </div>
-
-      <div class="roadmap" data-reveal>
-        <div class="roadmap-head">
-          <span class="pill pill--planned">PLANNED</span>
-          <h3>Roadmap — not shipped yet</h3>
-        </div>
-        <p>None of this exists in v0.4.1. It's listed so you know where the project is going — not what you're installing today.</p>
-        <ul class="roadmap-items">
-          <li>raw-completion <span class="pill pill--info">next</span></li>
-          <li>Alpaca</li>
-          <li>Dolly</li>
-          <li>ChatML</li>
-          <li>TRL conversational</li>
-          <li>Axolotl variants</li>
-          <li>Unsloth-ready exports</li>
-          <li>dataset quality scoring</li>
-          <li>PII detection</li>
-          <li>semantic duplicate detection</li>
-        </ul>
-      </div>
-    </div>
-  </section>
-
-  <!-- ───── 09 · BEFORE/AFTER #compare ───── -->
-  <section id="compare">
-    <div class="wrap">
-      <div class="section-head" data-reveal>
-        <p class="kicker">09 · Before / after</p>
-        <h2>Before Parallelogram / after Parallelogram.</h2>
-        <p class="section-sub">547 records in, 546 out — and a reason on file for every record that changed or was dropped. Nothing leaves your machine.</p>
-      </div>
-
-      <div class="flow-graph corners" data-reveal>
-        <div class="fg-head">
-          <span class="fg-title">record flow</span>
-          <span class="pill pill--est">ILLUSTRATIVE</span>
-        </div>
-        <div class="fg-row">
-          <span class="fg-end">547 raw</span>
-          <div class="fg-bar" role="img" aria-label="Of 547 raw records: 544 unchanged, 2 fixed, 1 dropped">
-            <span class="fg-seg fg-seg--unchanged" style="--w:544"></span>
-            <span class="fg-seg fg-seg--fixed" style="--w:2"></span>
-            <span class="fg-seg fg-seg--dropped" style="--w:1"></span>
-          </div>
-          <span class="fg-end fg-end--ok">546 written</span>
-        </div>
-        <div class="fg-legend">
-          <span><i class="fg-dot fg-dot--unchanged"></i>544 unchanged</span>
-          <span><i class="fg-dot fg-dot--fixed"></i>2 fixed</span>
-          <span><i class="fg-dot fg-dot--dropped"></i>1 dropped, with reason</span>
-        </div>
-        <p class="fg-note">Numbers from the demo run above — not usage telemetry.</p>
-      </div>
-
-      <div class="static-grid" data-reveal>
-        <div class="card cmp-static cmp-static--before" style="--i:0">
-          <h3>Before</h3>
-          <ul>
-            <li>Training starts on unknown quality</li>
-            <li>Silent truncation of oversized records</li>
-            <li>Duplicates inflating eval metrics</li>
-            <li>Bad role orders training the model to talk to itself</li>
-            <li>Manual JSONL eyeballing as the last line of defense</li>
-          </ul>
-        </div>
-        <div class="card cmp-static cmp-static--after" style="--i:1">
-          <h3>After</h3>
-          <ul>
-            <li>Preflight diagnostics with exact file:line and rule id</li>
-            <li>Exact-or-estimated context-window checks, labeled as such</li>
-            <li>Safe fixes written to <code>--output</code>, originals untouched</li>
-            <li>Bad records dropped with reasons, never silently</li>
-            <li>CI-friendly exit codes: 0 / 1 / 2</li>
-          </ul>
-        </div>
-      </div>
-
-      <p class="cmp-note" data-reveal>The full pipeline is live at the top of this page — dirty records in, diagnostics, clean records out.</p>
-    </div>
-  </section>
-
-  <!-- ───── 10 · QUICKSTART #quickstart ───── -->
+  <!-- ───── 08 · QUICKSTART #quickstart ───── -->
   <span class="anchor-alias" id="install"></span>
   <section id="quickstart">
     <div class="wrap">
       <div class="section-head" data-reveal>
-        <p class="kicker">10 · Quickstart</p>
+        <p class="kicker">08 · Quickstart</p>
         <h2>Install. Point it at a dataset. Read the diagnostics.</h2>
         <p class="section-sub">No config file, no account, no network. Python ≥ 3.10.</p>
       </div>
@@ -799,15 +659,6 @@ max_seq_len: 4096 tokens</code></pre>
         </div>
 
         <div class="codeblock" data-reveal style="--i:2">
-          <pre><code><span class="dim"># ShareGPT datasets — every rule runs identically</span>
-<span class="pr">$</span> parallelogram check data.jsonl --format sharegpt</code></pre>
-          <button class="copy-btn" type="button" data-copy="parallelogram check data.jsonl --format sharegpt" aria-label="Copy: parallelogram check data.jsonl --format sharegpt">
-            <svg class="copy-ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 2h7a1 1 0 0 1 1 1v7" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="5" width="8" height="9" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
-            <span class="copy-label">Copy</span>
-          </button>
-        </div>
-
-        <div class="codeblock" data-reveal style="--i:3">
           <pre><code><span class="dim"># repair what's mechanical, drop what isn't — with reasons</span>
 <span class="pr">$</span> parallelogram check data.jsonl --fix --output clean.jsonl</code></pre>
           <button class="copy-btn" type="button" data-copy="parallelogram check data.jsonl --fix --output clean.jsonl" aria-label="Copy: parallelogram check data.jsonl --fix --output clean.jsonl">
@@ -816,7 +667,7 @@ max_seq_len: 4096 tokens</code></pre>
           </button>
         </div>
 
-        <div class="codeblock" data-reveal style="--i:4">
+        <div class="codeblock" data-reveal style="--i:3">
           <pre><code><span class="dim"># exact token counts against a budget</span>
 <span class="pr">$</span> parallelogram check data.jsonl --tokenizer gpt-4o --max-seq-len 4096</code></pre>
           <button class="copy-btn" type="button" data-copy="parallelogram check data.jsonl --tokenizer gpt-4o --max-seq-len 4096" aria-label="Copy: parallelogram check data.jsonl --tokenizer gpt-4o --max-seq-len 4096">
@@ -833,66 +684,45 @@ max_seq_len: 4096 tokens</code></pre>
         <div class="exit-code-pill" id="ec-2"><span class="ec-num">2</span><span class="ec-text">errors · nothing fixable</span></div>
       </div>
 
-      <p class="qs-guarantee" data-reveal>If it exits 0 with all rules enabled, your run won't fail because of data.</p>
-
-      <div class="codeblock" data-reveal>
-        <pre><code><span class="dim"># .github/workflows/data.yml — gate dataset PRs like code PRs</span>
-- run: pip install 'parallelogram[tokenizer]'
-- run: parallelogram check data/train.jsonl --tokenizer mistral --max-seq-len 32768</code></pre>
-        <button class="copy-btn" type="button" data-copy="- run: pip install 'parallelogram[tokenizer]'&#10;- run: parallelogram check data/train.jsonl --tokenizer mistral --max-seq-len 32768" aria-label="Copy: GitHub Actions workflow steps">
-          <svg class="copy-ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 2h7a1 1 0 0 1 1 1v7" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="5" width="8" height="9" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
-          <span class="copy-label">Copy</span>
-        </button>
-      </div>
+      <p class="qs-guarantee" data-reveal>Use <code>--format sharegpt</code> for ShareGPT files; the same rules and exit codes apply.</p>
     </div>
   </section>
 
-  <!-- ───── 11 · USE CASES #use-cases ───── -->
+  <!-- ───── 09 · USE CASES #use-cases ───── -->
   <span class="anchor-alias" id="integrations"></span>
   <section id="use-cases">
     <div class="wrap">
       <div class="section-head" data-reveal>
-        <p class="kicker">11 · Use cases</p>
+        <p class="kicker">09 · Use cases</p>
         <h2>Run it wherever a dataset meets a trainer.</h2>
         <p class="section-sub">One command between your raw data and anything that consumes it.</p>
       </div>
 
       <div class="card-grid">
         <article class="card" data-reveal style="--i:0">
-          <h3>Before OpenAI fine-tuning</h3>
-          <p>Validate the JSONL before you upload it to the <a href="https://platform.openai.com/docs/guides/fine-tuning" target="_blank" rel="noopener">OpenAI fine-tuning API</a> — catch rejections and silent quality issues before the job is queued.</p>
+          <h3>Before fine-tuning jobs</h3>
+          <p>Validate JSONL before upload or trainer launch. Catch schema, role, duplicate, and token-budget problems before the job queues or the GPU bill starts.</p>
         </article>
         <article class="card" data-reveal style="--i:1">
-          <h3>Before Axolotl / TRL / Unsloth runs</h3>
-          <p><a href="https://github.com/OpenAccess-AI-Collective/axolotl" target="_blank" rel="noopener">Axolotl</a>, <a href="https://github.com/huggingface/trl" target="_blank" rel="noopener">TRL</a>, and <a href="https://github.com/unslothai/unsloth" target="_blank" rel="noopener">Unsloth</a> assume your data is clean. None of them verify it. Run the preflight before the GPU bill starts.</p>
+          <h3>Cleaning public or synthetic data</h3>
+          <p>ShareGPT dumps and generation pipelines drift in predictable ways: empty turns, bad order, duplicates, mojibake, and truncated records.</p>
         </article>
         <article class="card" data-reveal style="--i:2">
-          <h3>Cleaning ShareGPT datasets</h3>
-          <p>Public ShareGPT dumps are full of duplicates, broken turn orders, and mojibake. <code>--format sharegpt --fix</code> writes the survivors back in ShareGPT shape.</p>
-        </article>
-        <article class="card" data-reveal style="--i:3">
-          <h3>Checking synthetic instruction data</h3>
-          <p>Generation pipelines drift: empty completions, repeated samples, truncated records. Validate the output before it contaminates a training mix.</p>
-        </article>
-        <article class="card" data-reveal style="--i:4">
           <h3>CI gate for dataset PRs</h3>
-          <p>Exit codes 0/1/2 map directly to CI status with no extra wiring. A dataset PR that breaks role order fails the same way a code PR with a failing test does.</p>
-        </article>
-        <article class="card" data-reveal style="--i:5">
-          <h3>Preflight for SLM training data</h3>
-          <p>Small models are less forgiving of dirty data, and small-model runs repeat often. Make the structural check a fixed step, not a vibe check.</p>
+          <p>Exit codes 0/1/2 map directly to CI status. A dataset PR that breaks role order can fail the same way a code PR with a failing test does.</p>
         </article>
       </div>
     </div>
   </section>
 
-  <!-- ───── 12 · TRUST #open-source ───── -->
+  <span class="anchor-alias" id="cta"></span>
+  <!-- ───── 10 · TRUST / CTA #open-source ───── -->
   <section id="open-source">
     <div class="wrap">
       <div class="section-head" data-reveal>
-        <p class="kicker">12 · Open source</p>
+        <p class="kicker">10 · Open source</p>
         <h2>Open source, local, and honest about what it can't see.</h2>
-        <p class="section-sub">Apache-2.0. Runs entirely on your machine — no telemetry, no network, nothing uploaded. The source is on GitHub, the package is on PyPI, and a heuristic is always labeled as one.</p>
+        <p class="section-sub">Apache-2.0. No telemetry. No upload boundary. The source is on GitHub, the package is on PyPI, and heuristic checks are labeled as such.</p>
       </div>
 
       <div class="trust-band" data-reveal>
@@ -911,32 +741,9 @@ max_seq_len: 4096 tokens</code></pre>
           <h3>One pip install</h3>
           <p><a href="https://pypi.org/project/parallelogram/" target="_blank" rel="noopener"><code>pip install parallelogram</code></a> — nothing else to set up, nothing to sign up for.</p>
         </div>
-        <div class="trust-item">
-          <span class="trust-item-label">honest limits</span>
-          <h3>Labeled heuristics</h3>
-          <p>It validates structure and token budgets. It can't judge whether your answers are good — yet. That honesty is the point.</p>
-        </div>
       </div>
 
       <div class="trust-cta" data-reveal>
-        <a class="btn btn-primary" href="https://github.com/Thatayotlhe04/Parallelogram/issues" target="_blank" rel="noopener">Try it on a real dataset and tell us what it misses.</a>
-      </div>
-    </div>
-  </section>
-
-  <!-- ───── 13 · FINAL CTA #cta ───── -->
-  <section id="cta">
-    <div class="wrap">
-      <div class="cta-panel" data-reveal>
-        <span class="cta-glyph" aria-hidden="true">
-          <svg viewBox="0 0 80 60" width="80" height="60"><path d="M22 8 L72 8 L58 52 L8 52 Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
-        </span>
-        <h2>Run it before your next fine-tune.</h2>
-        <div class="cta-ctas">
-          <a class="btn btn-primary" href="https://pypi.org/project/parallelogram/" target="_blank" rel="noopener">Install from PyPI</a>
-          <a class="btn btn-ghost" href="https://github.com/Thatayotlhe04/Parallelogram" target="_blank" rel="noopener">Star on GitHub</a>
-          <a class="btn btn-ghost" href="https://github.com/Thatayotlhe04/Parallelogram#readme" target="_blank" rel="noopener">Read the README</a>
-        </div>
         <div class="codeblock cta-install">
           <pre><code><span class="pr">$</span> pip install parallelogram &amp;&amp; parallelogram check data.jsonl</code></pre>
           <button class="copy-btn" type="button" data-copy="pip install parallelogram &amp;&amp; parallelogram check data.jsonl" aria-label="Copy: pip install parallelogram and check data.jsonl">
@@ -944,13 +751,18 @@ max_seq_len: 4096 tokens</code></pre>
             <span class="copy-label">Copy</span>
           </button>
         </div>
+        <div class="cta-ctas">
+          <a class="btn btn-primary" href="https://pypi.org/project/parallelogram/" target="_blank" rel="noopener">Install from PyPI</a>
+          <a class="btn btn-ghost" href="https://github.com/Thatayotlhe04/Parallelogram" target="_blank" rel="noopener">Star on GitHub</a>
+          <a class="btn btn-ghost" href="https://github.com/Thatayotlhe04/Parallelogram#readme" target="_blank" rel="noopener">Read the README</a>
+        </div>
       </div>
     </div>
   </section>
 
   </main>
 
-  <!-- ───── 14 · FOOTER + COOKIE BANNER ───── -->
+  <!-- ───── 11 · FOOTER + COOKIE BANNER ───── -->
   <footer class="footer">
     <div class="wrap">
       <div class="footer-brand">
@@ -963,8 +775,9 @@ max_seq_len: 4096 tokens</code></pre>
         <div class="footer-col">
           <h3>Product</h3>
           <a href="#product">Product</a>
+          <a href="#architecture">Architecture</a>
+          <a href="#demo">Demo</a>
           <a href="#checks">Checks</a>
-          <a href="#formats">Formats</a>
           <a href="#tokenizers">Tokenizers</a>
         </div>
         <div class="footer-col">

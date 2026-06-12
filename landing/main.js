@@ -147,6 +147,26 @@
     const announce = document.getElementById('copy-announce');
     let announceTimer = 0;
 
+    async function copyText(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.top = '-999px';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        const ok = document.execCommand('copy');
+        ta.remove();
+        if (!ok) throw new Error('copy failed');
+        return true;
+      }
+    }
+
     document.querySelectorAll('[data-copy]').forEach((btn) => {
       const label = btn.querySelector('.copy-label');
       const original = label ? label.textContent : '';
@@ -154,7 +174,7 @@
 
       btn.addEventListener('click', async () => {
         try {
-          await navigator.clipboard.writeText(btn.dataset.copy || '');
+          await copyText(btn.dataset.copy || '');
           btn.classList.add('copied');
           if (label) label.textContent = 'Copied';
           clearTimeout(restoreTimer);
@@ -485,7 +505,7 @@
   /*
     Each visual node explains itself in #arch-desc on click; clicking
     the active node again restores the default prompt. The .in class on
-    .arch arms the route animation once the diagram is on screen.
+    .arch softly reveals the console panels once the diagram is on screen.
   */
   (() => {
     const arch = document.querySelector('.arch');
@@ -493,13 +513,11 @@
     const nodes = Array.from(document.querySelectorAll('button.arch-hotspot[data-arch]'));
 
     const COPY = {
-      openai: 'OpenAI chat JSONL and ShareGPT enter as raw files; the format branch shows they can change without forcing rule-specific forks.',
-      parser: 'The parse boundary turns every supported format into one internal message shape before any rule runs.',
-      structural: 'Schema, role order, empty content, and duplicate checks run on an isolated preview path before records can return to the baseline.',
-      context: 'Tokenizer-aware limits are tested as their own branch: exact when a tokenizer is available, estimated when it is not.',
-      fixer: 'The safe fixer can repair mechanical issues, then re-validates the result before anything is allowed through.',
-      output: 'Only records that pass every rule return to the clean output path and can be written to clean.jsonl.',
-      dropped: 'Records that still fail after safe repair are dropped with a reason instead of silently contaminating the training set.',
+      input: 'OpenAI chat JSONL and ShareGPT files can enter through the same command surface; the parser handles the shape difference before checks run.',
+      parser: 'The parse boundary turns supported formats into one internal message list with role and content fields.',
+      diagnostics: 'Schema, role order, duplicate, empty-content, and context-window diagnostics all print against that normalized representation.',
+      fixer: 'The safe fixer repairs mechanical issues, then sends the record back through validation before it can be written.',
+      output: 'Clean records are written to the requested output file; held-back records keep a line number and reason instead of disappearing silently.',
     };
 
     const defaultDesc = desc ? desc.textContent : '';
