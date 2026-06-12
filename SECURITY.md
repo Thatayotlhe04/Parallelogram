@@ -11,7 +11,7 @@ reports that undermine it seriously.
 Please report vulnerabilities privately — do not open a public issue.
 
 - **Preferred:** [GitHub private vulnerability reporting](https://github.com/Thatayotlhe04/Parallelogram/security/advisories/new)
-- **Email:** bradleytsenang9@gmail.com
+- **Email:** tsenangthatayotlhe04@gmail.com
 
 You should receive an acknowledgement within 72 hours. Please include steps to
 reproduce, the affected component (CLI on PyPI, the website, or the in-browser
