@@ -320,62 +320,88 @@ max_seq_len: 4096 tokens</code></pre>
         <p class="section-sub">Raw formats are normalized once, at parse time. Downstream, the structural checks, the tokenizer-aware context checks, and the safe fixer all operate on a single internal message shape — no rule ever special-cases a format.</p>
       </div>
 
-      <div class="arch" data-reveal>
-        <div class="arch-stage" id="arch-stage">
-          <svg class="arch-svg" id="arch-svg" aria-hidden="true">
-            <defs>
-              <marker id="arch-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-                <path d="M0 0 L8 4 L0 8 Z" fill="currentColor" />
-              </marker>
-            </defs>
-            <g id="arch-edges"></g>
+      <div class="arch arch-map" data-reveal>
+        <div class="arch-canvas" id="arch-stage" aria-label="Parallelogram validation flow from raw datasets through preview checks to clean output or dropped records">
+          <svg class="arch-routes" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+            <path class="arch-route arch-route--dashed" d="M21 53 V68 Q21 76 30 76 H40" />
+            <path class="arch-route arch-route--dashed" d="M34 53 V35 Q34 27 43 27 H50" />
+            <path class="arch-route arch-route--dashed" d="M65 53 V68 Q65 76 74 76 H82" />
+            <path class="arch-route arch-route--green" d="M55 27 H78 Q82 27 82 34 V53" />
+            <path class="arch-route arch-route--red" d="M40 76 H59" />
           </svg>
 
-          <div class="arch-grid arch-grid--dag">
-            <button class="arch-node arch-node--in" type="button" data-arch="openai" aria-pressed="false" style="grid-area: a">
-              <span class="arch-node-kicker">input</span>
-              <span class="arch-node-title">openai-chat</span>
-              <span class="arch-node-pills"><span class="pill">{"messages": […]}</span></span>
-            </button>
-            <button class="arch-node arch-node--in" type="button" data-arch="sharegpt" aria-pressed="false" style="grid-area: b">
-              <span class="arch-node-kicker">input</span>
-              <span class="arch-node-title">sharegpt</span>
-              <span class="arch-node-pills"><span class="pill">{"conversations": […]}</span></span>
-            </button>
-            <button class="arch-node arch-node--gate" type="button" data-arch="parser" aria-pressed="false" style="grid-area: c">
-              <span class="arch-node-kicker">parse boundary</span>
-              <span class="arch-node-title">parser · normalizer</span>
-              <span class="arch-node-pills"><span class="pill">one internal shape</span></span>
-            </button>
-            <button class="arch-node" type="button" data-arch="structural" aria-pressed="false" style="grid-area: d">
-              <span class="arch-node-kicker">rules</span>
-              <span class="arch-node-title">structural checks</span>
-              <span class="arch-node-pills"><span class="pill">schema</span><span class="pill">roles</span><span class="pill">empty</span><span class="pill">dupes</span></span>
-            </button>
-            <button class="arch-node" type="button" data-arch="context" aria-pressed="false" style="grid-area: e">
-              <span class="arch-node-kicker">rules</span>
-              <span class="arch-node-title">context checks</span>
-              <span class="arch-node-pills"><span class="pill pill--info">EXACT</span><span class="pill pill--est">ESTIMATED</span></span>
-            </button>
-            <button class="arch-node" type="button" data-arch="fixer" aria-pressed="false" style="grid-area: f">
-              <span class="arch-node-kicker">--fix</span>
-              <span class="arch-node-title">safe fixer</span>
-              <span class="arch-node-pills"><span class="pill">fix → re-validate</span></span>
-            </button>
-            <button class="arch-node arch-node--ok" type="button" data-arch="output" aria-pressed="false" style="grid-area: g">
-              <span class="arch-node-kicker">output</span>
-              <span class="arch-node-title">clean.jsonl</span>
-              <span class="arch-node-pills"><span class="pill pill--fixed">exit 0</span></span>
-            </button>
-            <button class="arch-node arch-node--drop" type="button" data-arch="dropped" aria-pressed="false" style="grid-area: h">
-              <span class="arch-node-kicker">output</span>
-              <span class="arch-node-title">dropped</span>
-              <span class="arch-node-pills"><span class="pill pill--error">with reason</span></span>
-            </button>
-          </div>
+          <div class="arch-mainline" aria-hidden="true"></div>
+          <span class="arch-dot arch-dot--a" aria-hidden="true"></span>
+          <span class="arch-dot arch-dot--b" aria-hidden="true"></span>
+          <span class="arch-dot arch-dot--c" aria-hidden="true"></span>
+          <span class="arch-dot arch-dot--d" aria-hidden="true"></span>
+          <span class="arch-dot arch-dot--e" aria-hidden="true"></span>
+          <span class="arch-dot arch-dot--f" aria-hidden="true"></span>
+          <span class="arch-tick arch-tick--a">parse</span>
+          <span class="arch-tick arch-tick--b">normalize</span>
+          <span class="arch-tick arch-tick--c">validate</span>
+          <span class="arch-tick arch-tick--d">re-check</span>
+
+          <button class="arch-live arch-hotspot" type="button" data-arch="parser" aria-pressed="false">
+            <span class="arch-badge arch-badge--live">RAW</span>
+            <span>incoming datasets</span>
+          </button>
+
+          <button class="arch-change arch-change--formats arch-hotspot" type="button" data-arch="openai" aria-pressed="false">
+            <span class="arch-change-icon">↔</span>
+            <span class="arch-muted">Changed</span>
+            <span>formats</span>
+          </button>
+
+          <button class="arch-change arch-change--rules arch-hotspot" type="button" data-arch="structural" aria-pressed="false">
+            <span class="arch-change-icon arch-change-icon--warn">!</span>
+            <span class="arch-muted">Changed</span>
+            <span>rules</span>
+          </button>
+
+          <button class="arch-change arch-change--context arch-hotspot" type="button" data-arch="context" aria-pressed="false">
+            <span class="arch-change-icon arch-change-icon--blue">∿</span>
+            <span class="arch-muted">Changed</span>
+            <span>token budget</span>
+          </button>
+
+          <button class="arch-branch arch-branch--parse arch-hotspot" type="button" data-arch="parser" aria-pressed="false">
+            <span class="arch-badge">PREVIEW</span>
+            <span>normalized-message-shape</span>
+          </button>
+
+          <button class="arch-branch arch-branch--fix arch-hotspot" type="button" data-arch="fixer" aria-pressed="false">
+            <span class="arch-badge">PREVIEW</span>
+            <span>safe-fix-pass</span>
+          </button>
+
+          <button class="arch-branch arch-branch--context arch-hotspot" type="button" data-arch="context" aria-pressed="false">
+            <span class="arch-badge">PREVIEW</span>
+            <span>tokenizer-scan</span>
+          </button>
+
+          <button class="arch-status arch-status--pass arch-hotspot" type="button" data-arch="output" aria-pressed="false">
+            <span class="arch-status-label">All Rules Passed</span>
+            <span class="arch-status-mark">✓</span>
+          </button>
+
+          <button class="arch-status arch-status--ship arch-hotspot" type="button" data-arch="output" aria-pressed="false">
+            <span class="arch-status-label">Write Clean File</span>
+            <span class="arch-status-mark">↑</span>
+          </button>
+
+          <button class="arch-status arch-status--fail arch-hotspot" type="button" data-arch="dropped" aria-pressed="false">
+            <span class="arch-status-mark">!</span>
+            <span class="arch-status-label">Still Invalid</span>
+          </button>
+
+          <button class="arch-status arch-status--drop arch-hotspot" type="button" data-arch="dropped" aria-pressed="false">
+            <span class="arch-status-mark">×</span>
+            <span class="arch-status-label">Drop Record</span>
+          </button>
         </div>
 
-        <p class="arch-desc" id="arch-desc" aria-live="polite">Click a stage to inspect it. Formats normalize at the parse boundary — every rule runs on one internal message representation.</p>
+        <p class="arch-desc" id="arch-desc" aria-live="polite">Click a node to inspect it. Raw datasets travel on the baseline, preview branches test changes in isolation, and only clean records return to the output path.</p>
       </div>
     </div>
   </section>
