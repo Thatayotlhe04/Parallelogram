@@ -163,12 +163,69 @@
 })();
 
 /* ── the data eater ──────────────────────────────────────────────────── */
+/* A pixel-art pac-man marching the open ground above the install row,
+   eating corrupted-data tokens into clean status dots. It runs edge to
+   edge of the row below; at the right corner it disappears and reappears
+   at the left, continuously. Two pixel frames (open/closed mouth) are
+   flipped by CSS steps() — no tweening, it's a flip-book. Static under
+   reduced motion; aria-hidden throughout (decoration, not content). */
 (() => {
   'use strict';
 
   const strip = document.getElementById('eater-strip');
   const agent = document.getElementById('eater-agent');
   if (!strip || !agent) return;
+
+  // 12×12 pixel maps, right-facing. '#' = lit pixel.
+  const PIX_OPEN = [
+    '....####....',
+    '..########..',
+    '.##########.',
+    '.######.....',
+    '######......',
+    '#####.......',
+    '#####.......',
+    '######......',
+    '.######.....',
+    '.##########.',
+    '..########..',
+    '....####....',
+  ];
+  const PIX_CLOSED = [
+    '....####....',
+    '..########..',
+    '.##########.',
+    '.##########.',
+    '############',
+    '############',
+    '############',
+    '############',
+    '.##########.',
+    '.##########.',
+    '..########..',
+    '....####....',
+  ];
+
+  function frame(map, cls) {
+    const rects = [];
+    map.forEach((row, y) => {
+      // contiguous runs become single rects — fewer nodes, same pixels
+      let x = 0;
+      while (x < row.length) {
+        if (row[x] !== '#') { x++; continue; }
+        let w = 0;
+        while (row[x + w] === '#') w++;
+        rects.push(`<rect x="${x}" y="${y}" width="${w}" height="1"/>`);
+        x += w;
+      }
+    });
+    return `<g class="${cls}" fill="currentColor">${rects.join('')}</g>`;
+  }
+
+  agent.innerHTML =
+    `<svg viewBox="0 0 12 12" aria-hidden="true">` +
+    frame(PIX_OPEN, 'frame-open') + frame(PIX_CLOSED, 'frame-closed') +
+    `</svg>`;
 
   const tokens = Array.from(strip.querySelectorAll('.eater-token'));
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -182,31 +239,23 @@
     return;
   }
 
-  const TRAVEL_MS = 7000;
-  const REST_MS = 1800;
+  const TRAVEL_MS = 6000;   // one full left → right pass
+  const X_START = -4;       // off the left corner …
+  const X_END = 104;        // … to past the right corner (then wrap)
   let rafId = 0;
-  let startAt = 0;
   let visible = false;
+  let lastX = X_START;
 
-  function frame(now) {
-    if (!visible) return; // resumes from the IO callback
-    if (!startAt) startAt = now;
-    const t = (now - startAt) / TRAVEL_MS;
+  function frameTick(now) {
+    if (!visible) return;
+    const t = (now % TRAVEL_MS) / TRAVEL_MS;
+    const x = X_START + t * (X_END - X_START);
 
-    if (t >= 1) {
-      // park off the right edge, rest, then reset for the next pass
-      agent.style.left = '101%';
-      strip.classList.remove('is-running');
-      setTimeout(() => {
-        tokens.forEach(tok => tok.classList.remove('eaten'));
-        startAt = 0;
-        agent.style.left = '-2%';
-        if (visible) rafId = requestAnimationFrame(frame);
-      }, REST_MS);
-      return;
-    }
+    // wrapped: it left at the right corner, it re-enters at the left —
+    // the eaten tokens respawn for the next pass
+    if (x < lastX) tokens.forEach(tok => tok.classList.remove('eaten'));
+    lastX = x;
 
-    const x = -2 + t * 103; // -2% → 101%
     agent.style.left = x + '%';
     for (const tok of tokens) {
       if (!tok.classList.contains('eaten')
@@ -214,20 +263,15 @@
         tok.classList.add('eaten');
       }
     }
-    rafId = requestAnimationFrame(frame);
+    rafId = requestAnimationFrame(frameTick);
   }
 
   const io = new IntersectionObserver((entries) => {
     for (const e of entries) {
       visible = e.isIntersecting && !document.hidden;
       strip.classList.toggle('is-running', visible);
-      if (visible) {
-        startAt = 0; // restart timing cleanly after being scrolled away
-        cancelAnimationFrame(rafId);
-        rafId = requestAnimationFrame(frame);
-      } else {
-        cancelAnimationFrame(rafId);
-      }
+      cancelAnimationFrame(rafId);
+      if (visible) rafId = requestAnimationFrame(frameTick);
     }
   }, { threshold: 0.3 });
   io.observe(strip);

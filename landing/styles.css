@@ -4094,3 +4094,112 @@
     color: var(--text-2);
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   v0.4.1 PASS — centered hero, free-running pixel pac-man
+   ═══════════════════════════════════════════════════════════════════ */
+@layer sections {
+
+  /* 01 · hero — centered again (the console below stays full-width) */
+  .hero-copy {
+    margin: 0 auto var(--space-7);
+    text-align: center;
+  }
+
+  .hero-copy .eyebrow,
+  .hero-copy .trust-row,
+  .hero-actions {
+    justify-content: center;
+  }
+
+  .hero h1 {
+    margin-inline: auto;
+  }
+
+  .hero-sub {
+    margin-inline: auto;
+  }
+
+  .hero-guarantee {
+    text-align: center;
+  }
+
+  /* the launch row: eater track sits directly on top of the
+     install-command / PyPI / GitHub row and spans exactly its width */
+  .hero-launch {
+    display: flex;
+    flex-direction: column;
+    width: fit-content;
+    max-width: 100%;
+    margin-inline: auto;
+  }
+
+  /* free track — no box, no border, no background; just open ground
+     between the corners of the row below */
+  .eater-strip {
+    position: relative;
+    height: 40px;
+    border: 0;
+    background: none;
+    overflow: visible;
+    margin-bottom: 2px;
+  }
+
+  .eater-strip::before {
+    display: none;
+  }
+
+  .eater-token {
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+
+  /* the agent: larger, pixel-art (SVG built by hero-terminal.js from a
+     pixel map, two frames toggled below), riding the same baseline */
+  .eater-agent {
+    width: 30px;
+    height: 30px;
+    background: none;
+    border-radius: 0;
+    clip-path: none;
+    z-index: 2;
+  }
+
+  .eater-agent svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    shape-rendering: crispEdges;
+    color: var(--green);
+  }
+
+  /* frame flip-book: open mouth ↔ closed mouth, hard steps — no tween */
+  .eater-agent .frame-closed {
+    visibility: hidden;
+  }
+
+  .eater-strip.is-running .frame-open {
+    animation: pixOpen .36s steps(1, end) infinite;
+  }
+
+  .eater-strip.is-running .frame-closed {
+    animation: pixClosed .36s steps(1, end) infinite;
+  }
+}
+
+@layer motion {
+  @keyframes pixOpen {
+    0%, 49%  { visibility: visible; }
+    50%, 100% { visibility: hidden; }
+  }
+
+  @keyframes pixClosed {
+    0%, 49%  { visibility: hidden; }
+    50%, 100% { visibility: visible; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .eater-agent .frame-open  { animation: none !important; visibility: visible; }
+    .eater-agent .frame-closed { animation: none !important; visibility: hidden; }
+  }
+}
