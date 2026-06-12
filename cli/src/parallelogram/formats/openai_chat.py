@@ -25,11 +25,17 @@ def iter_jsonl(path: str) -> Iterator[ParseResult]:
                 continue
             try:
                 record = json.loads(stripped)
-                yield ParseResult(line_no=line_no, raw=raw, record=record)
+                yield ParseResult(
+                    line_no=line_no,
+                    raw=raw,
+                    record=record,
+                    source_format="openai-chat",
+                )
             except json.JSONDecodeError as e:
                 yield ParseResult(
                     line_no=line_no,
                     raw=raw,
                     record=None,
                     parse_error=f"{e.msg} at column {e.colno}",
+                    source_format="openai-chat",
                 )

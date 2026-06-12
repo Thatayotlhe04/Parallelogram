@@ -34,7 +34,7 @@
     "name": "Parallelogram",
     "description": "Open-source local CLI that validates OpenAI chat JSONL and ShareGPT fine-tuning datasets before training: schema, role sequences, empty content, duplicates, encoding artifacts, and context-window overflows.",
     "url": "https://parallelogram.dev/",
-    "softwareVersion": "0.4.1",
+    "softwareVersion": "0.4.2",
     "applicationCategory": "DeveloperApplication",
     "operatingSystem": "macOS, Linux, Windows",
     "license": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -120,7 +120,7 @@
     <div class="wrap">
       <div class="hero-copy" data-reveal>
         <p class="eyebrow">
-          <span class="pill">v0.4.1</span>
+          <span class="pill">v0.4.2</span>
           <span class="pill">open source</span>
           <span class="pill">local CLI</span>
         </p>
@@ -129,7 +129,7 @@
 
         <p class="hero-sub">
           Parallelogram is an open-source CLI that validates OpenAI chat JSONL and
-          ShareGPT datasets — broken role sequences, empty messages, duplicates,
+          Qwen/ShareGPT datasets — broken role sequences, empty messages, duplicates,
           encoding artifacts, context-window overflows — locally, before the training run.
         </p>
 
@@ -294,8 +294,8 @@ max_seq_len: 4096 tokens</code></pre>
           <h3>Format drift (OpenAI chat vs ShareGPT)</h3>
           <pre class="mini-code"><code>{"messages":[{"role":"user", …}]}
 {"conversations":[{"from":"human", …}]}</code></pre>
-          <p>A ShareGPT record in an OpenAI-chat file isn't almost right — it's a different schema. Parallelogram refuses to guess per record.</p>
-          <p class="card-diag"><span class="pill pill--error">[schema] ERROR</span> <span class="card-diag-note">normalized at the parse boundary</span></p>
+          <p>Parallelogram detects both shapes before the rules run, then normalizes them into one internal message list.</p>
+          <p class="card-diag"><span class="pill pill--warn">[format] AUTO</span> <span class="card-diag-note">normalized at the parse boundary</span></p>
         </article>
 
         <article class="card card-fail" data-reveal style="--i:7">
@@ -650,7 +650,7 @@ max_seq_len: 4096 tokens</code></pre>
         </div>
 
         <div class="codeblock" data-reveal style="--i:1">
-          <pre><code><span class="dim"># validate — openai-chat is the default format</span>
+          <pre><code><span class="dim"># validate — format is auto-detected</span>
 <span class="pr">$</span> parallelogram check data.jsonl</code></pre>
           <button class="copy-btn" type="button" data-copy="parallelogram check data.jsonl" aria-label="Copy: parallelogram check data.jsonl">
             <svg class="copy-ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 2h7a1 1 0 0 1 1 1v7" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="5" width="8" height="9" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
@@ -684,7 +684,7 @@ max_seq_len: 4096 tokens</code></pre>
         <div class="exit-code-pill" id="ec-2"><span class="ec-num">2</span><span class="ec-text">errors · nothing fixable</span></div>
       </div>
 
-      <p class="qs-guarantee" data-reveal>Use <code>--format sharegpt</code> for ShareGPT files; the same rules and exit codes apply.</p>
+      <p class="qs-guarantee" data-reveal>OpenAI chat JSONL and Qwen/ShareGPT files enter through the same command; the same rules and exit codes apply.</p>
     </div>
   </section>
 
@@ -791,7 +791,7 @@ max_seq_len: 4096 tokens</code></pre>
         <div class="footer-col">
           <h3>Project</h3>
           <p>Built by Parallelogram</p>
-          <p>v0.4.1</p>
+          <p>v0.4.2</p>
           <a href="mailto:tsenangthatayotlhe04@gmail.com">Contact us</a>
           <p>Designed for teams preparing fine-tuning data</p>
           <p>Local-first — no telemetry</p>
@@ -803,7 +803,7 @@ max_seq_len: 4096 tokens</code></pre>
         </div>
       </div>
       <div class="footer-bottom">
-        <span>© 2026 parallelogram.dev · v0.4.1 · preflight validation for fine-tuning datasets</span>
+        <span>© 2026 parallelogram.dev · v0.4.2 · preflight validation for fine-tuning datasets</span>
       </div>
     </div>
   </footer>

@@ -68,9 +68,9 @@ def main() -> None:
 def check(
     path: Path = typer.Argument(..., exists=True, readable=True, help="Path to JSONL dataset."),
     dataset_format: str = typer.Option(
-        "openai-chat",
+        "auto",
         "--format", "-f",
-        help="Dataset format: 'openai-chat' or 'sharegpt'.",
+        help="Dataset format: 'auto' (default), 'openai-chat', or 'sharegpt'.",
     ),
     tokenizer: Optional[str] = typer.Option(
         None,
@@ -182,6 +182,7 @@ def check(
     if fix:
         # ── Fix mode ────────────────────────────────────────────────────
         report, parsed, _, unparseable = runner.run_with_records(str(path))
+        source_formats = dict(runner.source_formats)
         fixer = Fixer(rules)
         fix_report = fixer.fix(parsed, report.issues, unparseable)
 
@@ -227,11 +228,12 @@ def check(
         if not dry_run and output:
             # Records were normalized to OpenAI-chat shape at parse time. When the
             # input was ShareGPT, map them back so --fix emits the same format.
-            def _to_disk(rec):
-                return to_sharegpt(rec) if dataset_format == "sharegpt" else rec
+            def _to_disk(line_no, rec):
+                source_format = source_formats.get(line_no, dataset_format)
+                return to_sharegpt(rec) if source_format == "sharegpt" else rec
 
-            lines = [json.dumps(_to_disk(rec), ensure_ascii=False)
-                     for _, rec in fix_report.clean_records]
+            lines = [json.dumps(_to_disk(line_no, rec), ensure_ascii=False)
+                     for line_no, rec in fix_report.clean_records]
             atomic_write_jsonl(output, lines)
             if not json_output:
                 console.print(f"  [green]→[/green] Wrote {len(lines)} records to {output}")
@@ -273,7 +275,7 @@ def check(
             if i.severity == Severity.WARNING and i.line_no in clean_line_nos
         }
         lines = [raw if raw.endswith("\n") else raw + "\n" for _, raw in clean]
-        atomic_write_jsonl(output, [l.rstrip("\n") for l in lines])
+        atomic_write_jsonl(output, [line.rstrip("\n") for line in lines])
         if not json_output:
             console.print(
                 f"  [green]→[/green] Wrote {len(clean)} error-free records to {output}"
@@ -296,9 +298,9 @@ def check(
 def report(
     path: Path = typer.Argument(..., exists=True, readable=True, help="Path to JSONL dataset."),
     dataset_format: str = typer.Option(
-        "openai-chat",
+        "auto",
         "--format", "-f",
-        help="Dataset format: 'openai-chat' or 'sharegpt'.",
+        help="Dataset format: 'auto' (default), 'openai-chat', or 'sharegpt'.",
     ),
     tokenizer: Optional[str] = typer.Option(
         None,

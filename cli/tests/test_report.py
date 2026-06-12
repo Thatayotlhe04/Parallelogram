@@ -101,11 +101,25 @@ def test_summary_token_stats_estimated(dirty):
 def test_summary_format_breakdown(dirty):
     s = build_summary(str(dirty), _rules())
     fb = s.format_breakdown
+    assert fb["detected_formats"] == {"openai-chat": 5}
     assert fb["roles"]["user"] >= 5
     assert fb["roles"]["assistant"] >= 4
     assert fb["turns_per_record"]["max"] == 3
     # GOOD, DUP, DUP, MOJIBAKE end on assistant; ENDS_ON_USER doesn't
     assert fb["ends_on_assistant"] == 4
+
+
+def test_summary_detects_sharegpt_format(tmp_path):
+    p = tmp_path / "sharegpt.jsonl"
+    p.write_text(
+        '{"conversations": [{"from": "human", "value": "Hi"}, '
+        '{"from": "gpt", "value": "Hello"}]}\n',
+        encoding="utf-8",
+    )
+    s = build_summary(str(p), _rules())
+    assert s.format_breakdown["declared_format"] == "auto"
+    assert s.format_breakdown["detected_formats"] == {"sharegpt": 1}
+    assert s.format_breakdown["roles"] == {"assistant": 1, "user": 1}
 
 
 # ── CLI surface ───────────────────────────────────────────────────────────

@@ -21,7 +21,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
-from .report import Issue, Report, Severity
+from .report import Issue, Severity
 from .rules import Rule
 
 

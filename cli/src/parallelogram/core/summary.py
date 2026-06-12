@@ -16,10 +16,10 @@ from __future__ import annotations
 
 import statistics
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
 
 from .fixer import Fixer
-from .report import Report, Severity
+from .report import Severity
 from .runner import Runner
 from .rules import Rule
 
@@ -41,7 +41,7 @@ _REGRESSION_RATES = [
 class DatasetSummary:
     """Everything `parallelogram report` knows about one dataset."""
     file: str = ""
-    dataset_format: str = "openai-chat"
+    dataset_format: str = "auto"
     disabled_rules: list[str] = field(default_factory=list)
 
     # record-level health
@@ -110,12 +110,17 @@ class DatasetSummary:
 def build_summary(
     path: str,
     rules: list[Rule],
-    dataset_format: str = "openai-chat",
+    dataset_format: str = "auto",
     disabled_rules: list[str] | None = None,
 ) -> DatasetSummary:
     """Run the full pipeline once and aggregate everything report shows."""
     runner = Runner(rules, dataset_format=dataset_format)
     report, parsed, _clean_raw, unparseable = runner.run_with_records(path)
+    detected_formats: dict[str, int] = {}
+    for line_no, _ in parsed:
+        source_format = runner.source_formats.get(line_no)
+        if source_format:
+            detected_formats[source_format] = detected_formats.get(source_format, 0) + 1
 
     s = DatasetSummary(
         file=path,
@@ -195,6 +200,7 @@ def build_summary(
             ends_on_assistant += 1
     s.format_breakdown = {
         "declared_format": dataset_format,
+        "detected_formats": dict(sorted(detected_formats.items())),
         "roles": dict(sorted(roles.items())),
         "turns_per_record": {
             "min": min(turns, default=0),

@@ -40,7 +40,15 @@ _ROLE_TO_FROM = {
 }
 
 
-def _normalize(record: Any) -> Any:
+def is_sharegpt_record(record: Any) -> bool:
+    """Return true for Qwen/ShareGPT-style conversation records."""
+    if not isinstance(record, dict):
+        return False
+    turns = record.get("conversations", record.get("conversation"))
+    return isinstance(turns, list)
+
+
+def normalize(record: Any) -> Any:
     """Map a ShareGPT record to internal OpenAI-chat shape.
 
     Non-dict records, or dicts without a conversations key, are returned
@@ -71,6 +79,9 @@ def _normalize(record: Any) -> Any:
     return {"messages": messages}
 
 
+_normalize = normalize
+
+
 def iter_jsonl(path: str) -> Iterator[ParseResult]:
     """Stream-parse a ShareGPT JSONL file, normalizing each record."""
     with open(path, "r", encoding="utf-8", errors="replace") as f:
@@ -81,7 +92,10 @@ def iter_jsonl(path: str) -> Iterator[ParseResult]:
             try:
                 record = json.loads(stripped)
                 yield ParseResult(
-                    line_no=line_no, raw=raw, record=_normalize(record)
+                    line_no=line_no,
+                    raw=raw,
+                    record=normalize(record),
+                    source_format="sharegpt",
                 )
             except json.JSONDecodeError as e:
                 yield ParseResult(
@@ -89,6 +103,7 @@ def iter_jsonl(path: str) -> Iterator[ParseResult]:
                     raw=raw,
                     record=None,
                     parse_error=f"{e.msg} at column {e.colno}",
+                    source_format="sharegpt",
                 )
 
 

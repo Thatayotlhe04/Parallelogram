@@ -118,9 +118,13 @@ def render_terminal_summary(s: DatasetSummary, console: Console | None = None) -
     fb = s.format_breakdown
     if fb:
         roles = "  ".join(f"{k}:{v}" for k, v in fb.get("roles", {}).items())
+        detected = "  ".join(
+            f"{k}:{v}" for k, v in fb.get("detected_formats", {}).items()
+        )
         tp = fb.get("turns_per_record", {})
         console.print(Text.assemble(
             ("format: ", "dim"), (fb.get("declared_format", "?"), "cyan"),
+            ("  detected: ", "dim"), (detected or "—", ""),
             ("  roles: ", "dim"), (roles or "—", ""),
             ("  turns/record: ", "dim"),
             (f"{tp.get('min', 0)}/{tp.get('median', 0)}/{tp.get('max', 0)} (min/med/max)", ""),
@@ -195,7 +199,9 @@ def render_markdown_summary(s: DatasetSummary) -> str:
         f"({ds.get('duplicate_records', 0)} duplicate records, "
         f"largest cluster {ds.get('largest_cluster', 0)})",
         f"- declared format: `{fb.get('declared_format', '?')}`",
-        f"- roles: " + (", ".join(
+        "- detected formats: " + (", ".join(
+            f"`{k}` × {v}" for k, v in fb.get("detected_formats", {}).items()) or "—"),
+        "- roles: " + (", ".join(
             f"`{k}` × {v}" for k, v in fb.get("roles", {}).items()) or "—"),
         f"- turns per record (min/median/max): "
         f"{fb.get('turns_per_record', {}).get('min', 0)} / "

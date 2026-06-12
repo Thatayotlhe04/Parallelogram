@@ -24,13 +24,15 @@ class ParseResult:
     raw: str
     record: Optional[dict]
     parse_error: Optional[str] = None
+    source_format: Optional[str] = None
 
 
 def get_parser(dataset_format: str) -> Callable[[str], Iterator[ParseResult]]:
     """Return the ``iter_jsonl`` for a format id, or raise KeyError."""
-    from . import openai_chat, sharegpt
+    from . import auto, openai_chat, sharegpt
 
     parsers: dict[str, Callable[[str], Iterator[ParseResult]]] = {
+        "auto": auto.iter_jsonl,
         "openai-chat": openai_chat.iter_jsonl,
         "sharegpt": sharegpt.iter_jsonl,
     }
@@ -39,4 +41,4 @@ def get_parser(dataset_format: str) -> Callable[[str], Iterator[ParseResult]]:
 
 def supported_formats() -> list[str]:
     """The format ids accepted by ``--format``, sorted for stable messaging."""
-    return ["openai-chat", "sharegpt"]
+    return ["auto", "openai-chat", "sharegpt"]

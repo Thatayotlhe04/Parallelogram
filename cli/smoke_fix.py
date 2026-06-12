@@ -5,7 +5,6 @@ end-to-end against synthetic datasets. Run with: python smoke_fix.py
 """
 from __future__ import annotations
 
-import json
 import sys
 import tempfile
 from pathlib import Path
@@ -13,8 +12,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 from parallelogram.core.fixer import Fixer, Disposition
+from parallelogram.core.io import atomic_write_jsonl
 from parallelogram.core.report import Issue, Severity
-from parallelogram.core.runner import Runner
 from parallelogram.rules.schema import SchemaRule
 from parallelogram.rules.roles import RolesRule
 from parallelogram.rules.empty_content import EmptyContentRule
@@ -205,8 +204,6 @@ check("duplicates fix counted", fr.fixes_by_rule.get("duplicates", 0) >= 1)
 
 # ── Atomicity (via the file-write helper) ──────────────────────────────
 section("atomic write")
-
-from parallelogram.core.io import atomic_write_jsonl
 
 with tempfile.TemporaryDirectory() as td:
     target = Path(td) / "out.jsonl"

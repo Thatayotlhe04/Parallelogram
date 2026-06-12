@@ -68,4 +68,13 @@ release cli-v0.4.1 "parallelogram 0.4.1 — report command + CI regression gate"
 Full changelog: https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/CHANGELOG.md
 EOF
 
+release cli-v0.4.2 "parallelogram 0.4.2 — direct Qwen/ShareGPT input" <<'EOF'
+**Changed**
+- `parallelogram check` and `parallelogram report` now default to `--format auto`, so OpenAI chat JSONL and Qwen/ShareGPT-style `conversations` records are accepted directly.
+- Auto-detected ShareGPT/Qwen records keep their source shape when `--fix --output` writes repaired data, preserving `conversations` instead of re-serializing as OpenAI chat.
+- `report` now includes detected source-format counts in the format breakdown.
+
+Full changelog: https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/CHANGELOG.md
+EOF
+
 echo "done"

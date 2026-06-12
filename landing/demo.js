@@ -9,7 +9,7 @@
    browser has neither tiktoken nor HuggingFace tokenizers. That means the
    context-window check is advisory (warnings, not errors) and a one-time
    "counts are approximate" note is emitted as INFO — visible, but it never
-   affects the exit code — just like the real tool (v0.4.1 behavior).
+   affects the exit code — just like the real tool (v0.4.2 behavior).
 
    Honesty is the whole point: if this demo flags something, the CLI would
    too — and vice-versa. The bundled samples are the project's own fixtures
@@ -790,15 +790,14 @@
     },
   };
 
-  // Active dataset format — toggled by the [data-demo-format] tabs. The
-  // command line reflects it, exactly as the CLI flag would.
+  // Active sample shape — toggled by the [data-demo-format] tabs. The command
+  // line stays flag-free because the CLI auto-detects both supported shapes.
   let format = 'openai-chat';
 
   function cmdFor(kind) {
-    const fmt = format === 'sharegpt' ? ' --format sharegpt' : '';
-    if (kind === 'fix') return `parallelogram check data.jsonl${fmt} --fix --output clean.jsonl`;
+    if (kind === 'fix') return 'parallelogram check data.jsonl --fix --output clean.jsonl';
     const file = kind === 'clean' ? 'clean.jsonl' : 'data.jsonl';
-    return `parallelogram check ${file}${fmt}`;
+    return `parallelogram check ${file}`;
   }
 
   // ── controller: auto-loop until the visitor takes over ────────────────
@@ -857,7 +856,7 @@
     });
   });
 
-  // format tabs → switch fixtures and the --format flag; an auto-running
+  // format tabs → switch fixtures; an auto-running
   // demo restarts in the new format, a manual one reruns the broken fixture
   const fmtTabs = Array.from(document.querySelectorAll('[data-demo-format]'));
   fmtTabs.forEach(tab => {

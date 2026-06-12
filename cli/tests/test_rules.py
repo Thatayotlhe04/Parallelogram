@@ -6,10 +6,10 @@ Add per-rule tests as the rule set grows.
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
-import pytest
+from typer.testing import CliRunner
 
+from parallelogram.cli import app
 from parallelogram.core.report import Severity
 from parallelogram.core.runner import Runner
 from parallelogram.rules.schema import SchemaRule
@@ -20,6 +20,13 @@ from parallelogram.rules.encoding import EncodingRule
 from parallelogram.rules.context_window import ContextWindowRule
 from parallelogram.core.tokenization import TokenCounter, resolve_counter
 from parallelogram.formats.sharegpt import iter_jsonl as sharegpt_iter, to_sharegpt
+
+try:
+    # click < 8.2: stderr is mixed into stdout unless told otherwise
+    cli_runner = CliRunner(mix_stderr=False)
+except TypeError:
+    # click >= 8.2: mix_stderr is gone; stderr is always captured separately
+    cli_runner = CliRunner()
 
 
 def _record(messages):
@@ -316,6 +323,40 @@ def test_sharegpt_end_to_end_clean(tmp_path):
     assert report.total_records == 2
     assert report.valid_records == 2
     assert not report.has_errors
+
+
+def test_sharegpt_is_accepted_by_default_auto_format(tmp_path):
+    p = tmp_path / "qwen_sharegpt.jsonl"
+    p.write_text(
+        json.dumps(_sharegpt_record(
+            [{"from": "user", "value": "Hi"}, {"from": "assistant", "value": "Hello"}],
+        )) + "\n",
+        encoding="utf-8",
+    )
+    result = cli_runner.invoke(app, ["check", str(p)])
+    assert result.exit_code == 0, result.output
+
+
+def test_auto_fix_round_trips_sharegpt_output(tmp_path):
+    src = tmp_path / "qwen_sharegpt.jsonl"
+    out = tmp_path / "fixed.jsonl"
+    src.write_text(
+        json.dumps(_sharegpt_record(
+            [{"from": "human", "value": "Donâ€™t"}, {"from": "gpt", "value": "OK"}],
+        )) + "\n",
+        encoding="utf-8",
+    )
+
+    result = cli_runner.invoke(app, ["check", str(src), "--fix", "--output", str(out)])
+
+    assert result.exit_code == 0, result.output
+    fixed = json.loads(out.read_text(encoding="utf-8"))
+    assert fixed == {
+        "conversations": [
+            {"from": "human", "value": "Don\u2019t"},
+            {"from": "gpt", "value": "OK"},
+        ]
+    }
 
 
 def test_to_sharegpt_round_trip():

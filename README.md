@@ -69,6 +69,14 @@ parallelogram check data.jsonl \
 parallelogram check data.jsonl --output clean.jsonl
 ```
 
+### Check Qwen/ShareGPT-style data directly
+
+OpenAI chat JSONL and Qwen/ShareGPT-style records are auto-detected by default:
+
+```bash
+parallelogram check qwen_sharegpt.jsonl
+```
+
 ### Mechanical repair with `--fix`
 
 `--fix` attempts free, local, network-free repair on everything it can touch:
@@ -136,7 +144,7 @@ parallelogram check data.jsonl --disable encoding --disable duplicates
 
 | Flag | Description |
 |------|-------------|
-| `--format`, `-f` | Dataset format. `openai-chat` supported in v0.3. |
+| `--format`, `-f` | Dataset format: `auto` (default), `openai-chat`, or `sharegpt`. |
 | `--tokenizer`, `-t` | Model or tokenizer for the context-window check — an OpenAI model (`gpt-4o`) or an HF repo/alias (`Qwen/Qwen2.5-7B`, `mistral`). Omit for an approximate count. |
 | `--max-seq-len` | Token budget per record (default 4096). |
 | `--output`, `-o` | Write error-free records to this file. With `--fix`, writes the repaired dataset. |
@@ -206,9 +214,9 @@ Deploy by dropping `landing/` on Vercel, Netlify, Cloudflare Pages, or GitHub Pa
 
 ## Status
 
-**CLI v0.3.0** — Phase 1 (six validation rules) and Phase 2 step 1 (mechanical `--fix`) shipped and tested. v0.3 adds model-specific tokenizers (tiktoken / HuggingFace) with an approximate fallback for the context-window check. Published to PyPI. All smoke and end-to-end suites passing.
+**CLI v0.4.2** — local pre-training validation with six rules, mechanical `--fix`, model-specific tokenizers, ShareGPT/Qwen auto-detection, and the `report` CI regression gate. Published to PyPI. All smoke and end-to-end suites passing.
 
-**Landing page v0.3** — quickstart shows `--fix`, hero includes one-click pip install copy, cookie consent banner, privacy policy, and terms of use.
+**Landing page v0.4** — quickstart shows `--fix`, format support, one-click pip install copy, cookie consent banner, privacy policy, and terms of use.
 
 No telemetry. No backend. No upload boundary. Pure local.
 
@@ -216,7 +224,7 @@ No telemetry. No backend. No upload boundary. Pure local.
 
 ## Roadmap
 
-- ShareGPT and raw-completion format support
+- raw-completion format support
 - Opt-in anonymized error-type analytics — informs whether the SLM-fix tier is worth building
 - `--fix --slm` paid hosted tier — repairs broken role sequences and incomplete assistant turns (gated on traction data from the analytics phase)
 - Additional validation rules based on user feedback

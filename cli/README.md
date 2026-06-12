@@ -52,13 +52,17 @@ Write only the clean records to a new file:
 parallelogram check data.jsonl --output clean.jsonl
 ```
 
-ShareGPT datasets (`{"conversations": [{"from": ..., "value": ...}, ...]}`) are
-validated with `--format sharegpt` — every rule runs identically, and `--output`
-(with or without `--fix`) writes the surviving records back in ShareGPT shape:
+OpenAI chat JSONL and Qwen/ShareGPT-style datasets are accepted by default.
+Qwen/ShareGPT records use `{"conversations": [{"from": ..., "value": ...}, ...]}`;
+every rule runs identically, and `--output` (with or without `--fix`) writes
+the surviving records back in the source shape:
 
 ```bash
-parallelogram check data.jsonl --format sharegpt
+parallelogram check data.jsonl
 ```
+
+Use `--format openai-chat` or `--format sharegpt` only when you want to force
+one parser instead of auto-detection.
 
 ## `--fix` — mechanical repair
 
@@ -173,7 +177,7 @@ left enabled passed — which may or may not be enough.
 
 | Flag | Description |
 |------|-------------|
-| `--format`, `-f` | Dataset format: `openai-chat` (default) or `sharegpt`. |
+| `--format`, `-f` | Dataset format: `auto` (default), `openai-chat`, or `sharegpt`. |
 | `--tokenizer`, `-t` | Model or tokenizer for the context-window check — an OpenAI model (`gpt-4o`), or an HF repo/alias (`Qwen/Qwen2.5-7B`, `mistral`). Optional: omit for an approximate count. |
 | `--max-seq-len` | Token budget per record (default 4096). |
 | `--output`, `-o` | Write error-free records to this file. With `--fix`, writes the repaired dataset. |
@@ -210,7 +214,7 @@ default install.
 
 ## Status
 
-v0.4.1 — local, pre-training run. No telemetry, no network, no upload boundary.
+v0.4.2 — local, pre-training run. No telemetry, no network, no upload boundary.
 
 ## Roadmap
 
@@ -218,6 +222,7 @@ v0.4.1 — local, pre-training run. No telemetry, no network, no upload boundary
 - ~~Model-specific tokenizers (tiktoken/HF) with approximate fallback~~ ✓ shipped in v0.3
 - ~~ShareGPT format (`{"conversations": [...]}`)~~ ✓ shipped in v0.4
 - ~~`report` command + CI regression gate (`--baseline`, exit 3)~~ ✓ shipped in v0.4.1
+- ~~Direct Qwen/ShareGPT auto-detection~~ ✓ shipped in v0.4.2
 - raw-completion format
 
 ## License

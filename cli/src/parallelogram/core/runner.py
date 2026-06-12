@@ -14,9 +14,11 @@ class Runner:
     duplicates that fire in finalize().
     """
 
-    def __init__(self, rules: list[Rule], dataset_format: str = "openai-chat"):
+    def __init__(self, rules: list[Rule], dataset_format: str = "auto"):
         self.rules = rules
+        self.dataset_format = dataset_format
         self._iter_jsonl = get_parser(dataset_format)
+        self.source_formats: dict[int, str] = {}
 
     def run(self, path: str) -> tuple[Report, list[tuple[int, str]]]:
         """Validate and return (report, clean_raw_lines).
@@ -47,6 +49,7 @@ class Runner:
         candidate_clean: list[tuple[int, str]] = []
         per_line_errors: dict[int, int] = {}
         unparseable_lines: set[int] = set()
+        self.source_formats = {}
 
         for rule in self.rules:
             rule.reset()
@@ -54,6 +57,7 @@ class Runner:
         for parsed in self._iter_jsonl(path):
             report.total_records += 1
             line_no = parsed.line_no
+            self.source_formats[line_no] = parsed.source_format or self.dataset_format
 
             if parsed.parse_error is not None:
                 report.add(Issue(

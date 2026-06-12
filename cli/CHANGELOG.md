@@ -3,6 +3,17 @@
 All notable changes to the `parallelogram` CLI. Versions correspond to
 [PyPI releases](https://pypi.org/project/parallelogram/) and `cli-v*` git tags.
 
+## 0.4.2 — 2026-06-13
+
+### Changed
+- `check` and `report` now default to `--format auto`, accepting both OpenAI
+  chat JSONL and Qwen/ShareGPT-style records
+  (`{"conversations": [{"from": ..., "value": ...}]}`) directly.
+- Auto-detected ShareGPT/Qwen records preserve their source shape when
+  `--fix --output` writes repaired data, so output stays in `conversations`
+  form instead of being re-serialized as OpenAI chat.
+- `report` includes detected source-format counts in its format breakdown.
+
 ## 0.4.1 — 2026-06-12
 
 ### Added
