@@ -58,8 +58,12 @@ def render_report(
     keys = sorted(by_line.keys(), key=lambda x: (x is not None, x or 0))
     for key in keys:
         for issue in by_line[key]:
-            tag_color = "red" if issue.severity == Severity.ERROR else "yellow"
-            tag = "✗" if issue.severity == Severity.ERROR else "!"
+            if issue.severity == Severity.ERROR:
+                tag, tag_color = "✗", "red"
+            elif issue.severity == Severity.WARNING:
+                tag, tag_color = "!", "yellow"
+            else:
+                tag, tag_color = "i", "cyan"
             location = f"{file_path}:{issue.line_no}" if issue.line_no else "(global)"
             console.print(
                 Text.assemble(
@@ -85,5 +89,5 @@ def render_report(
     if disabled_rules:
         summary_parts.append((f"  ({len(disabled_rules)} rule(s) disabled)", "yellow"))
     summary = Text.assemble(*summary_parts)
-    border = "red" if n_err else "yellow"
+    border = "red" if n_err else "yellow" if n_warn else "green"
     console.print(Panel.fit(summary, title="parallelogram", border_style=border))

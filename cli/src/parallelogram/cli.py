@@ -1,12 +1,16 @@
 """parallelogram CLI.
 
-Single command: `parallelogram check <path>`. Designed to be the
-fastest possible local pre-flight before kicking off a training run.
+Two commands, both designed as the fastest possible local pre-flight
+before kicking off a training run:
 
-Exit codes are deliberately minimal:
+  parallelogram check <path>   — line-by-line diagnostics (+ --fix)
+  parallelogram report <path>  — aggregate dataset health, for humans and CI
+
+Exit codes are deliberately minimal and stable:
   0 — clean (no issues)
   1 — warnings only
   2 — errors
+  3 — quality regression vs --baseline (report only)
 
 These map cleanly to CI gates without any extra wiring.
 
@@ -286,6 +290,117 @@ def check(
     if report.has_warnings:
         raise typer.Exit(1)
     raise typer.Exit(0)
+
+
+@app.command()
+def report(
+    path: Path = typer.Argument(..., exists=True, readable=True, help="Path to JSONL dataset."),
+    dataset_format: str = typer.Option(
+        "openai-chat",
+        "--format", "-f",
+        help="Dataset format: 'openai-chat' or 'sharegpt'.",
+    ),
+    tokenizer: Optional[str] = typer.Option(
+        None,
+        "--tokenizer", "-t",
+        help="Model or tokenizer for token-risk stats — an OpenAI model (gpt-4o) "
+             "or an HF repo/alias (Qwen/Qwen2.5-7B, mistral, llama-3). "
+             "Omit for an approximate count, labeled as estimated.",
+    ),
+    max_seq_len: int = typer.Option(
+        4096,
+        "--max-seq-len",
+        help="Token budget per record for the risk stats.",
+    ),
+    json_output: bool = typer.Option(
+        False,
+        "--json",
+        help="Emit the report as JSON to stdout (machine-readable; also the "
+             "baseline format for --baseline).",
+    ),
+    markdown: bool = typer.Option(
+        False,
+        "--markdown",
+        help="Emit the report as GitHub-flavored Markdown "
+             "(pipe into $GITHUB_STEP_SUMMARY or a PR comment).",
+    ),
+    out: Optional[Path] = typer.Option(
+        None,
+        "--out",
+        help="Also write the report (in the chosen format) to this file.",
+    ),
+    baseline: Optional[Path] = typer.Option(
+        None,
+        "--baseline",
+        help="Path to a previous `report --json` file. If dataset quality "
+             "regressed against it (rate-based, so growth alone never "
+             "fails), exit 3.",
+    ),
+    no_color: bool = typer.Option(False, "--no-color", help="Disable colored output."),
+) -> None:
+    """Summarize dataset health: clean/error/warning counts, what --fix would
+    do, token risk, duplicate clusters, and shape — for humans and CI.
+
+    Exit codes: 0 clean · 1 warnings · 2 errors · 3 regression vs --baseline.
+    """
+    from .core.summary import build_summary, compare_to_baseline
+    from .output.summary_output import render_terminal_summary, render_markdown_summary
+
+    if dataset_format not in supported_formats():
+        typer.echo(
+            f"format {dataset_format!r} is not supported. "
+            f"Valid formats: {supported_formats()}",
+            err=True,
+        )
+        raise typer.Exit(2)
+    if json_output and markdown:
+        typer.echo("--json and --markdown are mutually exclusive.", err=True)
+        raise typer.Exit(2)
+
+    rules = []
+    for rc in registry.all():
+        if rc.id == "context-window":
+            rules.append(rc({"tokenizer": tokenizer, "max_seq_len": max_seq_len}))
+        else:
+            rules.append(rc())
+
+    summary = build_summary(str(path), rules, dataset_format=dataset_format)
+
+    # ── render ──────────────────────────────────────────────────────────
+    if json_output:
+        rendered = json.dumps(summary.to_dict(), indent=2, ensure_ascii=False) + "\n"
+        sys.stdout.write(rendered)
+    elif markdown:
+        rendered = render_markdown_summary(summary)
+        sys.stdout.write(rendered)
+    else:
+        rendered = render_markdown_summary(summary)  # files always get md/json
+        render_terminal_summary(summary, Console(no_color=no_color))
+
+    if out:
+        if json_output:
+            out.write_text(json.dumps(summary.to_dict(), indent=2,
+                                      ensure_ascii=False) + "\n", encoding="utf-8")
+        else:
+            out.write_text(rendered, encoding="utf-8")
+        typer.echo(f"report written to {out}", err=True)
+
+    # ── baseline gate ───────────────────────────────────────────────────
+    if baseline is not None:
+        try:
+            base = json.loads(baseline.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            typer.echo(f"could not read baseline {baseline}: {exc}", err=True)
+            raise typer.Exit(2)
+        regressions = compare_to_baseline(summary, base)
+        if regressions:
+            typer.echo("dataset quality regressed vs baseline:", err=True)
+            for r in regressions:
+                typer.echo(f"  ✗ {r}", err=True)
+            raise typer.Exit(3)
+        typer.echo("no regression vs baseline.", err=True)
+
+    raise typer.Exit(summary.exit_code)
 
 
 def _render_fix_report(console, fr, path: str, dry_run: bool,

@@ -74,6 +74,13 @@ class DuplicatesRule(Rule):
                         context={"duplicate_of": first, "all_lines": lines},
                     )
 
+    @property
+    def clusters(self) -> list[list[int]]:
+        """Duplicate clusters found in the last run: one list of line
+        numbers per repeated record (first occurrence included). Read this
+        *before* a fix pass — Fixer re-validation resets rule state."""
+        return [lines for lines in self._seen.values() if len(lines) > 1]
+
     def fix_dataset(self, records: list[tuple[int, Any]]) -> list[tuple[int, Any]]:
         """Keep the first occurrence of each unique record; drop the rest.
 

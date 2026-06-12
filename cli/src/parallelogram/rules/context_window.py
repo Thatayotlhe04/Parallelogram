@@ -71,17 +71,38 @@ class ContextWindowRule(Rule):
             total += self._count_tokens(role, content)
         return total
 
+    def record_tokens(self, record: Any) -> Optional[int]:
+        """Public per-record token total (None when the record has no
+        usable messages). Used by `parallelogram report` for token-risk
+        statistics, with the same counter the check itself uses."""
+        self._ensure_counter()
+        if not isinstance(record, dict):
+            return None
+        messages = record.get("messages")
+        if not isinstance(messages, list):
+            return None
+        return self._record_total(messages)
+
+    def counter_info(self) -> tuple[bool, str]:
+        """(exact, method) for the resolved token counter."""
+        self._ensure_counter()
+        return self._counter.exact, self._counter.method
+
     def check_record(self, record: Any, line_no: int) -> Iterable[Issue]:
         self._ensure_counter()
 
         # One-time advisory whenever we're estimating rather than tokenizing,
         # so a clean-looking context-window pass is never mistaken for an
         # authoritative one.
+        # INFO, not WARNING: the note is advice about counting fidelity, not
+        # a data problem. A clean dataset must exit 0 on a default install —
+        # otherwise the exit-0 guarantee (and any CI gate on it) is dead on
+        # arrival for everyone without the tokenizer extras.
         if not self._note_emitted and not self._counter.exact:
             self._note_emitted = True
             yield Issue(
                 rule_id=self.id,
-                severity=Severity.WARNING,
+                severity=Severity.INFO,
                 line_no=None,
                 message="Context-window counts are approximate",
                 detail=self._counter.note,

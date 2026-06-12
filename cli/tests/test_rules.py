@@ -165,17 +165,22 @@ def test_resolve_counter_claude_has_no_offline_tokenizer():
 
 def test_context_window_approximate_emits_warning_not_error():
     # No tokenizer → approximate counting → findings are warnings, never
-    # errors (a heuristic shouldn't fail a CI gate or drop records).
+    # errors (a heuristic shouldn't fail a CI gate or drop records). The
+    # one-time advisory note is INFO — counting fidelity is advice, not a
+    # data problem, and a clean dataset must exit 0 on a default install.
     rule = ContextWindowRule({"max_seq_len": 10})
     rule.reset()
     long_user = {"role": "user", "content": "word " * 200}
     issues = _check(rule, _record([long_user, {"role": "assistant", "content": "ok"}]))
 
     assert issues, "expected the over-long record to be flagged"
-    assert all(i.severity == Severity.WARNING for i in issues)
-    # One of the warnings is the one-time "counts are approximate" note.
-    assert any(i.line_no is None and "approximate" in i.message.lower() for i in issues)
-    assert any("estimated" in i.message.lower() for i in issues)
+    assert not any(i.severity == Severity.ERROR for i in issues)
+    note = [i for i in issues if i.line_no is None]
+    assert note and all(i.severity == Severity.INFO for i in note)
+    assert any("approximate" in i.message.lower() for i in note)
+    findings = [i for i in issues if i.line_no is not None]
+    assert findings and all(i.severity == Severity.WARNING for i in findings)
+    assert any("estimated" in i.message.lower() for i in findings)
 
 
 def test_context_window_approximate_note_emitted_once_per_run():

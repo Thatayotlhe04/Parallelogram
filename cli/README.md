@@ -101,6 +101,57 @@ Use `--dry-run` to preview without writing:
 parallelogram check data.jsonl --fix --dry-run
 ```
 
+## `report` — dataset health for humans and CI
+
+`check` answers "what is wrong, line by line". `report` answers "how healthy is
+this dataset overall, and is it getting better or worse":
+
+```bash
+parallelogram report data.jsonl --tokenizer gpt-4o --max-seq-len 4096
+```
+
+One run prints: clean/error/warning record counts, issues by rule with fixable
+counts, what `--fix` would emit/drop, token risk (records over budget and within
+85% of it, labeled **exact** or **estimated**), duplicate clusters, and the shape
+of the data (role counts, turns per record, conversations ending on assistant).
+
+Three output modes:
+
+```bash
+parallelogram report data.jsonl              # pretty terminal
+parallelogram report data.jsonl --json       # machine-readable (also the baseline format)
+parallelogram report data.jsonl --markdown   # GitHub-flavored, for $GITHUB_STEP_SUMMARY
+```
+
+`--out PATH` additionally writes the report to a file.
+
+### Fail a PR when dataset quality regresses
+
+Save a baseline from your main branch, then gate PRs against it:
+
+```bash
+parallelogram report data.jsonl --json --out baseline.json   # on main
+parallelogram report data.jsonl --baseline baseline.json     # on the PR
+```
+
+If quality regressed, the command exits **3** and lists exactly what got worse.
+Comparison is **rate-based** (errors per record, duplicates per record, records
+over token budget per record, fraction dropped by `--fix`, clean fraction), so a
+dataset that grows is never punished for having more records — only for getting
+proportionally worse.
+
+```yaml
+# .github/workflows/data.yml
+- run: pip install 'parallelogram[tokenizer]'
+
+# human-readable summary on the Actions run page
+- run: parallelogram report data/train.jsonl --tokenizer mistral --max-seq-len 32768 --markdown >> "$GITHUB_STEP_SUMMARY"
+
+# hard gates: fail on errors, and fail if quality regressed vs main
+- run: parallelogram check data/train.jsonl --tokenizer mistral --max-seq-len 32768
+- run: parallelogram report data/train.jsonl --tokenizer mistral --max-seq-len 32768 --baseline baseline/report.json
+```
+
 ## `--disable` and the exit-0 guarantee
 
 Rules can be disabled by id (e.g. `--disable encoding`), but with three constraints:
@@ -134,13 +185,17 @@ left enabled passed — which may or may not be enough.
 
 ## Exit codes
 
-| Code | Meaning (check) | Meaning (--fix) |
-|------|---------|---------|
-| `0`  | Clean. | All records emitted clean. |
-| `1`  | Warnings only. | Some records dropped (partial fix). |
-| `2`  | Errors. | Nothing fixable. |
+| Code | check | check --fix | report |
+|------|-------|-------------|--------|
+| `0`  | Clean. | All records emitted clean. | Clean. |
+| `1`  | Warnings only. | Some records dropped (partial fix). | Warnings only. |
+| `2`  | Errors. | Nothing fixable. | Errors. |
+| `3`  | — | — | Quality regressed vs `--baseline`. |
 
-These map directly to CI gates without any extra wiring.
+These are stable and map directly to CI gates without any extra wiring.
+Informational notes (like "context-window counts are approximate" when running
+without a tokenizer) never affect the exit code — a clean dataset exits 0 on a
+default install.
 
 ## Rules
 
@@ -155,13 +210,14 @@ These map directly to CI gates without any extra wiring.
 
 ## Status
 
-v0.4 — solo dev, local, pre-training run. No telemetry, no network, no upload boundary.
+v0.4.1 — local, pre-training run. No telemetry, no network, no upload boundary.
 
 ## Roadmap
 
 - ~~`--fix` mechanical tier (dedupe, truncate, normalize encoding)~~ ✓ shipped in v0.2
 - ~~Model-specific tokenizers (tiktoken/HF) with approximate fallback~~ ✓ shipped in v0.3
 - ~~ShareGPT format (`{"conversations": [...]}`)~~ ✓ shipped in v0.4
+- ~~`report` command + CI regression gate (`--baseline`, exit 3)~~ ✓ shipped in v0.4.1
 - raw-completion format
 
 ## License

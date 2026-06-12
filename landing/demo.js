@@ -8,7 +8,8 @@
    `parallelogram check <file>` does when no --tokenizer is passed, because a
    browser has neither tiktoken nor HuggingFace tokenizers. That means the
    context-window check is advisory (warnings, not errors) and a one-time
-   "counts are approximate" note is always emitted, just like the real tool.
+   "counts are approximate" note is emitted as INFO — visible, but it never
+   affects the exit code — just like the real tool (v0.4.1 behavior).
 
    Honesty is the whole point: if this demo flags something, the CLI would
    too — and vice-versa. The bundled samples are the project's own fixtures
@@ -327,7 +328,7 @@
       // context-window rule runs — exactly as the Python rule emits it.
       if (!noteEmitted) {
         noteEmitted = true;
-        issues.push({ rule: 'context-window', severity: 'warning', line: null,
+        issues.push({ rule: 'context-window', severity: 'info', line: null,
           message: 'Context-window counts are approximate', detail: APPROX_NOTE });
       }
 
@@ -629,8 +630,8 @@
 
   function renderIssue(issue) {
     const isErr = issue.severity === 'error';
-    const cls = isErr ? 'err' : 'warn';
-    const mark = isErr ? '✗' : '!';       // ✗ / !
+    const cls = isErr ? 'err' : issue.severity === 'warning' ? 'warn' : 'rid';
+    const mark = isErr ? '✗' : issue.severity === 'warning' ? '!' : 'i';
     const loc = issue.line === null ? '(global)' : `${FILE}:${issue.line}`;
     appendLine(cls,
       `  <span class="${cls}">${mark}</span> ` +
@@ -652,7 +653,7 @@
       return;
     }
     appendLine('blank', '&nbsp;');
-    const border = nErr ? 'red' : 'amber';
+    const border = nErr ? 'red' : nWarn ? 'amber' : 'green';
     const body =
       `<span class="sum-strong">${result.totalRecords} records</span>  ` +
       `<span class="ok">${result.validRecords} clean</span>  ` +
