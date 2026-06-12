@@ -73,9 +73,8 @@
       10 · quickstart    #quickstart    (alias #install)
       11 · use cases     #use-cases     (alias #integrations)
       12 · trust         #open-source
-      13 · vision        #vision
-      14 · final CTA     #cta
-      15 · footer + cookie banner
+      13 · final CTA     #cta
+      14 · footer + cookie banner
     ───────────────────────────────────────────────────────────────────
   -->
 
@@ -549,6 +548,14 @@ max_seq_len: 4096 tokens</code></pre>
       <div class="tok-grid" data-reveal>
         <div class="tok-copy">
         <div class="codeblock" data-reveal style="--i:0">
+          <pre><code><span class="dim"># optional — adds exact tokenizers (tiktoken + Hugging Face)</span>
+<span class="pr">$</span> pip install 'parallelogram[tokenizer]'</code></pre>
+          <button class="copy-btn" type="button" data-copy="pip install 'parallelogram[tokenizer]'" aria-label="Copy: pip install parallelogram with tokenizer extras">
+            <svg class="copy-ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 2h7a1 1 0 0 1 1 1v7" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="5" width="8" height="9" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+            <span class="copy-label">Copy</span>
+          </button>
+        </div>
+        <div class="codeblock" data-reveal style="--i:1">
           <pre><code><span class="pr">$</span> parallelogram check data.jsonl --tokenizer gpt-4o</code></pre>
           <button class="copy-btn" type="button" data-copy="parallelogram check data.jsonl --tokenizer gpt-4o" aria-label="Copy: parallelogram check data.jsonl --tokenizer gpt-4o">
             <svg class="copy-ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 2h7a1 1 0 0 1 1 1v7" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="5" width="8" height="9" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
@@ -623,7 +630,7 @@ max_seq_len: 4096 tokens</code></pre>
       <div class="section-head" data-reveal>
         <p class="kicker">08 · Formats</p>
         <h2>Normalize formats once. Run every rule unchanged.</h2>
-        <p class="section-sub">Two formats ship today. Both collapse to the same internal message list at the parse boundary, and <code>--output</code> writes survivors back in the shape they came in.</p>
+        <p class="section-sub">The pipeline above shows <em>where</em> the rules run — this is the exact field mapping that makes it possible. Both formats collapse to one internal message list at the parse boundary, and <code>--output</code> writes survivors back in the shape they came in.</p>
       </div>
 
       <div class="schema" data-reveal>
@@ -652,15 +659,6 @@ max_seq_len: 4096 tokens</code></pre>
  {"<span class="sk p1">role</span>": "<span class="sk p2">assistant</span>", "<span class="sk p3">content</span>": "Hello!"}]</code></pre>
         </div>
 
-        <div class="schema-pipe" aria-hidden="true"></div>
-
-        <div class="schema-box schema-box--engine corners">
-          <header class="schema-box-head"><span>one rule engine — runs unchanged on both formats</span></header>
-          <div class="schema-rules">
-            <span class="pill">schema</span><span class="pill">roles</span><span class="pill">empty-content</span>
-            <span class="pill">context-window</span><span class="pill">duplicates</span><span class="pill">encoding</span>
-          </div>
-        </div>
       </div>
 
       <div class="roadmap" data-reveal>
@@ -755,10 +753,9 @@ max_seq_len: 4096 tokens</code></pre>
 
       <div class="qs-steps">
         <div class="codeblock" data-reveal style="--i:0">
-          <pre><code><span class="dim"># install — the extras add exact tokenizers (tiktoken + HF)</span>
-<span class="pr">$</span> pip install parallelogram
-<span class="pr">$</span> pip install 'parallelogram[tokenizer]'</code></pre>
-          <button class="copy-btn" type="button" data-copy="pip install parallelogram&#10;pip install 'parallelogram[tokenizer]'" aria-label="Copy: pip install parallelogram">
+          <pre><code><span class="dim"># install — that's the whole setup</span>
+<span class="pr">$</span> pip install parallelogram</code></pre>
+          <button class="copy-btn" type="button" data-copy="pip install parallelogram" aria-label="Copy: pip install parallelogram">
             <svg class="copy-ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 2h7a1 1 0 0 1 1 1v7" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="5" width="8" height="9" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
             <span class="copy-label">Copy</span>
           </button>
@@ -896,35 +893,6 @@ max_seq_len: 4096 tokens</code></pre>
       <div class="trust-cta" data-reveal>
         <a class="btn btn-primary" href="https://github.com/Thatayotlhe04/Parallelogram/issues" target="_blank" rel="noopener">Try it on a real dataset and tell us what it misses.</a>
       </div>
-    </div>
-  </section>
-
-  <!-- ───── 13 · VISION #vision ───── -->
-  <section id="vision">
-    <div class="wrap">
-      <div class="section-head" data-reveal>
-        <p class="kicker">13 · Vision</p>
-        <h2>From dataset validation to semantic data quality.</h2>
-        <p class="section-sub">Structural checks are the floor, not the ceiling. The plan, in the order it will ship:</p>
-      </div>
-
-      <ol class="timeline">
-        <li class="tl-node" data-reveal style="--i:0">
-          <span class="tl-stage">Today · v0.4.0</span>
-          <h3>Structural preflight</h3>
-          <p>Schema, roles, duplicates, encoding, token budgets — shipped and running locally in v0.4.0.</p>
-        </li>
-        <li class="tl-node" data-reveal style="--i:1">
-          <span class="tl-stage">Next</span>
-          <h3>Wider surface</h3>
-          <p>More dataset formats (raw-completion first), CI reports, richer tokenizer support.</p>
-        </li>
-        <li class="tl-node" data-reveal style="--i:2">
-          <span class="tl-stage">Later</span>
-          <h3>Semantic data quality</h3>
-          <p>Semantic duplicate detection, PII and compliance scans, synthetic data quality scoring, SLM data tiers, dataset readiness reports, team workflows.</p>
-        </li>
-      </ol>
     </div>
   </section>
 

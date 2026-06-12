@@ -4034,3 +4034,63 @@
     color: var(--text-dim);
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   ALIGNMENT PASS — fixed demo heights, grid-aligned hero, one body scale
+   ═══════════════════════════════════════════════════════════════════ */
+@layer sections {
+
+  /* 05 · demo — FIXED terminal heights: streaming output must never
+     change layout. The panes scroll internally instead of growing. */
+  #terminal-body,
+  #demo-fix-body {
+    height: 420px;
+    min-height: 0;
+    max-height: none;
+  }
+
+  @media (max-width: 1024px) {
+    #terminal-body,
+    #demo-fix-body {
+      height: 320px;
+    }
+  }
+
+  /* 01 · hero — left-aligned to the page rails like every other
+     section: one grid, one alignment, everywhere */
+  .hero-copy {
+    margin: 0 0 var(--space-7);
+    text-align: left;
+    max-width: 840px;
+  }
+
+  .hero-copy .eyebrow,
+  .hero-copy .trust-row {
+    justify-content: flex-start;
+  }
+
+  .hero h1 {
+    margin-inline: 0;
+  }
+
+  .hero-sub {
+    margin-inline: 0;
+  }
+
+  .hero-actions {
+    justify-content: flex-start;
+  }
+
+  .hero-guarantee {
+    text-align: left;
+  }
+
+  /* one body-copy scale: 14px/1.65 text-2 for card-level prose,
+     16px section subs, captions stay mono text-dim */
+  .card p,
+  .trust-item p {
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--text-2);
+  }
+}
