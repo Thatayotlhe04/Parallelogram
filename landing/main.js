@@ -513,7 +513,7 @@
     const nodes = Array.from(document.querySelectorAll('button.arch-hotspot[data-arch]'));
 
     const COPY = {
-      input: 'OpenAI chat JSONL and ShareGPT files can enter through the same command surface; the parser handles the shape difference before checks run.',
+      input: 'OpenAI/Qwen chat JSONL and ShareGPT-style files can enter through the same command surface; the parser handles the shape difference before checks run.',
       parser: 'The parse boundary turns supported formats into one internal message list with role and content fields.',
       diagnostics: 'Schema, role order, duplicate, empty-content, and context-window diagnostics all print against that normalized representation.',
       fixer: 'The safe fixer repairs mechanical issues, then sends the record back through validation before it can be written.',

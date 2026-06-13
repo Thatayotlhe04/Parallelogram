@@ -1,4 +1,4 @@
-"""OpenAI chat format: {"messages": [{"role": ..., "content": ...}, ...]}.
+"""OpenAI/Qwen chat format: {"messages": [{"role": ..., "content": ...}, ...]}.
 
 iter_jsonl streams the file and yields a ParseResult per non-empty line.
 JSON errors are captured rather than raised so the runner can report them

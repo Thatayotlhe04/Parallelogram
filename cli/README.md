@@ -52,10 +52,11 @@ Write only the clean records to a new file:
 parallelogram check data.jsonl --output clean.jsonl
 ```
 
-OpenAI chat JSONL and Qwen/ShareGPT-style datasets are accepted by default.
-Qwen/ShareGPT records use `{"conversations": [{"from": ..., "value": ...}, ...]}`;
-every rule runs identically, and `--output` (with or without `--fix`) writes
-the surviving records back in the source shape:
+OpenAI/Qwen chat JSONL (`messages` with `role`/`content`) and ShareGPT-style
+datasets are accepted by default. ShareGPT-style records use
+`{"conversations": [{"from": ..., "value": ...}, ...]}`; every rule runs
+identically, and `--output` (with or without `--fix`) writes the surviving
+records back in the source shape:
 
 ```bash
 parallelogram check data.jsonl
@@ -222,7 +223,7 @@ v0.4.2 — local, pre-training run. No telemetry, no network, no upload boundary
 - ~~Model-specific tokenizers (tiktoken/HF) with approximate fallback~~ ✓ shipped in v0.3
 - ~~ShareGPT format (`{"conversations": [...]}`)~~ ✓ shipped in v0.4
 - ~~`report` command + CI regression gate (`--baseline`, exit 3)~~ ✓ shipped in v0.4.1
-- ~~Direct Qwen/ShareGPT auto-detection~~ ✓ shipped in v0.4.2
+- ~~Direct ShareGPT-style auto-detection~~ ✓ shipped in v0.4.2
 - raw-completion format
 
 ## License

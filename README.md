@@ -69,12 +69,13 @@ parallelogram check data.jsonl \
 parallelogram check data.jsonl --output clean.jsonl
 ```
 
-### Check Qwen/ShareGPT-style data directly
+### Check ShareGPT-style data directly
 
-OpenAI chat JSONL and Qwen/ShareGPT-style records are auto-detected by default:
+OpenAI/Qwen chat JSONL (`messages` with `role`/`content`) and ShareGPT-style
+records (`conversations` with `from`/`value`) are auto-detected by default:
 
 ```bash
-parallelogram check qwen_sharegpt.jsonl
+parallelogram check sharegpt.jsonl
 ```
 
 ### Mechanical repair with `--fix`
@@ -214,7 +215,7 @@ Deploy by dropping `landing/` on Vercel, Netlify, Cloudflare Pages, or GitHub Pa
 
 ## Status
 
-**CLI v0.4.2** — local pre-training validation with six rules, mechanical `--fix`, model-specific tokenizers, ShareGPT/Qwen auto-detection, and the `report` CI regression gate. Published to PyPI. All smoke and end-to-end suites passing.
+**CLI v0.4.2** — local pre-training validation with six rules, mechanical `--fix`, model-specific tokenizers, ShareGPT-style auto-detection, and the `report` CI regression gate. Published to PyPI. All smoke and end-to-end suites passing.
 
 **Landing page v0.4** — quickstart shows `--fix`, format support, one-click pip install copy, cookie consent banner, privacy policy, and terms of use.
 

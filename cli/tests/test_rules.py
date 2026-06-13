@@ -325,8 +325,8 @@ def test_sharegpt_end_to_end_clean(tmp_path):
     assert not report.has_errors
 
 
-def test_sharegpt_is_accepted_by_default_auto_format(tmp_path):
-    p = tmp_path / "qwen_sharegpt.jsonl"
+def test_sharegpt_style_is_accepted_by_default_auto_format(tmp_path):
+    p = tmp_path / "sharegpt_style.jsonl"
     p.write_text(
         json.dumps(_sharegpt_record(
             [{"from": "user", "value": "Hi"}, {"from": "assistant", "value": "Hello"}],
@@ -338,7 +338,7 @@ def test_sharegpt_is_accepted_by_default_auto_format(tmp_path):
 
 
 def test_auto_fix_round_trips_sharegpt_output(tmp_path):
-    src = tmp_path / "qwen_sharegpt.jsonl"
+    src = tmp_path / "sharegpt_style.jsonl"
     out = tmp_path / "fixed.jsonl"
     src.write_text(
         json.dumps(_sharegpt_record(

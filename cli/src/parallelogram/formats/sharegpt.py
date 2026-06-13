@@ -41,7 +41,7 @@ _ROLE_TO_FROM = {
 
 
 def is_sharegpt_record(record: Any) -> bool:
-    """Return true for Qwen/ShareGPT-style conversation records."""
+    """Return true for ShareGPT-style conversation records."""
     if not isinstance(record, dict):
         return False
     turns = record.get("conversations", record.get("conversation"))

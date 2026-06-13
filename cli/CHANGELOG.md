@@ -6,10 +6,11 @@ All notable changes to the `parallelogram` CLI. Versions correspond to
 ## 0.4.2 — 2026-06-13
 
 ### Changed
-- `check` and `report` now default to `--format auto`, accepting both OpenAI
-  chat JSONL and Qwen/ShareGPT-style records
+- `check` and `report` now default to `--format auto`, accepting both
+  OpenAI/Qwen chat JSONL (`messages` with `role`/`content`) and
+  ShareGPT-style records
   (`{"conversations": [{"from": ..., "value": ...}]}`) directly.
-- Auto-detected ShareGPT/Qwen records preserve their source shape when
+- Auto-detected ShareGPT-style records preserve their source shape when
   `--fix --output` writes repaired data, so output stays in `conversations`
   form instead of being re-serialized as OpenAI chat.
 - `report` includes detected source-format counts in its format breakdown.

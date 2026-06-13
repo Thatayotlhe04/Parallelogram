@@ -1,4 +1,4 @@
-"""Schema rule — every record must conform to OpenAI chat structure.
+"""Schema rule — every record must conform to OpenAI/Qwen chat structure.
 
 This is the foundation rule. Other rules assume the schema rule has already
 filtered out structurally invalid records, but they still defend against
@@ -17,7 +17,7 @@ from ..formats.openai_chat import VALID_ROLES
 @registry.register
 class SchemaRule(Rule):
     id = "schema"
-    description = "Records must conform to OpenAI chat schema"
+    description = "Records must conform to OpenAI/Qwen chat schema"
     severity = Severity.ERROR
     fixable = False
 

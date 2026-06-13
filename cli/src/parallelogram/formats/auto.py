@@ -3,8 +3,10 @@
 The default CLI path should accept the two shapes users most commonly hand to
 fine-tuning stacks directly:
 
-- OpenAI chat JSONL: ``{"messages": [{"role": ..., "content": ...}]}``
-- Qwen/ShareGPT JSONL: ``{"conversations": [{"from": ..., "value": ...}]}``
+- OpenAI/Qwen chat JSONL:
+  ``{"messages": [{"role": ..., "content": ...}]}``
+- ShareGPT-style JSONL:
+  ``{"conversations": [{"from": ..., "value": ...}]}``
 
 Records are still normalized at the parse boundary, so rules remain format
 agnostic. Malformed or unknown records are passed through as OpenAI-chat-shaped
