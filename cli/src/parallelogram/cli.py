@@ -203,6 +203,7 @@ def check(
         # Format and emit results.
         if json_output:
             payload = {
+                "schema_version": 1,
                 "file": str(path),
                 "mode": "fix",
                 "dry_run": dry_run,

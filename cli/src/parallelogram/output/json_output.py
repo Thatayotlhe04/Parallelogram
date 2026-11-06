@@ -13,6 +13,7 @@ def render_json(
     disabled_rules: list[str] | None = None,
 ) -> None:
     payload = {
+        "schema_version": 1,
         "file": file_path,
         "total_records": report.total_records,
         "valid_records": report.valid_records,
