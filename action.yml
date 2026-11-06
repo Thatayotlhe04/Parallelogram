@@ -1,0 +1,55 @@
+name: Parallelogram dataset validation
+description: Validate fine-tuning data locally and append a health report to the job summary.
+inputs:
+  path:
+    description: Path to the JSONL dataset.
+    required: true
+  format:
+    description: Dataset parser (auto, openai-chat, sharegpt, or prompt-completion).
+    default: auto
+  max-seq-len:
+    description: Token budget per record.
+    default: '4096'
+  tokenizer:
+    description: Optional tokenizer model, repository, alias, or local path.
+    default: ''
+  baseline:
+    description: Optional previous report JSON file for regression gating.
+    default: ''
+  fail-on:
+    description: Fail on error (default) or warning. Regressions always fail.
+    default: error
+  python-version:
+    description: Python version used to install and run the CLI.
+    default: '3.12'
+runs:
+  using: composite
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v6
+      env:
+        PYTHON_VERSION: ${{ inputs.python-version }}
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    - name: Install Parallelogram from this action
+      shell: bash
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+        TOKENIZER: ${{ inputs.tokenizer }}
+      run: |
+        package="$ACTION_PATH/cli"
+        if [[ -n "$TOKENIZER" ]]; then
+          package+='[tokenizer]'
+        fi
+        python -m pip install "$package"
+    - name: Report dataset health
+      shell: bash
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+        DATASET_PATH: ${{ inputs.path }}
+        DATASET_FORMAT: ${{ inputs.format }}
+        MAX_SEQ_LEN: ${{ inputs.max-seq-len }}
+        TOKENIZER: ${{ inputs.tokenizer }}
+        BASELINE: ${{ inputs.baseline }}
+        FAIL_ON: ${{ inputs.fail-on }}
+      run: bash "$ACTION_PATH/.github/scripts/report.sh"
