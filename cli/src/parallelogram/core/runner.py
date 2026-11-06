@@ -1,6 +1,8 @@
 """Runner — pipes records from a parsed JSONL stream through registered rules."""
 from __future__ import annotations
 
+from typing import Any
+
 from .report import Report, Issue, Severity
 from .rules import Rule
 from ..formats import get_parser
@@ -19,6 +21,7 @@ class Runner:
         self.dataset_format = dataset_format
         self._iter_jsonl = get_parser(dataset_format)
         self.source_formats: dict[int, str] = {}
+        self.source_metadata: dict[int, dict[str, Any]] = {}
 
     def run(self, path: str) -> tuple[Report, list[tuple[int, str]]]:
         """Validate and return (report, clean_raw_lines).
@@ -50,6 +53,7 @@ class Runner:
         per_line_errors: dict[int, int] = {}
         unparseable_lines: set[int] = set()
         self.source_formats = {}
+        self.source_metadata = {}
 
         for rule in self.rules:
             rule.reset()
@@ -58,6 +62,8 @@ class Runner:
             report.total_records += 1
             line_no = parsed.line_no
             self.source_formats[line_no] = parsed.source_format or self.dataset_format
+            if parsed.source_metadata:
+                self.source_metadata[line_no] = parsed.source_metadata
 
             if parsed.parse_error is not None:
                 report.add(Issue(

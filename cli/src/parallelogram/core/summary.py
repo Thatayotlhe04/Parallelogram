@@ -84,6 +84,7 @@ class DatasetSummary:
 
     def to_dict(self) -> dict[str, Any]:
         return {
+            "schema_version": 1,
             "file": self.file,
             "format": self.dataset_format,
             "disabled_rules": self.disabled_rules,

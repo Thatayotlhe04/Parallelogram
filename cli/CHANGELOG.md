@@ -3,6 +3,26 @@
 All notable changes to the `parallelogram` CLI. Versions correspond to
 [PyPI releases](https://pypi.org/project/parallelogram/) and `cli-v*` git tags.
 
+## 1.0.0 — 2026-11-06
+
+### Added
+- Eager `parallelogram --version` option, backed by the same version source
+  used to build the package.
+- `prompt-completion` format: string pairs, conversational message lists,
+  mixed halves, per-record auto-detection, specific schema diagnostics,
+  source-shape-preserving fixes, and an example dataset.
+- Stable `schema_version: 1` JSON for check, fix, and report, with every field
+  documented in `docs/json-output.md`. Unversioned 0.4.x report baselines
+  remain supported.
+- Composite GitHub Action installing from its own checkout, with Markdown
+  job summaries, optional tokenizers and baselines, configurable warning
+  gating, and integration tests.
+
+### Changed
+- Declared the 1.0 stability contract for commands, flags, rule ids, exit
+  codes, and versioned JSON fields; new rules and formats may arrive in
+  minor releases. Package classifier is now Production/Stable.
+
 ## 0.4.2 — 2026-06-13
 
 ### Changed

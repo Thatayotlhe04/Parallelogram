@@ -62,8 +62,32 @@ records back in the source shape:
 parallelogram check data.jsonl
 ```
 
-Use `--format openai-chat` or `--format sharegpt` only when you want to force
+Use `--format openai-chat`, `--format sharegpt`, or `--format prompt-completion` to force
 one parser instead of auto-detection.
+
+### Check prompt/completion data
+
+`prompt-completion` is auto-detected alongside OpenAI/Qwen chat and ShareGPT,
+including files that mix these formats. Both string and conversational pairs
+are accepted; either half may independently be a string or message list:
+
+```json
+{"prompt": "What is 2 + 2?", "completion": "4."}
+{"prompt": [{"role": "user", "content": "Capital of Botswana?"}], "completion": [{"role": "assistant", "content": "Gaborone."}]}
+```
+
+```bash
+parallelogram check prompt_completion.jsonl
+parallelogram check prompt_completion.jsonl --format prompt-completion
+parallelogram check prompt_completion.jsonl --fix --output repaired.jsonl
+```
+
+Missing halves and values other than strings/lists are schema errors. Fixed
+output keeps standard pairs as strings and conversational pairs as lists.
+Conversational completion is the trailing run of assistant messages, with earlier
+turns in prompt. A mixed record keeps a string half when it still contains one
+matching turn; otherwise that half becomes a list to preserve every message. Extra top-level keys
+may be omitted by fixes.
 
 ## `--fix` — mechanical repair
 
@@ -157,6 +181,48 @@ proportionally worse.
 - run: parallelogram report data/train.jsonl --tokenizer mistral --max-seq-len 32768 --baseline baseline/report.json
 ```
 
+## GitHub Action
+
+Validate a dataset and add a Markdown health report to the workflow summary:
+
+```yaml
+name: Validate training data
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Thatayotlhe04/Parallelogram@v1
+        with:
+          path: data/train.jsonl
+          format: auto
+          max-seq-len: '4096'
+          fail-on: error
+          # tokenizer: Qwen/Qwen2.5-7B
+          # baseline: baseline/report.json
+          # python-version: '3.12'
+```
+
+The `v1` ref is the planned stable release ref; it becomes available when the
+maintainer releases 1.0. The action installs the CLI from its own checkout, so
+its version matches the selected ref. Setting `tokenizer` installs the tokenizer
+extras. The required `path` points to your checked-out dataset; all other inputs
+are optional, with defaults shown above (tokenizer and baseline default to empty).
+Errors (exit 2) and baseline regressions (exit 3) always fail. Warning-only reports
+(exit 1) pass by default; use `fail-on: warning` to fail on them too. The report is
+appended to the job summary even when validation fails.
+
+## Stability
+
+From 1.0 until 2.0, command names and flags, rule ids, exit codes 0/1/2/3,
+and JSON fields at `schema_version: 1` are stable. Removing or renaming any of
+these requires a major release. New rules and formats may be added in minor
+releases. See the [JSON output contract](docs/json-output.md) for every field and its meaning.
+Reports saved by 0.4.x remain usable as baselines.
+
 ## `--disable` and the exit-0 guarantee
 
 Rules can be disabled by id (e.g. `--disable encoding`), but with three constraints:
@@ -178,7 +244,8 @@ left enabled passed — which may or may not be enough.
 
 | Flag | Description |
 |------|-------------|
-| `--format`, `-f` | Dataset format: `auto` (default), `openai-chat`, or `sharegpt`. |
+| `--version` | Show the CLI version and exit (use before a command). |
+| `--format`, `-f` | Dataset format: `auto` (default), `openai-chat`, `sharegpt`, or `prompt-completion`. |
 | `--tokenizer`, `-t` | Model or tokenizer for the context-window check — an OpenAI model (`gpt-4o`), or an HF repo/alias (`Qwen/Qwen2.5-7B`, `mistral`). Optional: omit for an approximate count. |
 | `--max-seq-len` | Token budget per record (default 4096). |
 | `--output`, `-o` | Write error-free records to this file. With `--fix`, writes the repaired dataset. |
@@ -215,7 +282,7 @@ default install.
 
 ## Status
 
-v0.4.2 — local, pre-training run. No telemetry, no network, no upload boundary.
+v1.0.0 — stable CLI contract, local pre-training validation. No telemetry, no network, no upload boundary.
 
 ## Roadmap
 
@@ -224,7 +291,7 @@ v0.4.2 — local, pre-training run. No telemetry, no network, no upload boundary
 - ~~ShareGPT format (`{"conversations": [...]}`)~~ ✓ shipped in v0.4
 - ~~`report` command + CI regression gate (`--baseline`, exit 3)~~ ✓ shipped in v0.4.1
 - ~~Direct ShareGPT-style auto-detection~~ ✓ shipped in v0.4.2
-- raw-completion format
+- ~~Prompt/completion format~~ shipped in v1.0
 
 ## License
 

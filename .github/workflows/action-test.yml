@@ -1,0 +1,41 @@
+name: Composite action tests
+
+on:
+  push:
+    branches: [main, v1/cli]
+    paths:
+      - action.yml
+      - .github/scripts/report.sh
+      - .github/workflows/action-test.yml
+      - cli/**
+  pull_request:
+    paths:
+      - action.yml
+      - .github/scripts/report.sh
+      - .github/workflows/action-test.yml
+      - cli/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  action-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Clean data passes
+        uses: ./
+        with:
+          path: cli/examples/clean.jsonl
+      - name: Broken data fails
+        id: broken
+        uses: ./
+        continue-on-error: true
+        with:
+          path: cli/examples/broken.jsonl
+      - name: Assert broken data failed
+        if: always()
+        env:
+          OUTCOME: ${{ steps.broken.outcome }}
+        run: test "$OUTCOME" = failure

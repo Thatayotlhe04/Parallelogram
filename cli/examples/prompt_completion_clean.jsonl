@@ -1,0 +1,2 @@
+{"prompt": "What is 2 + 2?", "completion": "4."}
+{"prompt": [{"role": "system", "content": "Answer briefly."}, {"role": "user", "content": "What is the capital of Botswana?"}], "completion": [{"role": "assistant", "content": "Gaborone."}]}
