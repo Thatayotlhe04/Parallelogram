@@ -28,3 +28,6 @@ stress_clean*.jsonl
 
 # macOS
 .DS_Store
+
+# Agent handoff notes (Claude <-> Codex), never committed
+.handoff/
