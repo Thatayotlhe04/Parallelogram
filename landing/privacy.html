@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+  <meta name="color-scheme" content="dark" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Privacy Policy — Parallelogram</title>
   <meta name="description" content="Privacy policy for parallelogram.dev and the Parallelogram open-source CLI." />
@@ -14,32 +15,23 @@
 </head>
 <body>
 
-  <header class="nav">
-    <div class="nav-inner">
-      <a href="/" class="brand" aria-label="Parallelogram home">
-        <svg class="brand-mark" viewBox="0 0 28 24" aria-hidden="true">
-          <path d="M7 3 L25 3 L21 21 L3 21 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
-        </svg>
-        <span class="brand-word">parallelogram</span>
-      </a>
-      <nav class="nav-links" aria-label="Primary">
-        <a href="/#product">Product</a>
-        <a href="/#checks">Checks</a>
-        <a href="/#formats">Formats</a>
-        <a href="/#tokenizers">Tokenizers</a>
-      </nav>
-      <div class="nav-ctas">
-        <a class="btn btn-ghost" href="https://github.com/Thatayotlhe04/Parallelogram" target="_blank" rel="noopener">GitHub</a>
-        <a class="btn btn-primary" href="/#quickstart">Install</a>
-      </div>
-    </div>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header container">
+    <a class="wordmark" href="index.html" aria-label="Parallelogram home">parallelogram</a>
+    <nav aria-label="Primary">
+      <a href="index.html#checks">Checks</a>
+      <a href="index.html#how">How it works</a>
+      <a href="index.html#faq">FAQ</a>
+      <a href="https://github.com/Thatayotlhe04/Parallelogram">GitHub</a>
+      <a class="button button-small" href="index.html#install">Install</a>
+    </nav>
   </header>
 
-  <main class="legal">
+  <main id="main" class="legal">
     <div class="container legal-container">
       <span class="kicker">/ legal</span>
       <h1>Privacy Policy</h1>
-      <p class="legal-effective">Effective June 11, 2026 · Replaces all prior versions</p>
+      <p class="legal-effective">Effective November 6, 2026 · Replaces all prior versions</p>
 
       <p>
         This Privacy Policy describes how <strong>Parallelogram</strong> ("we", "us", "our") handles information
@@ -151,24 +143,7 @@
       </p>
 
       <h3>3.5 Cookies and local storage</h3>
-      <p>
-        The website sets <strong>one functional cookie</strong>: a small first-party cookie named
-        <code>pg_cookie_consent</code> that stores your acceptance or declination of cookies as presented
-        in the cookie notice. This cookie contains no personal information — only the string
-        <code>"accepted"</code> or <code>"declined"</code> — and is used solely to avoid showing the
-        cookie banner on every subsequent visit. It is not read by any analytics or advertising system,
-        because we have none.
-      </p>
-      <p>
-        If you decline cookies, the banner will not appear again during that browser session, but the
-        preference is not persisted across sessions (since storing it would itself require a cookie).
-        If you accept, the cookie is set with a 365-day expiry on the <code>parallelogram.dev</code>
-        domain only, with the <code>SameSite=Lax</code> attribute.
-      </p>
-      <p>
-        Beyond this consent cookie, the website uses no cookies, no local storage, and no session storage
-        for any other purpose.
-      </p>
+      <p>The website uses no cookies, no local storage, and no session storage.</p>
 
       <h2>4. Email correspondence</h2>
       <p>
@@ -241,7 +216,6 @@
       <ul>
         <li><strong>Vercel server logs</strong> are retained according to Vercel's default retention policy, which we do not control.</li>
         <li><strong>Email correspondence</strong> is retained in our email inbox for as long as we deem it necessary to address the matter, after which it may be deleted.</li>
-        <li><strong>The cookie consent value</strong> is stored in your browser for up to 365 days and is never transmitted to us; you can delete it by clearing your browser cookies at any time.</li>
       </ul>
 
       <h2>9. Security</h2>
@@ -284,23 +258,19 @@
         We aim to respond to all privacy inquiries within 14 calendar days.
       </p>
 
-      <p class="legal-back"><a href="/">← Back to parallelogram.dev</a></p>
+      <p class="legal-back"><a href="index.html">← Back to parallelogram.dev</a></p>
     </div>
   </main>
 
-  <footer class="foot">
-    <div class="container foot-inner">
-      <div class="foot-brand">
-        <svg class="brand-mark" viewBox="0 0 28 24" aria-hidden="true">
-          <path d="M7 3 L25 3 L21 21 L3 21 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
-        </svg>
-        <span>parallelogram.dev</span>
-      </div>
-      <div class="foot-line" style="grid-column: 1 / -1; margin-top: 0; border-top: 0; padding-top: 0;">
-        <span>© 2026 parallelogram.dev</span>
-        <span class="muted">v0.4.2 · preflight validation for fine-tuning datasets</span>
-      </div>
-    </div>
+  <footer class="site-footer container">
+    <a class="wordmark" href="index.html">parallelogram</a>
+    <span>v1.0.0</span>
+    <a href="https://github.com/Thatayotlhe04/Parallelogram">GitHub</a>
+    <a href="https://pypi.org/project/parallelogram/">PyPI</a>
+    <a href="privacy.html">Privacy</a>
+    <a href="terms.html">Terms</a>
+    <a href=".well-known/security.txt">Security</a>
+    <span class="copyright">© 2026</span>
   </footer>
 </body>
 </html>
