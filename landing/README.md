@@ -1,62 +1,45 @@
-# parallelogram.dev — landing site
+# parallelogram.dev
 
-Static landing page for the [parallelogram](https://github.com/Thatayotlhe04/Parallelogram)
-CLI — preflight validation for fine-tuning datasets. No build step, no framework,
-no third-party requests: serve the folder and it works.
+A buildless, static landing page for the [Parallelogram CLI](https://github.com/Thatayotlhe04/Parallelogram), hosted on Vercel.
 
-## Files
+## Files and development
 
-| File | Purpose |
-|---|---|
-| `index.html` | The landing page — 14 numbered sections (see the TOC comment at the top of the file) |
-| `styles.css` | All styling, organized with CSS cascade layers: `tokens, base, components, sections, legal, motion, utilities` |
-| `main.js` | Header state, mobile nav, reveals, scroll-spy, copy buttons, token meter, compare stream, architecture inspector, exit-code cycler, cookie banner |
-| `hero-terminal.js` | The scripted hero terminal — deterministic typing (fixed delay table, no RNG), three tabs |
-| `demo.js` | In-browser port of the six linter rules plus the `--fix` pipeline and ShareGPT normalizer, faithful to `cli/src/parallelogram/`; exposes `window.__pgLint` / `window.__pgFix` for parity testing |
-| `privacy.html` / `terms.html` | Legal pages, styled by the `legal` CSS layer |
-| `fonts/` | Self-hosted Geist + Geist Mono variable woff2 (OFL) — no Google Fonts |
-| `og.png` | 1200×630 social preview (`og-image.png` is the legacy image, kept so previously shared links don't break) |
-| `vercel.json` | Security headers (strict CSP, anti-framing, HSTS, …), immutable cache for `/fonts/*`, `/security.txt` redirect |
-| `robots.txt` / `sitemap.xml` | Crawler signals |
-| `.well-known/security.txt` | Vulnerability-reporting contacts (expires yearly — bump `Expires:` before 2027-06-12) |
+- `index.html`: hero, six checks, check/fix/gate workflow, native FAQ, closing install action.
+- `styles.css`: shared layout and legal-page styles; local Manrope, Inter and Source Code Pro fonts (SIL OFL).
+- `main.js`: install copy buttons only, with an accessible status announcement. With JavaScript or clipboard access unavailable, commands remain selectable.
+- `privacy.html` and `terms.html`: legal pages with shared navigation and styling.
+- `og.png`: existing social image. Favicons, crawler files, and `.well-known/security.txt` remain in place.
+- `vercel.json`: unchanged first-party CSP and security headers.
 
-## Local development
+Serve `landing/` with `python -m http.server 8000 --directory landing` from the repository root. Vercel uses `landing/` as its root, with no build command or output directory.
 
-```bash
-cd landing
-python3 -m http.server 8000
-# open http://localhost:8000
+Run `python scripts/check_csp.py` from the repository root. Check desktop and 375px layouts, install buttons, FAQ keyboard operation, and legal-page links before publishing. No external resources, telemetry, cookies, storage, animation, or runtime dataset demo.
+
+## Terminal provenance
+
+The static transcript was captured by running the checked-out CLI at `d99eed3` (package version 0.4.2), with all six rules enabled and no optional tokenizer. The page targets the concurrent v1.0 release described in the handoff brief. Before merging, review release-dependent claims against that release.
+
+The four input records are: a valid user/assistant exchange; an exact copy; a valid exchange preceded by a whitespace-only system message; and an exchange with a BOM inside the user message. The check emits three issues: duplicate, empty content, and encoding. Fixing removes the duplicate and repairs the other two records, so fix exits **1** for the dropped record; the explicit clean-file re-check exits **0**.
+
+Reproduce in a scratch directory with the CLI installed:
+
+```python
+import json
+from pathlib import Path
+
+records = [
+    {"messages": [{"role": "user", "content": "Hi."}, {"role": "assistant", "content": "Hello."}]},
+    {"messages": [{"role": "user", "content": "Hi."}, {"role": "assistant", "content": "Hello."}]},
+    {"messages": [{"role": "system", "content": " "}, {"role": "user", "content": "What is a gradient?"}, {"role": "assistant", "content": "A vector of partial derivatives."}]},
+    {"messages": [{"role": "user", "content": "\ufeffWhat is a tensor?"}, {"role": "assistant", "content": "A multidimensional array."}]},
+]
+Path("train.jsonl").write_text("".join(json.dumps(record) + "\n" for record in records))
 ```
 
-## Deploy (Vercel)
+```sh
+parallelogram check train.jsonl                         # exit 2
+parallelogram check train.jsonl --fix --output clean.jsonl # exit 1
+parallelogram check clean.jsonl                         # exit 0
+```
 
-Static deployment: set the project root directory to `landing/`, no build
-command, no output directory. Any other static host works identically.
-
-## Conventions
-
-- **No external resources.** No GSAP, no CDN scripts, no Google Fonts —
-  everything is first-party (the privacy policy now promises exactly this).
-- **The CSP enforces the previous point.** `vercel.json` ships
-  `default-src 'none'` with self-only scripts/images/fonts, so an external
-  script, analytics tag, iframe, badge, or `fetch()` call will be blocked in
-  production. This is intentional. `scripts/check_csp.py` runs in CI
-  (`landing-ci.yml`) and fails the build naming the exact directive to extend,
-  so a violation can never land silently — when adding such a resource, widen
-  the CSP in `vercel.json` in the same commit.
-- **Legacy anchors** `#rules`, `#install`, and `#integrations` are kept as
-  zero-height alias anchors so old inbound links and the legal pages keep working.
-- **Reduced motion** is fully supported: typing paints its final frame,
-  streams render one static pass, reveals are instant.
-- **Mojibake strings in `demo.js` are written as `\u` escapes**, never literal
-  glyphs, so rule matching survives any editor/encoding round-trip.
-- The demo must stay in lockstep with the CLI: if a rule changes in
-  `cli/src/parallelogram/rules/`, update the matching `check*`/`fix*` function
-  in `demo.js`.
-
-## Tweak knobs
-
-- Design tokens (colors, spacing, type, easing) live in `:root` inside the
-  `tokens` layer at the top of `styles.css`.
-- The hero transcript is the `LINES` array in `hero-terminal.js`.
-- Demo fixtures are the `SAMPLES` object in `demo.js` (per format).
+The display removes Rich box borders, blank lines, indentation, and two explanatory detail lines. Diagnostic text, summary counts, and command order are unchanged; `exit N` annotations show captured process statuses, not CLI-generated lines. The approximate-token-count note is retained.

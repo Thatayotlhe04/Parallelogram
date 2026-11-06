@@ -2,44 +2,48 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+  <meta name="color-scheme" content="dark" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Privacy Policy — Parallelogram</title>
   <meta name="description" content="Privacy policy for parallelogram.dev and the Parallelogram open-source CLI." />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
-  <link rel="preload" href="fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="preload" href="fonts/GeistMono-Variable.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="fonts/Manrope-Variable.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
 
+  <a class="skip-link" href="#main">Skip to content</a>
   <header class="nav">
     <div class="nav-inner">
-      <a href="/" class="brand" aria-label="Parallelogram home">
-        <svg class="brand-mark" viewBox="0 0 28 24" aria-hidden="true">
-          <path d="M7 3 L25 3 L21 21 L3 21 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
-        </svg>
-        <span class="brand-word">parallelogram</span>
+      <a class="brand" href="index.html" aria-label="Parallelogram home">
+        <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M8 5 L29 5 L24 27 L3 27 Z" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/></svg>
+        <span>parallelogram</span>
       </a>
       <nav class="nav-links" aria-label="Primary">
-        <a href="/#product">Product</a>
-        <a href="/#checks">Checks</a>
-        <a href="/#formats">Formats</a>
-        <a href="/#tokenizers">Tokenizers</a>
+        <a href="index.html#checks">Checks</a>
+        <a href="index.html#how">How it works</a>
+        <a href="index.html#changelog">Changelog</a>
+        <a href="index.html#faq">FAQ</a>
+        <a href="https://github.com/Thatayotlhe04/Parallelogram#readme">Docs</a>
       </nav>
-      <div class="nav-ctas">
-        <a class="btn btn-ghost" href="https://github.com/Thatayotlhe04/Parallelogram" target="_blank" rel="noopener">GitHub</a>
-        <a class="btn btn-primary" href="/#quickstart">Install</a>
+      <div class="nav-actions">
+        <a class="nav-github" href="https://github.com/Thatayotlhe04/Parallelogram" aria-label="Parallelogram on GitHub">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+          <span>GitHub</span>
+        </a>
+        <a class="btn btn-primary btn-sm" href="index.html#install">Install</a>
       </div>
     </div>
   </header>
 
-  <main class="legal">
-    <div class="container legal-container">
+  <main id="main" class="frame legal">
+    <div class="legal-container">
       <span class="kicker">/ legal</span>
       <h1>Privacy Policy</h1>
-      <p class="legal-effective">Effective June 11, 2026 · Replaces all prior versions</p>
+      <p class="legal-effective">Effective November 6, 2026 · Replaces all prior versions</p>
 
       <p>
         This Privacy Policy describes how <strong>Parallelogram</strong> ("we", "us", "our") handles information
@@ -65,7 +69,7 @@
       </ul>
       <p>
         This policy does not apply to third-party services you may access through links on this website,
-        to the Hugging Face model hub (which you may optionally contact when using <code>--tokenizer</code>),
+        to the Hugging Face Hub or OpenAI's tokenizer files (which you may optionally contact when using <code>--tokenizer</code>),
         or to GitHub, PyPI, or Vercel, each of which operates under its own privacy policy.
       </p>
 
@@ -89,8 +93,9 @@
       <p>
         The <strong>one and only network call</strong> the CLI can ever make is the optional download of a
         tokenizer vocabulary when you pass <code>--tokenizer &lt;model-id&gt;</code>. This request is made
-        directly from your machine to the Hugging Face Hub API. We are not involved in that request; it
-        goes to Hugging Face under their own privacy policy. We do not intercept it, proxy it, or receive
+        directly from your machine: to the Hugging Face Hub for open-weight models, or to OpenAI's public
+        tokenizer files (via <code>tiktoken</code>) for OpenAI models. We are not involved in that request; it
+        goes to that provider under their own privacy policy. We do not intercept it, proxy it, or receive
         any copy of it. If you do not pass <code>--tokenizer</code>, no network call is ever made.
       </p>
       <p>
@@ -134,7 +139,7 @@
 
       <h3>3.3 Fonts</h3>
       <p>
-        This website serves its typefaces (Geist and Geist Mono) directly from
+        This website serves its typefaces (Manrope, Inter and Source Code Pro) directly from
         <code>parallelogram.dev</code> as self-hosted font files. Loading a page here makes
         <strong>no request to Google Fonts or any other third-party font service</strong> — your browser
         talks only to the same Vercel-hosted origin that serves the page itself. No font-related data is
@@ -151,24 +156,7 @@
       </p>
 
       <h3>3.5 Cookies and local storage</h3>
-      <p>
-        The website sets <strong>one functional cookie</strong>: a small first-party cookie named
-        <code>pg_cookie_consent</code> that stores your acceptance or declination of cookies as presented
-        in the cookie notice. This cookie contains no personal information — only the string
-        <code>"accepted"</code> or <code>"declined"</code> — and is used solely to avoid showing the
-        cookie banner on every subsequent visit. It is not read by any analytics or advertising system,
-        because we have none.
-      </p>
-      <p>
-        If you decline cookies, the banner will not appear again during that browser session, but the
-        preference is not persisted across sessions (since storing it would itself require a cookie).
-        If you accept, the cookie is set with a 365-day expiry on the <code>parallelogram.dev</code>
-        domain only, with the <code>SameSite=Lax</code> attribute.
-      </p>
-      <p>
-        Beyond this consent cookie, the website uses no cookies, no local storage, and no session storage
-        for any other purpose.
-      </p>
+      <p>The website uses no cookies, no local storage, and no session storage.</p>
 
       <h2>4. Email correspondence</h2>
       <p>
@@ -241,7 +229,6 @@
       <ul>
         <li><strong>Vercel server logs</strong> are retained according to Vercel's default retention policy, which we do not control.</li>
         <li><strong>Email correspondence</strong> is retained in our email inbox for as long as we deem it necessary to address the matter, after which it may be deleted.</li>
-        <li><strong>The cookie consent value</strong> is stored in your browser for up to 365 days and is never transmitted to us; you can delete it by clearing your browser cookies at any time.</li>
       </ul>
 
       <h2>9. Security</h2>
@@ -284,23 +271,42 @@
         We aim to respond to all privacy inquiries within 14 calendar days.
       </p>
 
-      <p class="legal-back"><a href="/">← Back to parallelogram.dev</a></p>
+      <p class="legal-back"><a href="index.html">← Back to parallelogram.dev</a></p>
     </div>
   </main>
 
-  <footer class="foot">
-    <div class="container foot-inner">
-      <div class="foot-brand">
-        <svg class="brand-mark" viewBox="0 0 28 24" aria-hidden="true">
-          <path d="M7 3 L25 3 L21 21 L3 21 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
-        </svg>
-        <span>parallelogram.dev</span>
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <a class="brand" href="index.html">
+          <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M8 5 L29 5 L24 27 L3 27 Z" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/></svg>
+          <span>parallelogram</span>
+        </a>
+        <p>The linter for fine-tuning data.</p>
+        <p class="mono dim">v1.0.0 · Apache-2.0 · runs offline</p>
       </div>
-      <div class="foot-line" style="grid-column: 1 / -1; margin-top: 0; border-top: 0; padding-top: 0;">
-        <span>© 2026 parallelogram.dev</span>
-        <span class="muted">v0.4.2 · preflight validation for fine-tuning datasets</span>
+      <div class="footer-col">
+        <h3>Product</h3>
+        <a href="index.html#checks">Checks</a>
+        <a href="index.html#how">How it works</a>
+        <a href="index.html#changelog">Changelog</a>
+        <a href="index.html#faq">FAQ</a>
+      </div>
+      <div class="footer-col">
+        <h3>Resources</h3>
+        <a href="https://github.com/Thatayotlhe04/Parallelogram#readme">Docs</a>
+        <a href="https://github.com/Thatayotlhe04/Parallelogram">GitHub</a>
+        <a href="https://pypi.org/project/parallelogram/">PyPI</a>
+        <a href="https://github.com/Thatayotlhe04/Parallelogram#github-action">GitHub Action</a>
+      </div>
+      <div class="footer-col">
+        <h3>Legal</h3>
+        <a href="privacy.html">Privacy</a>
+        <a href="terms.html">Terms</a>
+        <a href=".well-known/security.txt">Security</a>
       </div>
     </div>
+    <div class="footer-bar"><span>© 2026 parallelogram.dev</span><span class="mono dim">If it exits 0, your run won't fail because of data.</span></div>
   </footer>
 </body>
 </html>
