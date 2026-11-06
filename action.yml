@@ -27,10 +27,8 @@ runs:
   steps:
     - name: Set up Python
       uses: actions/setup-python@v6
-      env:
-        PYTHON_VERSION: ${{ inputs.python-version }}
       with:
-        python-version: ${{ env.PYTHON_VERSION }}
+        python-version: ${{ inputs.python-version }}
     - name: Install Parallelogram from this action
       shell: bash
       env:
