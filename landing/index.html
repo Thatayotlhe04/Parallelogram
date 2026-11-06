@@ -4,140 +4,239 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
-  <title>Parallelogram — The linter for fine-tuning data.</title>
+  <title>Parallelogram — The linter for fine-tuning data</title>
   <meta name="description" content="The linter for fine-tuning data. If it exits 0, your training run won't fail because of data.">
   <link rel="canonical" href="https://parallelogram.dev/">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://parallelogram.dev/">
-  <meta property="og:title" content="Parallelogram — The linter for fine-tuning data.">
-  <meta property="og:description" content="The linter for fine-tuning data. If it exits 0, your training run won't fail because of data.">
+  <meta property="og:title" content="Parallelogram — The linter for fine-tuning data">
+  <meta property="og:description" content="If it exits 0, your training run won't fail because of data.">
   <meta property="og:image" content="https://parallelogram.dev/og.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Parallelogram — The linter for fine-tuning data.">
-  <meta name="twitter:description" content="The linter for fine-tuning data. If it exits 0, your training run won't fail because of data.">
+  <meta name="twitter:title" content="Parallelogram — The linter for fine-tuning data">
+  <meta name="twitter:description" content="If it exits 0, your training run won't fail because of data.">
   <meta name="twitter:image" content="https://parallelogram.dev/og.png">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-  <link rel="preload" href="fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="fonts/GeistMono-Variable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/Manrope-Variable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="styles.css">
   <script src="main.js" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
-  <header class="site-header container">
-    <a class="wordmark" href="index.html" aria-label="Parallelogram home">parallelogram</a>
-    <nav aria-label="Primary">
-      <a href="#checks">Checks</a>
-      <a href="#how">How it works</a>
-      <a href="#faq">FAQ</a>
-      <a href="https://github.com/Thatayotlhe04/Parallelogram">GitHub</a>
-      <a class="button button-small" href="#install">Install</a>
-    </nav>
-  </header>
-  <main id="main" class="container">
-    <section class="hero" aria-labelledby="hero-title">
-      <p class="eyebrow">v1.0 · Apache-2.0 · runs offline</p>
-      <h1 id="hero-title">The linter for<br>fine-tuning data.</h1>
-      <p class="hero-description">Parallelogram checks your dataset before you spend GPU hours on it. If it exits 0, your training run won't fail because of data.</p>
-      <div class="actions">
-        <div class="install-chip" id="install" tabindex="-1">
-            <code><span class="prompt" aria-hidden="true">$ </span>pip install parallelogram</code>
-            <button class="copy-button" type="button" data-copy="pip install parallelogram" aria-label="Copy install command" hidden>Copy</button>
-          </div>
-        <a class="text-link" href="https://github.com/Thatayotlhe04/Parallelogram#readme">Read the docs <span aria-hidden="true">↗</span></a>
+
+  <header class="nav">
+    <div class="nav-inner">
+      <a class="brand" href="index.html" aria-label="Parallelogram home">
+        <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M8 5 L29 5 L24 27 L3 27 Z" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/></svg>
+        <span>parallelogram</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#checks">Checks</a>
+        <a href="#how">How it works</a>
+        <a href="#changelog">Changelog</a>
+        <a href="#faq">FAQ</a>
+        <a href="https://github.com/Thatayotlhe04/Parallelogram#readme">Docs</a>
+      </nav>
+      <div class="nav-actions">
+        <a class="nav-github" href="https://github.com/Thatayotlhe04/Parallelogram" aria-label="Parallelogram on GitHub">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+          <span>GitHub</span>
+        </a>
+        <a class="btn btn-primary btn-sm" href="#install">Install</a>
       </div>
-      <figure class="terminal" aria-labelledby="terminal-caption">
-        <figcaption id="terminal-caption"><span>train.jsonl → clean.jsonl</span><span>CLI output · abridged</span></figcaption>
-        <pre><code><span class="terminal-command">$ parallelogram check train.jsonl</span>
-<span class="terminal-error">✗ train.jsonl:2 [duplicates] Duplicate of line 1</span>
-<span class="terminal-error">✗ train.jsonl:3 [empty-content] Message 0 (role=system) has empty content</span>
-<span class="terminal-warning">! train.jsonl:4 [encoding] Message 0 contains BOM (U+FEFF)</span>
-4 records  2 clean  2 errors  1 warnings
-<span class="terminal-error">exit 2</span>
+    </div>
+  </header>
 
-<span class="terminal-command">$ parallelogram check train.jsonl --fix --output clean.jsonl</span>
-✓ duplicates · 1 fix
-✓ empty-content · 1 fix
-✓ encoding · 1 fix
-<span class="terminal-error">✗ dropped:</span>
-train.jsonl:2 → duplicates (dropped as fix)
-4 records  1 unchanged  2 fixed  1 dropped  0 unparseable
-→ Wrote 3 records to clean.jsonl
-<span class="terminal-warning">exit 1</span>
+  <main id="main" class="frame">
 
-<span class="terminal-command">$ parallelogram check clean.jsonl</span>
-3 records  3 clean  0 errors  0 warnings
-<span class="terminal-success">exit 0</span></code></pre>
-      </figure>
-      <p class="compatibility">Works with&nbsp; OpenAI chat JSONL · ShareGPT · prompt/completion · Axolotl · TRL · Unsloth · tiktoken · Hugging Face tokenizers · GitHub Actions</p>
+    <!-- Hero -->
+    <section class="hero grid-bg" aria-labelledby="hero-title">
+      <a class="badge" href="https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/CHANGELOG.md">
+        <span class="badge-mark">v1</span>
+        <span>1.0 is stable — prompt/completion, GitHub Action, JSON schema</span>
+        <span class="badge-arrow" aria-hidden="true">→</span>
+      </a>
+      <h1 id="hero-title"><span class="accent">The Linter For</span><br>Fine-Tuning Data</h1>
+      <p class="lede">Parallelogram validates your dataset before you spend GPU hours on it. If it exits 0, your training run won't fail because of data.</p>
+      <div class="cta" id="install" tabindex="-1">
+        <button class="btn btn-primary btn-lg copy" type="button" data-copy="pip install parallelogram" aria-label="Copy install command: pip install parallelogram">
+          <span class="mono"><span class="dim">$</span> pip install parallelogram</span>
+          <svg class="copy-icon" viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M5.5 5.5h7v7h-7zM3.5 10.5h-1v-8h8v1"/></svg>
+          <span class="copy-label" aria-hidden="true">Copy</span>
+        </button>
+        <a class="btn btn-outline btn-lg" href="https://github.com/Thatayotlhe04/Parallelogram#readme">Read Docs</a>
+      </div>
+      <a class="sublink" href="https://pypi.org/project/parallelogram/">Open source · Apache-2.0 · View on PyPI <span aria-hidden="true">→</span></a>
     </section>
 
-    <section id="checks" class="section" aria-labelledby="checks-title">
-      <h2 id="checks-title">Six checks for failures<br class="desktop-break"> your trainer won't catch.</h2>
-      <ul class="checks-grid">
-        <li class="check-card">
-          <h3>schema</h3>
-          <p>Malformed JSONL, missing fields, wrong types. Can&#x27;t be disabled.</p>
-          <span class="severity severity-error">ERROR</span>
+    <!-- Works with -->
+    <section class="works" aria-label="Works with">
+      <p class="works-label">Works with</p>
+      <ul class="works-list">
+        <li>OpenAI</li><li>Qwen</li><li>ShareGPT</li><li>Axolotl</li><li>TRL</li><li>Unsloth</li><li>Hugging Face</li><li>tiktoken</li><li>GitHub Actions</li>
+      </ul>
+    </section>
+
+    <!-- Terminal -->
+    <section class="section center" aria-labelledby="run-title">
+      <div class="pill-toggle" aria-hidden="true"><span class="on">CLI</span><span>CI</span></div>
+      <h2 id="run-title">Catch It Before The GPU Does</h2>
+      <p class="sub">One command between your dataset and your trainer. Real output, nothing staged.</p>
+      <figure class="terminal">
+        <figcaption><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span>train.jsonl</span><span class="mono dim">parallelogram 1.0.0</span></figcaption>
+<pre><code><span class="t-cmd">$ parallelogram check train.jsonl</span>
+<span class="t-err">✗ train.jsonl:2 [roles] Conversation must end on 'assistant', ended on 'user'</span>
+<span class="t-err">✗ train.jsonl:3 [empty-content] Message 1 (role=assistant) has empty content</span>
+<span class="t-err">✗ train.jsonl:4 [duplicates] Duplicate of line 1</span>
+<span class="t-warn">! train.jsonl:5 [encoding] Message 1 contains likely mojibake: 'â€™'</span>
+<span class="t-dim">5 records  2 clean  3 errors  1 warnings</span>          <span class="t-err">exit 2</span>
+
+<span class="t-cmd">$ parallelogram check train.jsonl --fix --output clean.jsonl</span>
+<span class="t-ok">✓</span> duplicates · 1 fix   <span class="t-ok">✓</span> empty-content · 1 fix   <span class="t-ok">✓</span> encoding · 1 fix
+<span class="t-err">✗ dropped:</span> train.jsonl:2 → roles (unfixable)
+           train.jsonl:3 → roles (unfixable)
+           train.jsonl:4 → duplicates (dropped as fix)
+<span class="t-dim">→ Wrote 2 records to clean.jsonl</span>                    <span class="t-warn">exit 1</span>
+
+<span class="t-cmd">$ parallelogram check clean.jsonl</span>
+<span class="t-dim">2 records  2 clean  0 errors  0 warnings</span>          <span class="t-ok">exit 0</span></code></pre>
+      </figure>
+    </section>
+
+    <!-- Checks -->
+    <section id="checks" class="split" aria-labelledby="checks-title">
+      <div class="split-head grid-bg">
+        <h2 id="checks-title">Six Checks Your Trainer Won't Run</h2>
+        <p class="sub">Each one either crashes the run or quietly trains the wrong thing.</p>
+        <a class="textlink" href="https://github.com/Thatayotlhe04/Parallelogram#rules">All rules <span aria-hidden="true">→</span></a>
+      </div>
+      <ul class="cells">
+        <li class="cell">
+          <h3>Schema</h3>
+          <p>Malformed JSONL, missing fields, wrong types. The one rule you can't disable.</p>
+          <div class="chips"><span class="chip">schema</span><i class="chip-link" aria-hidden="true"></i><span class="chip chip-err">error</span></div>
         </li>
-        <li class="check-card">
-          <h3>roles</h3>
+        <li class="cell">
+          <h3>Role Order</h3>
           <p>Doubled turns, misplaced system prompts, conversations that end on the user.</p>
-          <span class="severity severity-error">ERROR</span>
+          <div class="chips"><span class="chip">roles</span><i class="chip-link" aria-hidden="true"></i><span class="chip chip-err">error</span></div>
         </li>
-        <li class="check-card">
-          <h3>empty-content</h3>
-          <p>Blank turns that teach the model silence.</p>
-          <span class="severity severity-error">ERROR · FIXABLE</span>
+        <li class="cell">
+          <h3>Empty Content</h3>
+          <p>Blank or whitespace-only turns that teach the model silence.</p>
+          <div class="chips"><span class="chip">empty-content</span><i class="chip-link" aria-hidden="true"></i><span class="chip chip-err">error</span><span class="chip chip-ok">fixable</span></div>
         </li>
-        <li class="check-card">
-          <h3>duplicates</h3>
-          <p>Repeated records that push the model toward memorizing.</p>
-          <span class="severity severity-error">ERROR · FIXABLE</span>
+        <li class="cell">
+          <h3>Duplicates</h3>
+          <p>Repeated records that push the model toward memorizing instead of generalizing.</p>
+          <div class="chips"><span class="chip">duplicates</span><i class="chip-link" aria-hidden="true"></i><span class="chip chip-err">error</span><span class="chip chip-ok">fixable</span></div>
         </li>
-        <li class="check-card">
-          <h3>context-window</h3>
+        <li class="cell">
+          <h3>Context Window</h3>
           <p>Records over your token budget, which TRL truncates without telling you.</p>
-          <span class="severity severity-error">ERROR · FIXABLE</span>
+          <div class="chips"><span class="chip">context-window</span><i class="chip-link" aria-hidden="true"></i><span class="chip chip-err">error</span><span class="chip chip-ok">fixable</span></div>
         </li>
-        <li class="check-card">
-          <h3>encoding</h3>
-          <p>BOM markers and mojibake that end up in the weights.</p>
-          <span class="severity severity-warning">WARNING · FIXABLE</span>
+        <li class="cell">
+          <h3>Encoding</h3>
+          <p>BOM markers and mojibake that end up baked into the weights.</p>
+          <div class="chips"><span class="chip">encoding</span><i class="chip-link" aria-hidden="true"></i><span class="chip chip-warn">warning</span><span class="chip chip-ok">fixable</span></div>
         </li>
       </ul>
     </section>
 
-    <section id="how" class="section" aria-labelledby="how-title">
-      <h2 id="how-title">Check. Fix. Gate.</h2>
-      <ol class="workflow">
-        <li>
-          <h3 class="eyebrow">01 check</h3>
-          <code>parallelogram check data.jsonl</code>
-          <p>Every issue, with its line number and rule. Exits 0, 1 or 2.</p>
-        </li>
-        <li>
-          <h3 class="eyebrow">02 fix</h3>
-          <code>parallelogram check data.jsonl --fix --output clean.jsonl</code>
-          <p>Mechanical repairs, then a re-check. Anything still broken is dropped, with the reason.</p>
-        </li>
-        <li>
-          <h3 class="eyebrow">03 gate</h3>
-          <code>parallelogram report data.jsonl --baseline main.json</code>
-          <p>Fails the pull request when dataset quality regresses (exit 3).</p>
-        </li>
+    <!-- How it works -->
+    <section id="how" class="section grid-bg" aria-labelledby="how-title">
+      <div class="section-head">
+        <h2 id="how-title">Check. Fix. Gate.</h2>
+        <p class="sub">Every issue gets a line and a rule. Mechanical problems are repaired, the rest are dropped with a reason, and the re-check decides.</p>
+      </div>
+      <div class="diagram" role="img" aria-label="train.jsonl is checked; fixable records are repaired and pass a re-check with exit 0; unfixable records are dropped with a reason; a CI gate fails pull requests that regress.">
+        <svg viewBox="0 0 1104 360" aria-hidden="true">
+          <!-- main timeline -->
+          <line x1="40" y1="180" x2="1064" y2="180" class="d-line"/>
+          <g class="d-ticks">
+            <circle cx="360" cy="180" r="2"/><circle cx="420" cy="180" r="2"/><circle cx="480" cy="180" r="2"/><circle cx="540" cy="180" r="2"/><circle cx="600" cy="180" r="2"/><circle cx="660" cy="180" r="2"/><circle cx="720" cy="180" r="2"/><circle cx="780" cy="180" r="2"/><circle cx="840" cy="180" r="2"/><circle cx="900" cy="180" r="2"/>
+          </g>
+          <!-- input card -->
+          <rect x="40" y="160" width="196" height="40" rx="4" class="d-card"/>
+          <rect x="50" y="170" width="52" height="20" rx="3" class="d-tag-live"/>
+          <text x="76" y="184" class="d-tag-text-dark" text-anchor="middle">INPUT</text>
+          <text x="112" y="185" class="d-card-text">train.jsonl</text>
+          <!-- check node -->
+          <text x="288" y="164" class="d-time" text-anchor="end">check</text>
+          <circle cx="300" cy="180" r="9" class="d-node-ring"/><circle cx="300" cy="180" r="4" class="d-node"/>
+          <text x="288" y="206" class="d-time" text-anchor="end">exit 2</text>
+          <!-- fix branch (up) -->
+          <path d="M300 171 V92 Q300 80 312 80 H372" class="d-dash"/>
+          <rect x="372" y="60" width="200" height="40" rx="4" class="d-card"/>
+          <rect x="382" y="70" width="40" height="20" rx="3" class="d-tag-dark"/>
+          <text x="402" y="84" class="d-tag-text" text-anchor="middle">FIX</text>
+          <text x="432" y="85" class="d-card-text">clean.jsonl</text>
+          <line x1="572" y1="80" x2="812" y2="80" class="d-ok-line"/>
+          <text x="660" y="52" class="d-label" text-anchor="middle">Re-check passed</text>
+          <circle cx="660" cy="80" r="16" class="d-ok-ring"/>
+          <path d="M653 80 l5 5 l9 -10" class="d-ok-glyph"/>
+          <text x="828" y="52" class="d-label" text-anchor="middle">Ready to train</text>
+          <circle cx="828" cy="80" r="16" class="d-ok-ring"/>
+          <path d="M828 88 V72 M821 79 l7 -7 l7 7" class="d-ok-glyph"/>
+          <text x="868" y="85" class="d-time">exit 0</text>
+          <!-- drop branch (down) -->
+          <path d="M300 189 V268 Q300 280 312 280 H372" class="d-dash"/>
+          <rect x="372" y="260" width="200" height="40" rx="4" class="d-card"/>
+          <rect x="382" y="270" width="52" height="20" rx="3" class="d-tag-dark"/>
+          <text x="408" y="284" class="d-tag-text" text-anchor="middle">DROP</text>
+          <text x="444" y="285" class="d-card-text">3 records</text>
+          <line x1="572" y1="280" x2="812" y2="280" class="d-err-line"/>
+          <circle cx="660" cy="280" r="16" class="d-err-ring"/>
+          <path d="M660 272 V283 M660 288 v0.5" class="d-err-glyph"/>
+          <text x="660" y="318" class="d-label" text-anchor="middle">roles: unfixable</text>
+          <circle cx="828" cy="280" r="16" class="d-err-ring"/>
+          <path d="M822 274 l12 12 M834 274 l-12 12" class="d-err-glyph"/>
+          <text x="828" y="318" class="d-label" text-anchor="middle">Kept out, with reasons</text>
+          <!-- gate node -->
+          <text x="980" y="150" class="d-time" text-anchor="middle">gate</text>
+          <circle cx="980" cy="180" r="9" class="d-node-ring"/><circle cx="980" cy="180" r="4" class="d-node"/>
+          <rect x="912" y="200" width="136" height="32" rx="16" class="d-chip"/>
+          <text x="980" y="221" class="d-chip-text" text-anchor="middle">CI · exit 3 on regress</text>
+        </svg>
+      </div>
+      <ol class="steps">
+        <li><span class="step-n">01 · check</span><code>parallelogram check data.jsonl</code><p>Every issue with its line number and rule. Exits 0, 1 or 2.</p></li>
+        <li><span class="step-n">02 · fix</span><code>parallelogram check data.jsonl --fix --output clean.jsonl</code><p>Mechanical repairs, then a re-check. Anything still broken is dropped, with the reason.</p></li>
+        <li><span class="step-n">03 · gate</span><code>uses: Thatayotlhe04/Parallelogram@v1</code><p>The GitHub Action fails the pull request when dataset quality regresses.</p></li>
       </ol>
     </section>
 
-    <section id="faq" class="section faq" aria-labelledby="faq-title">
-      <h2 id="faq-title">FAQ</h2>
+    <!-- Changelog -->
+    <section id="changelog" class="split" aria-labelledby="changelog-title">
+      <div class="split-head">
+        <h2 id="changelog-title">Changelog</h2>
+        <p class="sub">Shipped in the open, versioned on PyPI.</p>
+        <a class="textlink" href="https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/CHANGELOG.md">Full changelog <span aria-hidden="true">→</span></a>
+      </div>
+      <ol class="log">
+        <li><time datetime="2026-11-06">Nov 6, 2026</time><span class="chip chip-ok">1.0.0</span><p>Stable contract: prompt/completion format, GitHub Action, versioned JSON, <code>--version</code></p></li>
+        <li><time datetime="2026-06-13">Jun 13, 2026</time><span class="chip">0.4.2</span><p>OpenAI chat and ShareGPT records auto-detected per line</p></li>
+        <li><time datetime="2026-06-12">Jun 12, 2026</time><span class="chip">0.4.1</span><p><code>report</code> and the CI regression gate</p></li>
+        <li><time datetime="2026-06-11">Jun 11, 2026</time><span class="chip">0.3.0</span><p>Exact tokenizers for the context-window check</p></li>
+      </ol>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq" class="split faq" aria-labelledby="faq-title">
+      <div class="split-head">
+        <h2 id="faq-title">Frequently Asked Questions</h2>
+        <p class="sub">Questions? We've got answers.</p>
+        <a class="textlink" href="https://github.com/Thatayotlhe04/Parallelogram#readme">or read the docs <span aria-hidden="true">→</span></a>
+      </div>
       <div class="faq-list">
         <details open>
-          <summary>What does “exits 0” guarantee?</summary>
+          <summary>What does "exits 0" actually guarantee?</summary>
           <p>With all rules on: every record parses, has a valid role order ending on the assistant, has no empty turns or exact duplicates, and fits your token budget (counted exactly with <code>--tokenizer</code>, estimated otherwise). It checks that your data will train, not that it's good data.</p>
         </details>
         <details>
@@ -145,12 +244,16 @@ train.jsonl:2 → duplicates (dropped as fix)
           <p>No. Nothing is uploaded and there is no telemetry. The only network request is opt-in: <code>--tokenizer</code> may download a tokenizer vocabulary once, then caches it.</p>
         </details>
         <details>
-          <summary>Which formats?</summary>
-          <p>OpenAI/Qwen chat JSONL, ShareGPT and prompt/completion, detected per line.</p>
+          <summary>Which formats are supported?</summary>
+          <p>OpenAI/Qwen chat JSONL, ShareGPT and prompt/completion, detected per line. <code>--fix</code> writes each record back in the shape it came in.</p>
         </details>
         <details>
           <summary>Are token counts exact?</summary>
           <p>With <code>pip install 'parallelogram[tokenizer]'</code> and <code>--tokenizer</code>, yes (tiktoken or Hugging Face). Without, counts are estimated and overflows are warnings, never errors.</p>
+        </details>
+        <details>
+          <summary>How do I use it in CI?</summary>
+          <p>Add <code>uses: Thatayotlhe04/Parallelogram@v1</code> to a workflow. It writes a report to the job summary and fails on errors, or on regressions against a <code>--baseline</code>.</p>
         </details>
         <details>
           <summary>Is it free?</summary>
@@ -159,26 +262,52 @@ train.jsonl:2 → duplicates (dropped as fix)
       </div>
     </section>
 
-    <section class="section closing" aria-labelledby="closing-title">
-      <h2 id="closing-title">Run it before you train.</h2>
-      <div class="actions">
-        <div class="install-chip" id="install-footer" tabindex="-1">
-            <code><span class="prompt" aria-hidden="true">$ </span>pip install parallelogram</code>
-            <button class="copy-button" type="button" data-copy="pip install parallelogram" aria-label="Copy install command" hidden>Copy</button>
-          </div>
-        <a class="button" href="https://github.com/Thatayotlhe04/Parallelogram">GitHub <span aria-hidden="true">↗</span></a>
+    <!-- Closing -->
+    <section class="closing grid-bg" aria-labelledby="closing-title">
+      <h2 id="closing-title">Run It Before <span class="accent">You Train</span></h2>
+      <div class="cta">
+        <button class="btn btn-primary btn-lg copy" type="button" data-copy="pip install parallelogram" aria-label="Copy install command: pip install parallelogram">
+          <span class="mono"><span class="dim">$</span> pip install parallelogram</span>
+          <svg class="copy-icon" viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M5.5 5.5h7v7h-7zM3.5 10.5h-1v-8h8v1"/></svg>
+          <span class="copy-label" aria-hidden="true">Copy</span>
+        </button>
+        <a class="btn btn-outline btn-lg" href="https://github.com/Thatayotlhe04/Parallelogram">Star on GitHub</a>
       </div>
     </section>
   </main>
-  <footer class="site-footer container">
-    <a class="wordmark" href="index.html">parallelogram</a>
-    <span>v1.0.0</span>
-    <a href="https://github.com/Thatayotlhe04/Parallelogram">GitHub</a>
-    <a href="https://pypi.org/project/parallelogram/">PyPI</a>
-    <a href="privacy.html">Privacy</a>
-    <a href="terms.html">Terms</a>
-    <a href=".well-known/security.txt">Security</a>
-    <span class="copyright">© 2026</span>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <a class="brand" href="index.html">
+          <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M8 5 L29 5 L24 27 L3 27 Z" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/></svg>
+          <span>parallelogram</span>
+        </a>
+        <p>The linter for fine-tuning data.</p>
+        <p class="mono dim">v1.0.0 · Apache-2.0 · runs offline</p>
+      </div>
+      <div class="footer-col">
+        <h3>Product</h3>
+        <a href="index.html#checks">Checks</a>
+        <a href="index.html#how">How it works</a>
+        <a href="index.html#changelog">Changelog</a>
+        <a href="index.html#faq">FAQ</a>
+      </div>
+      <div class="footer-col">
+        <h3>Resources</h3>
+        <a href="https://github.com/Thatayotlhe04/Parallelogram#readme">Docs</a>
+        <a href="https://github.com/Thatayotlhe04/Parallelogram">GitHub</a>
+        <a href="https://pypi.org/project/parallelogram/">PyPI</a>
+        <a href="https://github.com/Thatayotlhe04/Parallelogram#github-action">GitHub Action</a>
+      </div>
+      <div class="footer-col">
+        <h3>Legal</h3>
+        <a href="privacy.html">Privacy</a>
+        <a href="terms.html">Terms</a>
+        <a href=".well-known/security.txt">Security</a>
+      </div>
+    </div>
+    <div class="footer-bar"><span>© 2026 parallelogram.dev</span><span class="mono dim">If it exits 0, your run won't fail because of data.</span></div>
   </footer>
   <p class="sr-only" id="copy-status" role="status" aria-live="polite" aria-atomic="true"></p>
 </body>

@@ -5,7 +5,7 @@ A buildless, static landing page for the [Parallelogram CLI](https://github.com/
 ## Files and development
 
 - `index.html`: hero, six checks, check/fix/gate workflow, native FAQ, closing install action.
-- `styles.css`: shared monochrome layout and legal-page styles; local Geist fonts.
+- `styles.css`: shared layout and legal-page styles; local Manrope, Inter and Source Code Pro fonts (SIL OFL).
 - `main.js`: install copy buttons only, with an accessible status announcement. With JavaScript or clipboard access unavailable, commands remain selectable.
 - `privacy.html` and `terms.html`: legal pages with shared navigation and styling.
 - `og.png`: existing social image. Favicons, crawler files, and `.well-known/security.txt` remain in place.
