@@ -137,14 +137,24 @@ check("flagged as fixable", issues and issues[0].fixable)
 
 # Context window ---------------------------------------------------------------
 section("context-window")
+# Since v0.3 the rule never disables itself: without a tokenizer it estimates,
+# and the "counts are approximate" note is INFO so it never affects the exit code.
 r = ContextWindowRule({"tokenizer": None, "max_seq_len": 100})
-check("disables silently when no tokenizer supplied",
-      list(r.check_record(record([{"role": "user", "content": "x"}]), 1)) == [])
+issues = list(r.check_record(record([{"role": "user", "content": "x"}]), 1))
+check("no tokenizer: short record gets only the informational note",
+      all(i.severity == Severity.INFO for i in issues))
+
+r = ContextWindowRule({"tokenizer": None, "max_seq_len": 5})
+issues = list(r.check_record(record([{"role": "user", "content": "x " * 200},
+                                     {"role": "assistant", "content": "y"}]), 1))
+check("no tokenizer: over-budget record is a warning (estimated), not an error",
+      any(i.severity == Severity.WARNING for i in issues)
+      and not any(i.severity == Severity.ERROR for i in issues))
 
 r = ContextWindowRule({"tokenizer": "nonexistent-org/missing-model", "max_seq_len": 100})
 issues = list(r.check_record(record([{"role": "user", "content": "x"}]), 1))
-check("emits warning if tokenizer fails to load (or skips silently if lib absent)",
-      all(i.severity == Severity.WARNING for i in issues) if issues else True)
+check("unloadable tokenizer falls back to the estimate, never an error",
+      not any(i.severity == Severity.ERROR for i in issues))
 
 # End-to-end runner ------------------------------------------------------------
 section("runner")
