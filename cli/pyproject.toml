@@ -9,7 +9,7 @@ authors = [{ name = "Thatayotlhe Tsenang", email = "tsenangthatayotlhe04@gmail.c
 maintainers = [{ name = "Thatayotlhe Tsenang", email = "tsenangthatayotlhe04@gmail.com" }]
 keywords = ["llm", "fine-tuning", "dataset", "validation", "linter"]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Apache Software License",
