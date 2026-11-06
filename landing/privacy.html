@@ -57,7 +57,7 @@
       </ul>
       <p>
         This policy does not apply to third-party services you may access through links on this website,
-        to the Hugging Face model hub (which you may optionally contact when using <code>--tokenizer</code>),
+        to the Hugging Face Hub or OpenAI's tokenizer files (which you may optionally contact when using <code>--tokenizer</code>),
         or to GitHub, PyPI, or Vercel, each of which operates under its own privacy policy.
       </p>
 
@@ -81,8 +81,9 @@
       <p>
         The <strong>one and only network call</strong> the CLI can ever make is the optional download of a
         tokenizer vocabulary when you pass <code>--tokenizer &lt;model-id&gt;</code>. This request is made
-        directly from your machine to the Hugging Face Hub API. We are not involved in that request; it
-        goes to Hugging Face under their own privacy policy. We do not intercept it, proxy it, or receive
+        directly from your machine: to the Hugging Face Hub for open-weight models, or to OpenAI's public
+        tokenizer files (via <code>tiktoken</code>) for OpenAI models. We are not involved in that request; it
+        goes to that provider under their own privacy policy. We do not intercept it, proxy it, or receive
         any copy of it. If you do not pass <code>--tokenizer</code>, no network call is ever made.
       </p>
       <p>

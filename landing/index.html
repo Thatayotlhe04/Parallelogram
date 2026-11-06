@@ -138,11 +138,11 @@ train.jsonl:2 → duplicates (dropped as fix)
       <div class="faq-list">
         <details open>
           <summary>What does “exits 0” guarantee?</summary>
-          <p>With all rules on: every record parses, has a valid role order ending on the assistant, has no empty turns or exact duplicates, and fits your token budget. It checks that your data will train, not that it's good data.</p>
+          <p>With all rules on: every record parses, has a valid role order ending on the assistant, has no empty turns or exact duplicates, and fits your token budget (counted exactly with <code>--tokenizer</code>, estimated otherwise). It checks that your data will train, not that it's good data.</p>
         </details>
         <details>
           <summary>Does my data leave my machine?</summary>
-          <p>No. No network calls, no telemetry; optional tokenizers load locally.</p>
+          <p>No. Nothing is uploaded and there is no telemetry. The only network request is opt-in: <code>--tokenizer</code> may download a tokenizer vocabulary once, then caches it.</p>
         </details>
         <details>
           <summary>Which formats?</summary>
