@@ -30,11 +30,13 @@ class ParseResult:
 
 def get_parser(dataset_format: str) -> Callable[[str], Iterator[ParseResult]]:
     """Return the ``iter_jsonl`` for a format id, or raise KeyError."""
-    from . import auto, openai_chat, prompt_completion, sharegpt
+    from . import alpaca, auto, openai_chat, preference, prompt_completion, sharegpt
 
     parsers: dict[str, Callable[[str], Iterator[ParseResult]]] = {
+        "alpaca": alpaca.iter_jsonl,
         "auto": auto.iter_jsonl,
         "openai-chat": openai_chat.iter_jsonl,
+        "preference": preference.iter_jsonl,
         "prompt-completion": prompt_completion.iter_jsonl,
         "sharegpt": sharegpt.iter_jsonl,
     }
@@ -43,4 +45,4 @@ def get_parser(dataset_format: str) -> Callable[[str], Iterator[ParseResult]]:
 
 def supported_formats() -> list[str]:
     """The format ids accepted by ``--format``, sorted for stable messaging."""
-    return ["auto", "openai-chat", "prompt-completion", "sharegpt"]
+    return ["auto", "alpaca", "openai-chat", "preference", "prompt-completion", "sharegpt"]

@@ -14,6 +14,9 @@ fi
 if [[ -n "$BASELINE" ]]; then
   args+=(--baseline "$BASELINE")
 fi
+if [[ -n "${EVAL_PATH:-}" ]]; then
+  args+=(--eval "$EVAL_PATH")
+fi
 # A filename beginning with '-' must remain a positional argument.
 args+=(-- "$DATASET_PATH")
 

@@ -45,6 +45,29 @@
     });
   });
 
+  // ── Works-with strip ──────────────────────────────────────────────
+  // Logos are official files dropped into landing/logos/. A logo that
+  // fails to load is hidden; the strip appears once three or more load,
+  // so the page never shows a half-empty row.
+  const works = document.getElementById('works');
+  if (works) {
+    const imgs = Array.from(works.querySelectorAll('img'));
+    let settled = 0, loaded = 0;
+    const done = (img, ok) => {
+      settled++;
+      if (ok) loaded++; else img.closest('li').classList.add('missing');
+      if (settled === imgs.length && loaded >= 3) works.hidden = false;
+    };
+    imgs.forEach(img => {
+      img.loading = 'eager';  // hidden images never load lazily
+      if (img.complete) done(img, img.naturalWidth > 0);
+      else {
+        img.addEventListener('load', () => done(img, true), { once: true });
+        img.addEventListener('error', () => done(img, false), { once: true });
+      }
+    });
+  }
+
   // ── The eater ─────────────────────────────────────────────────────
   // A pixel parallelogram walks the track above the install row and
   // chomps corrupted-data tokens into clean dots, then wraps around.

@@ -3,6 +3,43 @@
 All notable changes to the `parallelogram` CLI. Versions correspond to
 [PyPI releases](https://pypi.org/project/parallelogram/) and `cli-v*` git tags.
 
+## 1.1.0 — 2026-11-06
+
+The biggest release since the first one: two new dataset formats, three new
+checks that run by default, and train/eval leakage detection.
+
+### Added
+- **Alpaca format**: `instruction`, optional `input`, `output`, plus
+  LLaMA-Factory's `system` and `history`. Auto-detected; `--fix --output`
+  writes records back as Alpaca, restoring the instruction/input split and
+  keeping extra fields such as `id`.
+- **Preference (DPO) format**: `prompt` / `chosen` / `rejected` as strings or
+  message lists, or TRL's implicit-prompt shape. Every rule now checks both
+  sides of a pair: role order, empty turns and encoding on the rejected
+  answer, context-window on the longer side, and duplicates that tell pairs
+  apart by their rejected answer.
+- **`secrets` rule** (error, fixable): API keys and tokens for OpenAI,
+  Anthropic, AWS, GitHub, Hugging Face, Slack, Google and Stripe, and private
+  key blocks. `--fix` redacts them. Matches are never printed in full, so CI
+  logs don't leak them; documentation placeholders are ignored.
+- **`pii` rule** (warning, fixable): email addresses, phone numbers and
+  Luhn-valid card numbers. Reserved example domains and 555 numbers are
+  ignored. `--fix` replaces them with typed placeholders.
+- **`preference` rule** (error): pairs whose chosen and rejected answers are
+  identical, which carry no training signal.
+- **Train/eval overlap**: `check --eval eval.jsonl` and `report --eval`, plus
+  an `eval` input on the GitHub Action. The `eval-overlap` rule flags train
+  records whose content or prompt appears in the eval set; `--fix` drops them.
+
+### Changed
+- `--fix` credits records dropped by cross-record rules to the rule that
+  dropped them; previously every such drop was reported as `duplicates`.
+
+### Upgrade note
+- New rules arrive in minor versions, as the stability contract allows. A
+  dataset that passed 1.0 can now fail with a leaked credential (exit 2) or
+  report PII as a warning (exit 1). Run `--fix` to redact both.
+
 ## 1.0.0 — 2026-11-06
 
 ### Added

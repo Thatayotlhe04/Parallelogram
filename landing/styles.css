@@ -96,6 +96,15 @@ h3 { font: 500 16px/1.4 var(--sans); }
 .lede { margin-top: 20px; max-width: 560px; color: var(--muted); font-size: 16px; line-height: 1.6; }
 .cta { margin-top: 40px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
 
+/* ── Works with (logo strip) ─────────────────────── */
+.works { display: flex; align-items: center; gap: 40px; padding: 26px 32px; }
+.works[hidden] { display: none; }
+.works-label { flex: none; font-size: 14px; color: var(--dim); }
+.works-list { display: flex; flex-wrap: wrap; align-items: center; gap: 20px 44px; }
+.works-list li.missing { display: none; }
+.works-list img { display: block; height: 22px; width: auto; filter: grayscale(1) brightness(1.8); opacity: .5; transition: opacity .15s, filter .15s; }
+.works-list li:hover img { opacity: 1; filter: none; }
+
 /* ── Eater ─────────────────────────────────────────── */
 .launch { margin-top: 36px; display: flex; flex-direction: column; width: fit-content; max-width: 100%; }
 .launch .cta { margin-top: 0; }
@@ -142,6 +151,7 @@ h3 { font: 500 16px/1.4 var(--sans); }
 .cell:nth-child(odd) { border-right: 1px solid var(--line); }
 .cell:nth-last-child(-n+2) { border-bottom: 0; }
 .cell:hover { background: rgba(255, 255, 255, .02); }
+.cell h3 .new { margin-left: 8px; padding: 1px 6px; border: 1px solid var(--accent-line); border-radius: 2px; font: 400 11px/18px var(--mono); color: var(--accent); vertical-align: 2px; }
 .cell p { margin-top: 10px; color: var(--muted); font-size: 14px; line-height: 1.55; }
 .chips { margin-top: auto; padding-top: 20px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .chip { display: inline-block; padding: 1px 8px; border: 1px solid #525252; border-radius: 2px; font: 400 12px/20px var(--mono); color: #d4d4d4; }
@@ -252,6 +262,8 @@ h3 { font: 500 16px/1.4 var(--sans); }
   .hero { padding: 64px 20px 56px; }
   .cta { flex-direction: column; align-items: stretch; width: 100%; }
   .launch { width: 100%; }
+  .works { flex-direction: column; align-items: flex-start; gap: 16px; padding: 22px 24px; }
+  .works-list { gap: 16px 28px; }
   .eater-token:nth-of-type(3), .eater-token:nth-of-type(5), .eater-token:nth-of-type(7) { display: none; }
   .btn-lg { padding: 10px 18px; font-size: 16px; }
   .section { padding: 64px 20px; }

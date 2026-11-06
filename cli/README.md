@@ -65,6 +65,28 @@ parallelogram check data.jsonl
 Use `--format openai-chat`, `--format sharegpt`, or `--format prompt-completion` to force
 one parser instead of auto-detection.
 
+### Check Alpaca and preference (DPO) data
+
+Alpaca records (`instruction`, optional `input`, `output`, plus LLaMA-Factory's
+`system` and `history`) and preference pairs (`prompt`, `chosen`, `rejected`,
+or TRL's implicit-prompt shape where `chosen` and `rejected` are full
+conversations) are auto-detected too. Every rule checks both sides of a
+preference pair:
+
+```bash
+parallelogram check dpo.jsonl
+parallelogram check alpaca.jsonl --fix --output clean.jsonl   # written back as Alpaca
+```
+
+### Catch train/eval leakage
+
+```bash
+parallelogram check train.jsonl --eval eval.jsonl
+```
+
+Flags train records whose whole content, or whose prompt, also appears in the
+eval set. `--fix` drops them from the train output; the eval file is never touched.
+
 ### Check prompt/completion data
 
 `prompt-completion` is auto-detected alongside OpenAI/Qwen chat and ShareGPT,
@@ -203,6 +225,7 @@ jobs:
           fail-on: error
           # tokenizer: Qwen/Qwen2.5-7B
           # baseline: baseline/report.json
+          # eval: data/eval.jsonl
           # python-version: '3.12'
 ```
 
@@ -244,7 +267,8 @@ left enabled passed — which may or may not be enough.
 | Flag | Description |
 |------|-------------|
 | `--version` | Show the CLI version and exit (use before a command). |
-| `--format`, `-f` | Dataset format: `auto` (default), `openai-chat`, `sharegpt`, or `prompt-completion`. |
+| `--format`, `-f` | Dataset format: `auto` (default), `openai-chat`, `sharegpt`, `prompt-completion`, `alpaca`, or `preference`. |
+| `--eval` | Eval set to check for train/eval overlap (`check` and `report`). |
 | `--tokenizer`, `-t` | Model or tokenizer for the context-window check — an OpenAI model (`gpt-4o`), or an HF repo/alias (`Qwen/Qwen2.5-7B`, `mistral`). Optional: omit for an approximate count. |
 | `--max-seq-len` | Token budget per record (default 4096). |
 | `--output`, `-o` | Write error-free records to this file. With `--fix`, writes the repaired dataset. |
@@ -278,6 +302,10 @@ default install.
 | `context-window` | error / warning | records exceeding `max_seq_len` (TRL truncates these silently) — error with an exact tokenizer, warning when the count is approximate |
 | `duplicates` | error | exact-content duplicate records (memorization → poor generalization) |
 | `encoding` | warning | BOM markers, mojibake patterns |
+| `secrets` | error | API keys, tokens and private keys (OpenAI, Anthropic, AWS, GitHub, Hugging Face, Slack, Google, Stripe). `--fix` redacts them; matches are never printed in full |
+| `pii` | warning | email addresses, phone numbers, Luhn-valid card numbers. Example domains and 555 numbers are ignored; `--fix` replaces them with placeholders |
+| `preference` | error | preference (DPO) pairs whose chosen and rejected answers are identical |
+| `eval-overlap` | error | with `--eval`: train records whose content or prompt also appears in the eval set. `--fix` drops them |
 
 ## Status
 

@@ -26,7 +26,7 @@ separate field, though diagnostic messages can quote malformed values.
 | `summary.warnings` | Number of warning issues. |
 | `summary.clean` | Boolean, true only when there are no issues at any severity, including info. Consequently an informational tokenizer note can make this false while the command exits 0. |
 | `issues` | Array of issue objects, including informational notes. |
-| `issues[].rule` | String rule id. Current ids: `schema`, `roles`, `empty-content`, `context-window`, `duplicates`, `encoding`. |
+| `issues[].rule` | String rule id. Current ids: `schema`, `roles`, `empty-content`, `context-window`, `duplicates`, `encoding`, `secrets`, `pii`, `preference`, `eval-overlap`. |
 | `issues[].severity` | String: `error`, `warning`, or `info`. |
 | `issues[].line` | Integer line number, or null for dataset-wide notes. |
 | `issues[].message` | String diagnostic; wording is not stable. |

@@ -1,0 +1,2 @@
+{"prompt": "Is 17 prime?", "chosen": "Yes. 17 has no divisors other than 1 and itself.", "rejected": "No, 17 is divisible by 3."}
+{"chosen": [{"role": "user", "content": "Summarize: the meeting moved to Friday."}, {"role": "assistant", "content": "The meeting is now on Friday."}], "rejected": [{"role": "user", "content": "Summarize: the meeting moved to Friday."}, {"role": "assistant", "content": "There is a meeting."}]}

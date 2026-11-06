@@ -16,6 +16,7 @@ from typing import Any, Iterable
 
 from ..core.rules import Rule, registry
 from ..core.report import Issue, Severity
+from ..core.conversation import conversations, where
 
 
 @registry.register
@@ -26,12 +27,13 @@ class RolesRule(Rule):
     fixable = False  # restructuring needs judgment — Phase 2 paid layer
 
     def check_record(self, record: Any, line_no: int) -> Iterable[Issue]:
-        if not isinstance(record, dict):
-            return
-        messages = record.get("messages")
-        if not isinstance(messages, list) or not messages:
-            return
+        # A preference pair is two conversations sharing a prompt; both must
+        # be trainable, so the rejected side is checked the same way.
+        for label, messages in conversations(record):
+            if messages:
+                yield from self._check(messages, line_no, where(label))
 
+    def _check(self, messages: list, line_no: int, prefix: str) -> Iterable[Issue]:
         roles = []
         for m in messages:
             if isinstance(m, dict) and isinstance(m.get("role"), str):
@@ -47,7 +49,7 @@ class RolesRule(Rule):
                     rule_id=self.id,
                     severity=Severity.ERROR,
                     line_no=line_no,
-                    message=f"'system' message at position {i}, must be first",
+                    message=f"{prefix}'system' message at position {i}, must be first",
                 )
 
         start = 1 if roles[0] == "system" else 0
@@ -58,7 +60,7 @@ class RolesRule(Rule):
                 rule_id=self.id,
                 severity=Severity.ERROR,
                 line_no=line_no,
-                message="No user/assistant turns after system message",
+                message=f"{prefix}No user/assistant turns after system message",
             )
             return
 
@@ -67,7 +69,7 @@ class RolesRule(Rule):
                 rule_id=self.id,
                 severity=Severity.ERROR,
                 line_no=line_no,
-                message=f"First non-system role must be 'user', got {body[0]!r}",
+                message=f"{prefix}First non-system role must be 'user', got {body[0]!r}",
             )
             return
 
@@ -80,7 +82,7 @@ class RolesRule(Rule):
                     rule_id=self.id,
                     severity=Severity.ERROR,
                     line_no=line_no,
-                    message=f"Role alternation broken at turn {i}: expected {expected!r}, got {role!r}",
+                    message=f"{prefix}Role alternation broken at turn {i}: expected {expected!r}, got {role!r}",
                 )
                 return
             expected = "assistant" if expected == "user" else "user"
@@ -90,6 +92,6 @@ class RolesRule(Rule):
                 rule_id=self.id,
                 severity=Severity.ERROR,
                 line_no=line_no,
-                message=f"Conversation must end on 'assistant', ended on {body[-1]!r}",
+                message=f"{prefix}Conversation must end on 'assistant', ended on {body[-1]!r}",
                 detail="Training expects the last turn to be the assistant response",
             )

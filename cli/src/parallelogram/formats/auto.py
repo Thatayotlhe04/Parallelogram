@@ -8,6 +8,8 @@ fine-tuning stacks directly:
 - ShareGPT-style JSONL:
   ``{"conversations": [{"from": ..., "value": ...}]}``
 - Prompt/completion JSONL: string halves or conversational message lists.
+- Preference (DPO) JSONL: ``prompt``/``chosen``/``rejected``, explicit or implicit prompt.
+- Alpaca JSONL: ``instruction``/``input``/``output`` (optionally ``system``, ``history``).
 
 Records are still normalized at the parse boundary, so rules remain format
 agnostic. Malformed or unknown records are passed through as OpenAI-chat-shaped
@@ -20,6 +22,7 @@ from typing import Iterator
 
 from . import ParseResult
 from .sharegpt import is_sharegpt_record, normalize as normalize_sharegpt
+from . import alpaca, preference
 from .prompt_completion import (
     is_prompt_completion_record, normalize as normalize_prompt_completion, source_metadata,
 )
@@ -51,6 +54,14 @@ def iter_jsonl(path: str) -> Iterator[ParseResult]:
                     record=normalize_sharegpt(record),
                     source_format="sharegpt",
                 )
+            elif preference.is_preference_record(record):
+                yield ParseResult(
+                    line_no=line_no,
+                    raw=raw,
+                    record=preference.normalize(record),
+                    source_format="preference",
+                    source_metadata=preference.source_metadata(record),
+                )
             elif is_prompt_completion_record(record):
                 yield ParseResult(
                     line_no=line_no,
@@ -58,6 +69,14 @@ def iter_jsonl(path: str) -> Iterator[ParseResult]:
                     record=normalize_prompt_completion(record),
                     source_format="prompt-completion",
                     source_metadata=source_metadata(record),
+                )
+            elif alpaca.is_alpaca_record(record):
+                yield ParseResult(
+                    line_no=line_no,
+                    raw=raw,
+                    record=alpaca.normalize(record),
+                    source_format="alpaca",
+                    source_metadata=alpaca.source_metadata(record),
                 )
             else:
                 yield ParseResult(

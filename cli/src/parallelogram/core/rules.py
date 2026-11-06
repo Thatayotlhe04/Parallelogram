@@ -26,6 +26,10 @@ class Rule(ABC):
     description: str = ""
     severity: Severity = Severity.ERROR
     fixable: bool = False  # whether issues from this rule can be auto-fixed
+    # "record": fixed per record by fix_record. "dataset": fixed across the
+    # dataset by fix_dataset (duplicates, eval overlap), which may drop
+    # whole records; the fixer skips these issues in its per-record stage.
+    fix_scope: str = "record"
 
     def __init__(self, config: dict[str, Any] | None = None):
         self.config = config or {}
