@@ -8,7 +8,6 @@ from typer.testing import CliRunner
 
 from parallelogram.cli import app
 
-
 runner = CliRunner()
 
 

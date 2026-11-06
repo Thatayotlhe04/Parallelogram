@@ -3,12 +3,11 @@ from __future__ import annotations
 
 import json
 import os
-from pathlib import Path
 import subprocess
 import sys
+from pathlib import Path
 
 import pytest
-
 
 ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = ROOT / ".github" / "scripts" / "report.sh"
@@ -48,7 +47,7 @@ def test_exit_mapping_and_literal_arguments(tmp_path, code, fail_on):
     })
     summary = Path(env["GITHUB_STEP_SUMMARY"])
     summary.write_text("Existing summary\n")
-    result = subprocess.run(["bash", str(SCRIPT)], env=env, cwd=tmp_path, capture_output=True, text=True)
+    result = subprocess.run(["bash", str(SCRIPT)], env=env, cwd=tmp_path, capture_output=True, text=True, check=False)
     assert result.returncode == (0 if code == 1 and fail_on == "error" else code), result.stderr
     assert json.loads((tmp_path / "args.json").read_text()) == [
         "report", "--markdown", "--format", hostile, "--max-seq-len", hostile,
@@ -77,7 +76,7 @@ def test_action_with_real_cli(tmp_path, kind, fail_on, expected):
         baseline.write_text('{"rates": {"errors_per_record": 0.0}}')
         env["BASELINE"] = str(baseline)
         env["DATASET_PATH"] = str(ROOT / "cli/examples/broken.jsonl")
-    result = subprocess.run(["bash", str(SCRIPT)], env=env, capture_output=True, text=True)
+    result = subprocess.run(["bash", str(SCRIPT)], env=env, capture_output=True, text=True, check=False)
     assert result.returncode == expected, result.stderr
     if fail_on != "invalid":
         assert "#" in Path(env["GITHUB_STEP_SUMMARY"]).read_text()

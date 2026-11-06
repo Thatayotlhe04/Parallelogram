@@ -10,7 +10,6 @@ from parallelogram.cli import app
 from parallelogram.formats import get_parser, supported_formats
 from parallelogram.formats.prompt_completion import normalize, to_prompt_completion
 
-
 runner = CliRunner()
 USER = {"role": "user", "content": "Question"}
 ASSISTANT = {"role": "assistant", "content": "Answer"}

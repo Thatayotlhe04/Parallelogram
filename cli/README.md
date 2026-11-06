@@ -83,8 +83,10 @@ parallelogram check prompt_completion.jsonl --fix --output repaired.jsonl
 ```
 
 Missing halves and values other than strings/lists are schema errors. Fixed
-output preserves string/list shapes; conversational completion is the trailing
-run of assistant messages, with earlier turns in prompt. Extra top-level keys
+output keeps standard pairs as strings and conversational pairs as lists.
+Conversational completion is the trailing run of assistant messages, with earlier
+turns in prompt. A mixed record keeps a string half when it still contains one
+matching turn; otherwise that half becomes a list to preserve every message. Extra top-level keys
 may be omitted by fixes.
 
 ## `--fix` — mechanical repair
