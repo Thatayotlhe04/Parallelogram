@@ -30,6 +30,7 @@ from typing import Optional
 import typer
 from rich.console import Console
 
+from . import __version__
 from .core.fixer import Fixer, Disposition
 from .core.io import atomic_write_jsonl
 from .core.report import Severity
@@ -59,8 +60,19 @@ app = typer.Typer(
 )
 
 
+def _version_callback(value: bool) -> None:
+    if value:
+        typer.echo(f"parallelogram {__version__}")
+        raise typer.Exit()
+
+
 @app.callback()
-def main() -> None:
+def main(
+    version: bool = typer.Option(
+        False, "--version", callback=_version_callback, is_eager=True,
+        help="Show the version and exit.",
+    ),
+) -> None:
     """Strict validator for fine-tuning datasets. Run before you train."""
 
 
