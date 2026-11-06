@@ -16,6 +16,9 @@ inputs:
   baseline:
     description: Optional previous report JSON file for regression gating.
     default: ''
+  eval:
+    description: Optional eval set; train records that overlap it fail the check.
+    default: ''
   fail-on:
     description: Fail on error (default) or warning. Regressions always fail.
     default: error
@@ -49,5 +52,6 @@ runs:
         MAX_SEQ_LEN: ${{ inputs.max-seq-len }}
         TOKENIZER: ${{ inputs.tokenizer }}
         BASELINE: ${{ inputs.baseline }}
+        EVAL_PATH: ${{ inputs.eval }}
         FAIL_ON: ${{ inputs.fail-on }}
       run: bash "$ACTION_PATH/.github/scripts/report.sh"

@@ -20,6 +20,7 @@ from typing import Any, Iterable, Optional
 from ..core.rules import Rule, registry
 from ..core.report import Issue, Severity
 from ..core.tokenization import TokenCounter, resolve_counter
+from ..core.conversation import conversations
 
 
 @registry.register
@@ -71,17 +72,19 @@ class ContextWindowRule(Rule):
             total += self._count_tokens(role, content)
         return total
 
+    def _longest_total(self, record: Any) -> Optional[int]:
+        """Token total of the longest conversation in the record: the chosen
+        side, or for a preference pair whichever side is longer. Both must
+        fit, because the trainer sees both."""
+        totals = [self._record_total(msgs) for _, msgs in conversations(record)]
+        return max(totals) if totals else None
+
     def record_tokens(self, record: Any) -> Optional[int]:
         """Public per-record token total (None when the record has no
         usable messages). Used by `parallelogram report` for token-risk
         statistics, with the same counter the check itself uses."""
         self._ensure_counter()
-        if not isinstance(record, dict):
-            return None
-        messages = record.get("messages")
-        if not isinstance(messages, list):
-            return None
-        return self._record_total(messages)
+        return self._longest_total(record)
 
     def counter_info(self) -> tuple[bool, str]:
         """(exact, method) for the resolved token counter."""
@@ -108,14 +111,8 @@ class ContextWindowRule(Rule):
                 detail=self._counter.note,
             )
 
-        if not isinstance(record, dict):
-            return
-        messages = record.get("messages")
-        if not isinstance(messages, list):
-            return
-
-        total = self._record_total(messages)
-        if total <= self.max_seq_len:
+        total = self._longest_total(record)
+        if total is None or total <= self.max_seq_len:
             return
 
         if self._counter.exact:
@@ -165,9 +162,10 @@ class ContextWindowRule(Rule):
         msgs = [dict(m) if isinstance(m, dict) else m for m in messages]
 
         # Defensive cap so we don't loop forever on a tokenizer that
-        # disagrees with our estimate.
+        # disagrees with our estimate. The prompt is shared by both sides of
+        # a preference pair, so shrinking it shortens both.
         for _ in range(20):
-            total = self._record_total(msgs)
+            total = self._longest_total({**record, "messages": msgs})
             if total <= self.max_seq_len:
                 return {**record, "messages": msgs}
 

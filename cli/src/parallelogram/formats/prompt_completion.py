@@ -13,7 +13,7 @@ def is_prompt_completion_record(record: Any) -> bool:
     return (
         isinstance(record, dict)
         and ("prompt" in record or "completion" in record)
-        and not any(key in record for key in ("messages", "conversations", "conversation"))
+        and not any(key in record for key in ("messages", "conversations", "conversation", "chosen", "rejected"))
     )
 
 

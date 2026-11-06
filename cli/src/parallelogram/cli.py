@@ -39,6 +39,8 @@ from .core.rules import registry
 from .formats import supported_formats
 from .formats.sharegpt import to_sharegpt
 from .formats.prompt_completion import to_prompt_completion
+from .formats.alpaca import to_alpaca
+from .formats.preference import to_preference
 
 # Importing the rule modules triggers self-registration via @registry.register.
 from .rules import (  # noqa: F401
@@ -48,9 +50,38 @@ from .rules import (  # noqa: F401
     context_window,
     duplicates,
     encoding,
+    preference,
+    secrets,
+    pii,
+    eval_overlap,
 )
 from .output.terminal import render_report
 from .output.json_output import render_json
+
+
+_WRITERS = {
+    "sharegpt": lambda rec, meta: to_sharegpt(rec),
+    "prompt-completion": to_prompt_completion,
+    "alpaca": to_alpaca,
+    "preference": to_preference,
+}
+
+
+def _build_rules(disabled: set[str], tokenizer: Optional[str], max_seq_len: int,
+                 eval_path: Optional[Path], dataset_format: str) -> list:
+    """Instantiate the enabled rules. eval-overlap only runs with --eval."""
+    rules = []
+    for rc in registry.all():
+        if rc.id in disabled:
+            continue
+        if rc.id == "context-window":
+            rules.append(rc({"tokenizer": tokenizer, "max_seq_len": max_seq_len}))
+        elif rc.id == "eval-overlap":
+            if eval_path is not None:
+                rules.append(rc({"eval_path": str(eval_path), "dataset_format": dataset_format}))
+        else:
+            rules.append(rc())
+    return rules
 
 
 app = typer.Typer(
@@ -83,7 +114,7 @@ def check(
     dataset_format: str = typer.Option(
         "auto",
         "--format", "-f",
-        help="Dataset format: 'auto' (default), 'openai-chat', 'sharegpt', or 'prompt-completion'.",
+        help="Dataset format: 'auto' (default), 'openai-chat', 'sharegpt', 'prompt-completion', 'alpaca', or 'preference'.",
     ),
     tokenizer: Optional[str] = typer.Option(
         None,
@@ -96,6 +127,12 @@ def check(
         4096,
         "--max-seq-len",
         help="Max tokens per record. Records over this are flagged because frameworks truncate them silently.",
+    ),
+    eval_path: Optional[Path] = typer.Option(
+        None,
+        "--eval",
+        exists=True, dir_okay=False, readable=True,
+        help="Eval set to check for overlap: flags train records whose content or prompt also appears in it.",
     ),
     output: Optional[Path] = typer.Option(
         None,
@@ -180,14 +217,7 @@ def check(
             err=True,
         )
 
-    rule_classes = [rc for rc in registry.all() if rc.id not in disabled]
-
-    rules = []
-    for rc in rule_classes:
-        if rc.id == "context-window":
-            rules.append(rc({"tokenizer": tokenizer, "max_seq_len": max_seq_len}))
-        else:
-            rules.append(rc())
+    rules = _build_rules(disabled, tokenizer, max_seq_len, eval_path, dataset_format)
 
     runner = Runner(rules, dataset_format=dataset_format)
     console = Console(no_color=no_color)
@@ -244,12 +274,8 @@ def check(
             # Records were normalized to OpenAI-chat shape at parse time. When the
             # input used another shape, map back so --fix emits the same format.
             def _to_disk(line_no, rec):
-                source_format = source_formats.get(line_no, dataset_format)
-                if source_format == "sharegpt":
-                    return to_sharegpt(rec)
-                if source_format == "prompt-completion":
-                    return to_prompt_completion(rec, source_metadata.get(line_no))
-                return rec
+                writer = _WRITERS.get(source_formats.get(line_no, dataset_format))
+                return writer(rec, source_metadata.get(line_no)) if writer else rec
 
             lines = [json.dumps(_to_disk(line_no, rec), ensure_ascii=False)
                      for line_no, rec in fix_report.clean_records]
@@ -319,7 +345,7 @@ def report(
     dataset_format: str = typer.Option(
         "auto",
         "--format", "-f",
-        help="Dataset format: 'auto' (default), 'openai-chat', 'sharegpt', or 'prompt-completion'.",
+        help="Dataset format: 'auto' (default), 'openai-chat', 'sharegpt', 'prompt-completion', 'alpaca', or 'preference'.",
     ),
     tokenizer: Optional[str] = typer.Option(
         None,
@@ -332,6 +358,12 @@ def report(
         4096,
         "--max-seq-len",
         help="Token budget per record for the risk stats.",
+    ),
+    eval_path: Optional[Path] = typer.Option(
+        None,
+        "--eval",
+        exists=True, dir_okay=False, readable=True,
+        help="Eval set to check for overlap: flags train records whose content or prompt also appears in it.",
     ),
     json_output: bool = typer.Option(
         False,
@@ -378,12 +410,7 @@ def report(
         typer.echo("--json and --markdown are mutually exclusive.", err=True)
         raise typer.Exit(2)
 
-    rules = []
-    for rc in registry.all():
-        if rc.id == "context-window":
-            rules.append(rc({"tokenizer": tokenizer, "max_seq_len": max_seq_len}))
-        else:
-            rules.append(rc())
+    rules = _build_rules(set(), tokenizer, max_seq_len, eval_path, dataset_format)
 
     summary = build_summary(str(path), rules, dataset_format=dataset_format)
 

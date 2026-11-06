@@ -17,9 +17,39 @@ from ..core.rules import Rule, registry
 from ..core.report import Issue, Severity
 
 
+def record_hash(record: Any) -> str:
+    """Stable content hash of a normalized record (whitespace-trimmed
+    role/content pairs, plus the rejected side of a preference pair)."""
+    if not isinstance(record, dict):
+        return ""
+    messages = record.get("messages", [])
+    if not isinstance(messages, list):
+        return ""
+    norm = lambda msgs: [  # noqa: E731
+        {
+            "role": m.get("role"),
+            "content": (m.get("content") or "").strip()
+            if isinstance(m.get("content"), str) else m.get("content"),
+        }
+        for m in msgs
+        if isinstance(m, dict)
+    ]
+    try:
+        normalized: Any = norm(messages)
+        # Two preference pairs with the same prompt and chosen answer but
+        # different rejected answers are different training examples.
+        if isinstance(record.get("rejected"), list):
+            normalized = {"messages": normalized, "rejected": norm(record["rejected"])}
+        canon = json.dumps(normalized, sort_keys=True, ensure_ascii=False)
+    except (TypeError, ValueError):
+        return ""
+    return hashlib.sha256(canon.encode("utf-8")).hexdigest()
+
+
 @registry.register
 class DuplicatesRule(Rule):
     id = "duplicates"
+    fix_scope = "dataset"
     description = "Exact-content duplicates cause memorization instead of generalization"
     severity = Severity.ERROR
     fixable = True  # mechanical: drop all but the first occurrence
@@ -32,25 +62,7 @@ class DuplicatesRule(Rule):
         self._seen = {}
 
     def _hash(self, record: Any) -> str:
-        if not isinstance(record, dict):
-            return ""
-        messages = record.get("messages", [])
-        if not isinstance(messages, list):
-            return ""
-        try:
-            normalized = [
-                {
-                    "role": m.get("role"),
-                    "content": (m.get("content") or "").strip()
-                    if isinstance(m.get("content"), str) else m.get("content"),
-                }
-                for m in messages
-                if isinstance(m, dict)
-            ]
-            canon = json.dumps(normalized, sort_keys=True, ensure_ascii=False)
-        except (TypeError, ValueError):
-            return ""
-        return hashlib.sha256(canon.encode("utf-8")).hexdigest()
+        return record_hash(record)
 
     def check_record(self, record: Any, line_no: int) -> Iterable[Issue]:
         h = self._hash(record)

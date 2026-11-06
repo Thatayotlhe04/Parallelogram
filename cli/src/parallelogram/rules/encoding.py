@@ -14,6 +14,7 @@ from typing import Any, Iterable, Optional
 
 from ..core.rules import Rule, registry
 from ..core.report import Issue, Severity
+from ..core.conversation import map_messages, message_slots, where
 
 
 # Canonical mojibake markers from latin-1 → UTF-8 round-trips,
@@ -40,6 +41,16 @@ MOJIBAKE_FIXES = [
 MOJIBAKE_MARKERS = [m for m, _ in MOJIBAKE_FIXES]
 
 
+def fix_text(text: str) -> str:
+    """Strip BOMs and repair known mojibake. Idempotent. Also used by format
+    writers that must recognise text after this fix has run."""
+    fixed = text.replace("\ufeff", "")
+    for bad, good in MOJIBAKE_FIXES:
+        if bad in fixed:
+            fixed = fixed.replace(bad, good)
+    return fixed
+
+
 @registry.register
 class EncodingRule(Rule):
     id = "encoding"
@@ -48,13 +59,7 @@ class EncodingRule(Rule):
     fixable = True
 
     def check_record(self, record: Any, line_no: int) -> Iterable[Issue]:
-        if not isinstance(record, dict):
-            return
-        messages = record.get("messages")
-        if not isinstance(messages, list):
-            return
-
-        for i, msg in enumerate(messages):
+        for label, i, msg in message_slots(record):
             if not isinstance(msg, dict):
                 continue
             content = msg.get("content")
@@ -66,7 +71,7 @@ class EncodingRule(Rule):
                     rule_id=self.id,
                     severity=Severity.WARNING,
                     line_no=line_no,
-                    message=f"Message {i} contains BOM (U+FEFF)",
+                    message=f"{where(label)}Message {i} contains BOM (U+FEFF)",
                     fixable=True,
                 )
 
@@ -76,7 +81,7 @@ class EncodingRule(Rule):
                         rule_id=self.id,
                         severity=Severity.WARNING,
                         line_no=line_no,
-                        message=f"Message {i} contains likely mojibake: {marker!r}",
+                        message=f"{where(label)}Message {i} contains likely mojibake: {marker!r}",
                         detail="UTF-8 → latin-1 → UTF-8 round-trip artifact",
                         fixable=True,
                     )
@@ -87,28 +92,8 @@ class EncodingRule(Rule):
         correct Unicode equivalent. The fix is idempotent — running it
         twice yields the same result as once.
         """
-        if not isinstance(record, dict):
-            return record
-        messages = record.get("messages")
-        if not isinstance(messages, list):
-            return record
-
-        new_messages = []
-        for msg in messages:
-            if not isinstance(msg, dict):
-                new_messages.append(msg)
-                continue
+        def repair(msg: dict) -> dict:
             content = msg.get("content")
-            if not isinstance(content, str):
-                new_messages.append(msg)
-                continue
+            return {**msg, "content": fix_text(content)} if isinstance(content, str) else msg
 
-            # Strip BOM anywhere in the string
-            fixed = content.replace("\ufeff", "")
-            # Apply mojibake fixes in declaration order
-            for bad, good in MOJIBAKE_FIXES:
-                if bad in fixed:
-                    fixed = fixed.replace(bad, good)
-            new_messages.append({**msg, "content": fixed})
-
-        return {**record, "messages": new_messages}
+        return map_messages(record, repair)

@@ -69,6 +69,10 @@ class Fixer:
         self.rules = rules
         self._rules_by_id = {r.id: r for r in rules}
 
+    def _dataset_scoped(self, rule_id: str) -> bool:
+        rule = self._rules_by_id.get(rule_id)
+        return rule is not None and rule.fix_scope == "dataset"
+
     def fix(
         self,
         records: list[tuple[int, Any]],
@@ -111,9 +115,9 @@ class Fixer:
                 )
                 continue
 
-            # Decide if we can fix this record. Skip duplicates issues
-            # here — they're handled in stage 2 (cross-record).
-            non_dup_issues = [i for i in issues if i.rule_id != "duplicates"]
+            # Decide if we can fix this record. Skip dataset-scope issues
+            # (duplicates, eval overlap) here — they're handled in stage 2.
+            non_dup_issues = [i for i in issues if not self._dataset_scoped(i.rule_id)]
             unfixable_rules = [
                 i.rule_id for i in non_dup_issues
                 if not (self._rules_by_id.get(i.rule_id)
@@ -177,12 +181,15 @@ class Fixer:
         # transform the surviving stage-1 records. duplicates is the
         # canonical example.
         stage2 = stage1
-        kept_lines_before = {ln for ln, _ in stage2}
+        dropped_by: dict[int, str] = {}
         for rule in self.rules:
             if not rule.fixable:
                 continue
+            before = {ln for ln, _ in stage2}
             try:
                 stage2 = list(rule.fix_dataset(stage2))
+                for ln in before - {ln for ln, _ in stage2}:
+                    dropped_by[ln] = rule.id
             except Exception as exc:  # noqa: BLE001 — defensive
                 # Previously this `continue` silently skipped the failed
                 # dataset pass, leaving stage2 == the pre-pass records. The
@@ -194,17 +201,15 @@ class Fixer:
                 )
                 continue
 
-        kept_lines_after = {ln for ln, _ in stage2}
-        dropped_by_dataset = kept_lines_before - kept_lines_after
-        for ln in dropped_by_dataset:
-            # These were dropped by a cross-record rule — count as fixed
-            # (the dataset is now correct) but record the line as dropped
-            # so the user sees what happened.
-            fr.fixes_by_rule["duplicates"] = fr.fixes_by_rule.get("duplicates", 0) + 1
+        for ln, rid in dropped_by.items():
+            # Dropped by a cross-record rule — count as a fix (the dataset is
+            # now correct) but record the line as dropped so the user sees
+            # what happened, credited to the rule that dropped it.
+            fr.fixes_by_rule[rid] = fr.fixes_by_rule.get(rid, 0) + 1
             outcomes_partial[ln] = RecordOutcome(
                 line_no=ln,
                 disposition=Disposition.DROPPED,
-                rules_fixed=["duplicates"],
+                rules_fixed=[rid],
             )
 
         # ── Stage 3: re-validate fixed records ─────────────────────────

@@ -79,6 +79,20 @@
       </div>
     </section>
 
+    <!-- Works with: official logos go in landing/logos/ (see logos/README.md).
+         The strip stays hidden until at least three of them load. -->
+    <section class="works" id="works" aria-label="Works with" hidden>
+      <p class="works-label">Works with</p>
+      <ul class="works-list">
+        <li><img src="logos/openai.svg" alt="OpenAI" height="22" loading="lazy" decoding="async"></li>
+        <li><img src="logos/qwen.svg" alt="Qwen" height="22" loading="lazy" decoding="async"></li>
+        <li><img src="logos/hugging-face.svg" alt="Hugging Face" height="22" loading="lazy" decoding="async"></li>
+        <li><img src="logos/axolotl.svg" alt="Axolotl" height="22" loading="lazy" decoding="async"></li>
+        <li><img src="logos/unsloth.svg" alt="Unsloth" height="22" loading="lazy" decoding="async"></li>
+        <li><img src="logos/llama-factory.svg" alt="LLaMA-Factory" height="22" loading="lazy" decoding="async"></li>
+        <li><img src="logos/github-actions.svg" alt="GitHub Actions" height="22" loading="lazy" decoding="async"></li>
+      </ul>
+    </section>
 
     <!-- Terminal -->
     <section class="section center" aria-labelledby="run-title">
@@ -89,23 +103,25 @@
       <h2 id="run-title">Catch It Before The GPU Does</h2>
       <p class="sub">One command between your dataset and your trainer, on your machine or in CI.</p>
       <figure class="terminal" id="pane-cli" role="tabpanel" aria-labelledby="tab-cli">
-        <figcaption><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span>train.jsonl</span><span class="mono dim">parallelogram 1.0.0</span></figcaption>
-<pre><code><span class="t-cmd">$ parallelogram check train.jsonl</span>
-<span class="t-err">✗ train.jsonl:2 [roles] Conversation must end on 'assistant', ended on 'user'</span>
-<span class="t-err">✗ train.jsonl:3 [empty-content] Message 1 (role=assistant) has empty content</span>
+        <figcaption><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span>train.jsonl</span><span class="mono dim">parallelogram 1.1.0</span></figcaption>
+<pre><code><span class="t-cmd">$ parallelogram check train.jsonl --eval eval.jsonl</span>
+<span class="t-err">✗ train.jsonl:2 [secrets] Message 0 contains a likely OpenAI API key: sk-pro…</span>
+<span class="t-err">✗ train.jsonl:3 [preference] Chosen and rejected answers are identical</span>
 <span class="t-err">✗ train.jsonl:4 [duplicates] Duplicate of line 1</span>
 <span class="t-warn">! train.jsonl:5 [encoding] Message 1 contains likely mojibake: 'â€™'</span>
-<span class="t-dim">5 records  2 clean  3 errors  1 warnings</span>          <span class="t-err">exit 2</span>
+<span class="t-warn">! train.jsonl:5 [pii] Message 0 contains an email address: t***@gmail.com</span>
+<span class="t-err">✗ train.jsonl:6 [eval-overlap] Prompt also appears in the eval set (eval.jsonl:1)</span>
+<span class="t-dim">6 records  2 clean  4 errors  2 warnings</span>                 <span class="t-err">exit 2</span>
 
-<span class="t-cmd">$ parallelogram check train.jsonl --fix --output clean.jsonl</span>
-<span class="t-ok">✓</span> duplicates · 1 fix   <span class="t-ok">✓</span> empty-content · 1 fix   <span class="t-ok">✓</span> encoding · 1 fix
-<span class="t-err">✗ dropped:</span> train.jsonl:2 → roles (unfixable)
-           train.jsonl:3 → roles (unfixable)
+<span class="t-cmd">$ parallelogram check train.jsonl --eval eval.jsonl --fix --output clean.jsonl</span>
+<span class="t-ok">✓</span> duplicates · 1   <span class="t-ok">✓</span> encoding · 1   <span class="t-ok">✓</span> eval-overlap · 1   <span class="t-ok">✓</span> pii · 1   <span class="t-ok">✓</span> secrets · 1
+<span class="t-err">✗ dropped:</span> train.jsonl:3 → preference (unfixable)
            train.jsonl:4 → duplicates (dropped as fix)
-<span class="t-dim">→ Wrote 2 records to clean.jsonl</span>                    <span class="t-warn">exit 1</span>
+           train.jsonl:6 → eval-overlap (dropped as fix)
+<span class="t-dim">→ Wrote 3 records to clean.jsonl</span>                           <span class="t-warn">exit 1</span>
 
-<span class="t-cmd">$ parallelogram check clean.jsonl</span>
-<span class="t-dim">2 records  2 clean  0 errors  0 warnings</span>          <span class="t-ok">exit 0</span></code></pre>
+<span class="t-cmd">$ parallelogram check clean.jsonl --eval eval.jsonl</span>
+<span class="t-dim">3 records  3 clean  0 errors  0 warnings</span>                 <span class="t-ok">exit 0</span></code></pre>
       </figure>
       <figure class="terminal" id="pane-ci" role="tabpanel" aria-labelledby="tab-ci" hidden>
         <figcaption><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span>.github/workflows/data.yml</span><span class="mono dim">Thatayotlhe04/Parallelogram@v1</span></figcaption>
@@ -120,6 +136,7 @@
         <span class="t-dim">with:</span>
           <span class="t-dim">path:</span> data/train.jsonl
           <span class="t-dim">fail-on:</span> error          <span class="t-dim"># errors (2) and regressions (3) always fail</span>
+          <span class="t-dim"># eval: data/eval.jsonl            # fail on train/eval leakage</span>
           <span class="t-dim"># baseline: baseline/report.json</span>
 
 <span class="t-dim"># The health report lands in the job summary. A dataset PR that breaks
@@ -130,14 +147,34 @@
     <!-- Checks -->
     <section id="checks" class="split" aria-labelledby="checks-title">
       <div class="split-head grid-bg">
-        <h2 id="checks-title">Six Checks Your Trainer Won't Run</h2>
-        <p class="sub">Each one either crashes the run or quietly trains the wrong thing.</p>
+        <h2 id="checks-title">Ten Checks Your Trainer Won't Run</h2>
+        <p class="sub">Each one crashes the run, quietly trains the wrong thing, or leaks something it shouldn't.</p>
         <a class="textlink" href="https://github.com/Thatayotlhe04/Parallelogram#rules">All rules <span aria-hidden="true">→</span></a>
       </div>
       <ul class="cells">
         <li class="cell">
+          <h3>Secrets <span class="new">New in 1.1</span></h3>
+          <p>API keys, tokens and private keys a model could repeat. Redacted by --fix, never printed in full.</p>
+          <div class="chips"><span class="chip">secrets</span><i class="chip-link" aria-hidden="true"></i><span class="chip chip-err">error</span><span class="chip chip-ok">fixable</span></div>
+        </li>
+        <li class="cell">
+          <h3>Personal Data <span class="new">New in 1.1</span></h3>
+          <p>Email addresses, phone numbers and card numbers. Replaced with placeholders by --fix.</p>
+          <div class="chips"><span class="chip">pii</span><i class="chip-link" aria-hidden="true"></i><span class="chip chip-warn">warning</span><span class="chip chip-ok">fixable</span></div>
+        </li>
+        <li class="cell">
+          <h3>Eval Leakage <span class="new">New in 1.1</span></h3>
+          <p>Train records whose content or prompt also sits in your eval set, inflating the score.</p>
+          <div class="chips"><span class="chip">eval-overlap</span><i class="chip-link" aria-hidden="true"></i><span class="chip chip-err">error</span><span class="chip chip-ok">fixable</span></div>
+        </li>
+        <li class="cell">
+          <h3>Preference Pairs <span class="new">New in 1.1</span></h3>
+          <p>DPO pairs whose chosen and rejected answers are the same, so they teach nothing.</p>
+          <div class="chips"><span class="chip">preference</span><i class="chip-link" aria-hidden="true"></i><span class="chip chip-err">error</span></div>
+        </li>
+        <li class="cell">
           <h3>Schema</h3>
-          <p>Malformed JSONL, missing fields, wrong types. The one rule you can't disable.</p>
+          <p>Malformed JSONL, missing fields, wrong types, in any of six formats. Can't be disabled.</p>
           <div class="chips"><span class="chip">schema</span><i class="chip-link" aria-hidden="true"></i><span class="chip chip-err">error</span></div>
         </li>
         <li class="cell">
@@ -239,10 +276,10 @@
         <a class="textlink" href="https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/CHANGELOG.md">Full changelog <span aria-hidden="true">→</span></a>
       </div>
       <ol class="log">
-        <li><time datetime="2026-11-06">Nov 6, 2026</time><span class="chip chip-accent">1.0.0</span><p>Stable contract: prompt/completion format, GitHub Action, versioned JSON, <code>--version</code></p></li>
+        <li><time datetime="2026-11-06">Nov 6, 2026</time><span class="chip chip-accent">1.1.0</span><p>Alpaca and DPO formats, secrets and PII checks, train/eval leakage with <code>--eval</code></p></li>
+        <li><time datetime="2026-11-06">Nov 6, 2026</time><span class="chip">1.0.0</span><p>Stable contract: prompt/completion format, GitHub Action, versioned JSON, <code>--version</code></p></li>
         <li><time datetime="2026-06-13">Jun 13, 2026</time><span class="chip">0.4.2</span><p>OpenAI chat and ShareGPT records auto-detected per line</p></li>
         <li><time datetime="2026-06-12">Jun 12, 2026</time><span class="chip">0.4.1</span><p><code>report</code> and the CI regression gate</p></li>
-        <li><time datetime="2026-06-11">Jun 11, 2026</time><span class="chip">0.3.0</span><p>Exact tokenizers for the context-window check</p></li>
       </ol>
     </section>
 
@@ -264,7 +301,11 @@
         </details>
         <details>
           <summary>Which formats are supported?</summary>
-          <p>OpenAI/Qwen chat JSONL, ShareGPT and prompt/completion, detected per line. <code>--fix</code> writes each record back in the shape it came in.</p>
+          <p>OpenAI/Qwen chat, ShareGPT, prompt/completion, Alpaca and preference (DPO) pairs, detected per line and mixable in one file. <code>--fix</code> writes each record back in the shape it came in.</p>
+        </details>
+        <details>
+          <summary>Will it catch a leaked API key?</summary>
+          <p>Yes. The secrets check finds keys and tokens for OpenAI, Anthropic, AWS, GitHub, Hugging Face, Slack, Google and Stripe, plus private key blocks. It never prints them in full, and <code>--fix</code> redacts them.</p>
         </details>
         <details>
           <summary>Are token counts exact?</summary>
@@ -303,7 +344,7 @@
           <span>parallelogram</span>
         </a>
         <p>The linter for fine-tuning data.</p>
-        <p class="mono dim">v1.0.0 · Apache-2.0 · runs offline</p>
+        <p class="mono dim">v1.1.0 · Apache-2.0 · runs offline</p>
       </div>
       <div class="footer-col">
         <h3>Product</h3>

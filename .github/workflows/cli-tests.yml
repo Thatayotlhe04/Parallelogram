@@ -47,8 +47,7 @@ jobs:
       - name: CLI sanity check
         run: |
           parallelogram --help
-          parallelogram check examples/clean.jsonl
-          parallelogram check examples/sharegpt_clean.jsonl
+          for f in examples/*clean*.jsonl; do parallelogram check "$f"; done
           # broken.jsonl must exit 2 (errors)
           set +e; parallelogram check examples/broken.jsonl; code=$?; set -e
           test "$code" -eq 2
