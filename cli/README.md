@@ -206,8 +206,7 @@ jobs:
           # python-version: '3.12'
 ```
 
-The `v1` ref is the planned stable release ref; it becomes available when the
-maintainer releases 1.0. The action installs the CLI from its own checkout, so
+`@v1` tracks the 1.x releases. The action installs the CLI from its own checkout, so
 its version matches the selected ref. Setting `tokenizer` installs the tokenizer
 extras. The required `path` points to your checked-out dataset; all other inputs
 are optional, with defaults shown above (tokenizer and baseline default to empty).

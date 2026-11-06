@@ -231,8 +231,7 @@ jobs:
           # python-version: '3.12'
 ```
 
-The `v1` ref is the planned stable release ref; it becomes available when the
-maintainer releases 1.0. The action installs the CLI from its own checkout, so
+`@v1` tracks the 1.x releases. The action installs the CLI from its own checkout, so
 its version matches the selected ref. Setting `tokenizer` installs the tokenizer
 extras. The required `path` points to your checked-out dataset; all other inputs
 are optional, with defaults shown above (tokenizer and baseline default to empty).
@@ -283,9 +282,9 @@ Deploy by dropping `landing/` on Vercel, Netlify, Cloudflare Pages, or GitHub Pa
 
 ## Status
 
-**CLI v1.0.0 release candidate** — local pre-training validation with six rules, mechanical `--fix`, model-specific tokenizers, chat/ShareGPT/prompt-completion auto-detection, versioned JSON output, and a composite GitHub Action. Prepared for maintainer review and release.
+**CLI v1.0.0, stable** — local pre-training validation with six rules, mechanical `--fix`, model-specific tokenizers, chat/ShareGPT/prompt-completion auto-detection, versioned JSON output, and a composite GitHub Action.
 
-**Landing page v0.4** — quickstart shows `--fix`, format support, one-click pip install copy, cookie consent banner, privacy policy, and terms of use.
+**Landing page** — [parallelogram.dev](https://parallelogram.dev): checks, the check/fix/gate workflow, changelog and FAQ, with privacy policy and terms of use. No cookies.
 
 No telemetry. No backend. No upload boundary. Pure local.
 
