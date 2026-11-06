@@ -1,12 +1,13 @@
 """Auto-detect supported chat dataset shapes line by line.
 
-The default CLI path should accept the two shapes users most commonly hand to
+The default CLI path should accept the shapes users most commonly hand to
 fine-tuning stacks directly:
 
 - OpenAI/Qwen chat JSONL:
   ``{"messages": [{"role": ..., "content": ...}]}``
 - ShareGPT-style JSONL:
   ``{"conversations": [{"from": ..., "value": ...}]}``
+- Prompt/completion JSONL: string halves or conversational message lists.
 
 Records are still normalized at the parse boundary, so rules remain format
 agnostic. Malformed or unknown records are passed through as OpenAI-chat-shaped
@@ -19,6 +20,9 @@ from typing import Iterator
 
 from . import ParseResult
 from .sharegpt import is_sharegpt_record, normalize as normalize_sharegpt
+from .prompt_completion import (
+    is_prompt_completion_record, normalize as normalize_prompt_completion, source_metadata,
+)
 
 
 def iter_jsonl(path: str) -> Iterator[ParseResult]:
@@ -46,6 +50,14 @@ def iter_jsonl(path: str) -> Iterator[ParseResult]:
                     raw=raw,
                     record=normalize_sharegpt(record),
                     source_format="sharegpt",
+                )
+            elif is_prompt_completion_record(record):
+                yield ParseResult(
+                    line_no=line_no,
+                    raw=raw,
+                    record=normalize_prompt_completion(record),
+                    source_format="prompt-completion",
+                    source_metadata=source_metadata(record),
                 )
             else:
                 yield ParseResult(

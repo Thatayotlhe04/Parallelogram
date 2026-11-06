@@ -12,6 +12,7 @@ from typing import Any, Iterable
 from ..core.rules import Rule, registry
 from ..core.report import Issue, Severity
 from ..formats.openai_chat import VALID_ROLES
+from ..formats.prompt_completion import is_prompt_completion_record, field_errors
 
 
 @registry.register
@@ -31,6 +32,16 @@ class SchemaRule(Rule):
                 detail=f"Found type: {type(record).__name__}",
             )
             return
+
+        if is_prompt_completion_record(record):
+            errors = field_errors(record)
+            for message in errors:
+                yield Issue(
+                    rule_id=self.id, severity=Severity.ERROR,
+                    line_no=line_no, message=message,
+                )
+            if errors:
+                return
 
         if "messages" not in record:
             yield Issue(

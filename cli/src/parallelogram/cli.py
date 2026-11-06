@@ -38,6 +38,7 @@ from .core.runner import Runner
 from .core.rules import registry
 from .formats import supported_formats
 from .formats.sharegpt import to_sharegpt
+from .formats.prompt_completion import to_prompt_completion
 
 # Importing the rule modules triggers self-registration via @registry.register.
 from .rules import (  # noqa: F401
@@ -82,7 +83,7 @@ def check(
     dataset_format: str = typer.Option(
         "auto",
         "--format", "-f",
-        help="Dataset format: 'auto' (default), 'openai-chat', or 'sharegpt'.",
+        help="Dataset format: 'auto' (default), 'openai-chat', 'sharegpt', or 'prompt-completion'.",
     ),
     tokenizer: Optional[str] = typer.Option(
         None,
@@ -195,6 +196,7 @@ def check(
         # ── Fix mode ────────────────────────────────────────────────────
         report, parsed, _, unparseable = runner.run_with_records(str(path))
         source_formats = dict(runner.source_formats)
+        source_metadata = dict(runner.source_metadata)
         fixer = Fixer(rules)
         fix_report = fixer.fix(parsed, report.issues, unparseable)
 
@@ -239,10 +241,14 @@ def check(
 
         if not dry_run and output:
             # Records were normalized to OpenAI-chat shape at parse time. When the
-            # input was ShareGPT, map them back so --fix emits the same format.
+            # input used another shape, map back so --fix emits the same format.
             def _to_disk(line_no, rec):
                 source_format = source_formats.get(line_no, dataset_format)
-                return to_sharegpt(rec) if source_format == "sharegpt" else rec
+                if source_format == "sharegpt":
+                    return to_sharegpt(rec)
+                if source_format == "prompt-completion":
+                    return to_prompt_completion(rec, source_metadata.get(line_no))
+                return rec
 
             lines = [json.dumps(_to_disk(line_no, rec), ensure_ascii=False)
                      for line_no, rec in fix_report.clean_records]
@@ -312,7 +318,7 @@ def report(
     dataset_format: str = typer.Option(
         "auto",
         "--format", "-f",
-        help="Dataset format: 'auto' (default), 'openai-chat', or 'sharegpt'.",
+        help="Dataset format: 'auto' (default), 'openai-chat', 'sharegpt', or 'prompt-completion'.",
     ),
     tokenizer: Optional[str] = typer.Option(
         None,

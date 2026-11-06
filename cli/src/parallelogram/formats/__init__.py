@@ -8,8 +8,8 @@ on-disk format.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Callable, Iterator, Optional
+from dataclasses import dataclass, field
+from typing import Any, Callable, Iterator, Optional
 
 
 # The internal canonical role set. Every parser maps into this; the schema rule
@@ -25,15 +25,17 @@ class ParseResult:
     record: Optional[dict]
     parse_error: Optional[str] = None
     source_format: Optional[str] = None
+    source_metadata: dict[str, Any] = field(default_factory=dict)
 
 
 def get_parser(dataset_format: str) -> Callable[[str], Iterator[ParseResult]]:
     """Return the ``iter_jsonl`` for a format id, or raise KeyError."""
-    from . import auto, openai_chat, sharegpt
+    from . import auto, openai_chat, prompt_completion, sharegpt
 
     parsers: dict[str, Callable[[str], Iterator[ParseResult]]] = {
         "auto": auto.iter_jsonl,
         "openai-chat": openai_chat.iter_jsonl,
+        "prompt-completion": prompt_completion.iter_jsonl,
         "sharegpt": sharegpt.iter_jsonl,
     }
     return parsers[dataset_format]
@@ -41,4 +43,4 @@ def get_parser(dataset_format: str) -> Callable[[str], Iterator[ParseResult]]:
 
 def supported_formats() -> list[str]:
     """The format ids accepted by ``--format``, sorted for stable messaging."""
-    return ["auto", "openai-chat", "sharegpt"]
+    return ["auto", "openai-chat", "prompt-completion", "sharegpt"]
