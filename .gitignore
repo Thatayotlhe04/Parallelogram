@@ -25,3 +25,6 @@ htmlcov/
 make_stress_dataset.py
 parallelogram_stress.jsonl
 stress_clean*.jsonl
+
+# macOS
+.DS_Store
