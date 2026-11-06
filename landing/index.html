@@ -44,7 +44,7 @@
       </nav>
       <div class="nav-actions">
         <a class="nav-github" href="https://github.com/Thatayotlhe04/Parallelogram" aria-label="Parallelogram on GitHub">
-          <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" d="M8 1.8l1.9 3.9 4.3.6-3.1 3 .7 4.3L8 11.6l-3.8 2 .7-4.3-3.1-3 4.3-.6z"/></svg>
           <span>GitHub</span>
         </a>
         <a class="btn btn-primary btn-sm" href="#install">Install</a>
@@ -56,38 +56,39 @@
 
     <!-- Hero -->
     <section class="hero grid-bg" aria-labelledby="hero-title">
-      <a class="badge" href="https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/CHANGELOG.md">
-        <span class="badge-mark">v1</span>
-        <span>1.0 is stable — prompt/completion, GitHub Action, JSON schema</span>
-        <span class="badge-arrow" aria-hidden="true">→</span>
-      </a>
       <h1 id="hero-title"><span class="accent">The Linter For</span><br>Fine-Tuning Data</h1>
       <p class="lede">Parallelogram validates your dataset before you spend GPU hours on it. If it exits 0, your training run won't fail because of data.</p>
-      <div class="cta" id="install" tabindex="-1">
-        <button class="btn btn-primary btn-lg copy" type="button" data-copy="pip install parallelogram" aria-label="Copy install command: pip install parallelogram">
-          <span class="mono"><span class="dim">$</span> pip install parallelogram</span>
-          <svg class="copy-icon" viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M5.5 5.5h7v7h-7zM3.5 10.5h-1v-8h8v1"/></svg>
-          <span class="copy-label" aria-hidden="true">Copy</span>
-        </button>
-        <a class="btn btn-outline btn-lg" href="https://github.com/Thatayotlhe04/Parallelogram#readme">Read Docs</a>
+      <div class="launch">
+        <div class="eater" id="eater" aria-hidden="true">
+          <span class="eater-agent" id="eater-agent"></span>
+          <span class="eater-token" style="--x:12%">roles</span>
+          <span class="eater-token" style="--x:27%">dupe</span>
+          <span class="eater-token" style="--x:42%">&#226;&#8364;&#8482;</span>
+          <span class="eater-token" style="--x:57%">empty</span>
+          <span class="eater-token" style="--x:72%">{JSON</span>
+          <span class="eater-token" style="--x:87%">&gt;ctx</span>
+        </div>
+        <div class="cta" id="install" tabindex="-1">
+          <button class="btn btn-primary btn-lg copy" type="button" data-copy="pip install parallelogram" aria-label="Copy install command: pip install parallelogram">
+            <span class="mono"><span class="dim">$</span> pip install parallelogram</span>
+            <svg class="copy-icon" viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M5.5 5.5h7v7h-7zM3.5 10.5h-1v-8h8v1"/></svg>
+            <span class="copy-label" aria-hidden="true">Copy</span>
+          </button>
+          <a class="btn btn-outline btn-lg" href="https://github.com/Thatayotlhe04/Parallelogram#readme">Read Docs</a>
+        </div>
       </div>
-      <a class="sublink" href="https://pypi.org/project/parallelogram/">Open source · Apache-2.0 · View on PyPI <span aria-hidden="true">→</span></a>
     </section>
 
-    <!-- Works with -->
-    <section class="works" aria-label="Works with">
-      <p class="works-label">Works with</p>
-      <ul class="works-list">
-        <li>OpenAI</li><li>Qwen</li><li>ShareGPT</li><li>Axolotl</li><li>TRL</li><li>Unsloth</li><li>Hugging Face</li><li>tiktoken</li><li>GitHub Actions</li>
-      </ul>
-    </section>
 
     <!-- Terminal -->
     <section class="section center" aria-labelledby="run-title">
-      <div class="pill-toggle" aria-hidden="true"><span class="on">CLI</span><span>CI</span></div>
+      <div class="pill-toggle" role="tablist" aria-label="Where it runs">
+        <button type="button" role="tab" id="tab-cli" aria-selected="true" aria-controls="pane-cli">CLI</button>
+        <button type="button" role="tab" id="tab-ci" aria-selected="false" aria-controls="pane-ci" tabindex="-1">CI</button>
+      </div>
       <h2 id="run-title">Catch It Before The GPU Does</h2>
-      <p class="sub">One command between your dataset and your trainer. Real output, nothing staged.</p>
-      <figure class="terminal">
+      <p class="sub">One command between your dataset and your trainer, on your machine or in CI.</p>
+      <figure class="terminal" id="pane-cli" role="tabpanel" aria-labelledby="tab-cli">
         <figcaption><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span>train.jsonl</span><span class="mono dim">parallelogram 1.0.0</span></figcaption>
 <pre><code><span class="t-cmd">$ parallelogram check train.jsonl</span>
 <span class="t-err">✗ train.jsonl:2 [roles] Conversation must end on 'assistant', ended on 'user'</span>
@@ -105,6 +106,24 @@
 
 <span class="t-cmd">$ parallelogram check clean.jsonl</span>
 <span class="t-dim">2 records  2 clean  0 errors  0 warnings</span>          <span class="t-ok">exit 0</span></code></pre>
+      </figure>
+      <figure class="terminal" id="pane-ci" role="tabpanel" aria-labelledby="tab-ci" hidden>
+        <figcaption><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span>.github/workflows/data.yml</span><span class="mono dim">Thatayotlhe04/Parallelogram@v1</span></figcaption>
+<pre><code><span class="t-dim">name:</span> Validate training data
+<span class="t-dim">on:</span> [push, pull_request]
+<span class="t-dim">jobs:</span>
+  <span class="t-dim">validate:</span>
+    <span class="t-dim">runs-on:</span> ubuntu-latest
+    <span class="t-dim">steps:</span>
+      - <span class="t-dim">uses:</span> actions/checkout@v4
+      - <span class="t-dim">uses:</span> <span class="t-cmd">Thatayotlhe04/Parallelogram@v1</span>
+        <span class="t-dim">with:</span>
+          <span class="t-dim">path:</span> data/train.jsonl
+          <span class="t-dim">fail-on:</span> error          <span class="t-dim"># errors (2) and regressions (3) always fail</span>
+          <span class="t-dim"># baseline: baseline/report.json</span>
+
+<span class="t-dim"># The health report lands in the job summary. A dataset PR that breaks
+# role order fails the same way a code PR with a failing test does.</span></code></pre>
       </figure>
     </section>
 
@@ -220,7 +239,7 @@
         <a class="textlink" href="https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/CHANGELOG.md">Full changelog <span aria-hidden="true">→</span></a>
       </div>
       <ol class="log">
-        <li><time datetime="2026-11-06">Nov 6, 2026</time><span class="chip chip-ok">1.0.0</span><p>Stable contract: prompt/completion format, GitHub Action, versioned JSON, <code>--version</code></p></li>
+        <li><time datetime="2026-11-06">Nov 6, 2026</time><span class="chip chip-accent">1.0.0</span><p>Stable contract: prompt/completion format, GitHub Action, versioned JSON, <code>--version</code></p></li>
         <li><time datetime="2026-06-13">Jun 13, 2026</time><span class="chip">0.4.2</span><p>OpenAI chat and ShareGPT records auto-detected per line</p></li>
         <li><time datetime="2026-06-12">Jun 12, 2026</time><span class="chip">0.4.1</span><p><code>report</code> and the CI regression gate</p></li>
         <li><time datetime="2026-06-11">Jun 11, 2026</time><span class="chip">0.3.0</span><p>Exact tokenizers for the context-window check</p></li>
