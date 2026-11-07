@@ -4,9 +4,8 @@ from __future__ import annotations
 import json
 
 import pytest
-from typer.testing import CliRunner
-
 from parallelogram.cli import app
+from typer.testing import CliRunner
 
 runner = CliRunner()
 KEY = 'sk-proj-Ab3dEf9hIjK2mNoPqR5sTuVwXyZ01234'

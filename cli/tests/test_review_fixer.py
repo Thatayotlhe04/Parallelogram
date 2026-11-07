@@ -1,12 +1,11 @@
 """Cross-record fixes must preserve attribution and original eval exclusions."""
 from __future__ import annotations
 
-from collections import Counter
 import json
-
-from typer.testing import CliRunner
+from collections import Counter
 
 from parallelogram.cli import app
+from typer.testing import CliRunner
 
 
 def test_dataset_drops_keep_prior_fix_attribution(tmp_path):

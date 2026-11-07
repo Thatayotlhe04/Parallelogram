@@ -4,12 +4,11 @@ from __future__ import annotations
 import json
 
 import pytest
-from typer.testing import CliRunner
-
 from parallelogram.cli import app
 from parallelogram.core.conversation import conversations
 from parallelogram.formats.preference import normalize
 from parallelogram.rules.context_window import ContextWindowRule
+from typer.testing import CliRunner
 
 
 def u(text):

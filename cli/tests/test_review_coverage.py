@@ -3,17 +3,16 @@ from __future__ import annotations
 
 import json
 import os
-from pathlib import Path
 import subprocess
 import sys
+from pathlib import Path
 
 import pytest
-from typer.testing import CliRunner
-
 from parallelogram.cli import app
 from parallelogram.formats import get_parser
 from parallelogram.rules.eval_overlap import EvalInputError, EvalOverlapRule
 from parallelogram.rules.secrets import find_secrets
+from typer.testing import CliRunner
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -86,7 +85,7 @@ def test_action_eval_path_is_literal_and_exit_preserved(tmp_path, eval_text, exp
            'MAX_SEQ_LEN': '4096', 'TOKENIZER': '', 'BASELINE': '', 'EVAL_PATH': str(ev),
            'FAIL_ON': 'error', 'GITHUB_STEP_SUMMARY': str(summary)}
     result = subprocess.run(['bash', str(ROOT / '.github/scripts/report.sh')], env=env,
-                            cwd=tmp_path, capture_output=True, text=True)
+                            cwd=tmp_path, capture_output=True, text=True, check=False)
     assert result.returncode == expected, result.stderr
     assert not (tmp_path / 'INJECTED').exists()
     if expected != 3:

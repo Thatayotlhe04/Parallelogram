@@ -64,7 +64,6 @@ class EvalOverlapRule(Rule):
         if self._full is not None:
             return
         from ..formats import get_parser
-
         from .schema import SchemaRule
 
         full, prompts = {}, {}

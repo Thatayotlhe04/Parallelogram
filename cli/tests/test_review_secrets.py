@@ -3,14 +3,13 @@ from __future__ import annotations
 
 import json
 import os
-from pathlib import Path
 import subprocess
 import sys
+from pathlib import Path
 
 import pytest
-from typer.testing import CliRunner
-
 from parallelogram.cli import app
+from typer.testing import CliRunner
 
 KEY = 'sk-proj-Ab3dEf9hIjK2mNoPqR5sTuVwXyZ01234'
 
@@ -47,7 +46,7 @@ def test_secret_role_never_reaches_action_summary(tmp_path):
            'MAX_SEQ_LEN': '4096', 'TOKENIZER': '', 'BASELINE': '', 'EVAL_PATH': '',
            'FAIL_ON': 'error', 'GITHUB_STEP_SUMMARY': str(summary)}
     result = subprocess.run(['bash', str(root / '.github/scripts/report.sh')], env=env,
-                            capture_output=True, text=True)
+                            capture_output=True, text=True, check=False)
     assert result.returncode == 2
     assert KEY not in result.stdout + result.stderr + summary.read_text()
 
