@@ -1,0 +1,37 @@
+name: Star count
+
+# Writes the repo's GitHub star count into the landing pages every six hours,
+# so the site can show it without making any third-party request from the
+# visitor's browser (the CSP allows none).
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Write the current star count
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          n=$(gh api "repos/$REPO" --jq .stargazers_count)
+          [[ "$n" =~ ^[0-9]+$ ]] || { echo "unexpected count: $n"; exit 1; }
+          for f in landing/index.html landing/privacy.html landing/terms.html; do
+            sed -i -E "s|data-stars=\"[0-9]+\" title=\"GitHub stars\">[^<]*<|data-stars=\"$n\" title=\"GitHub stars\">$n<|" "$f"
+          done
+          if git diff --quiet; then
+            echo "star count unchanged ($n)"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "landing: star count $n"
+          git push

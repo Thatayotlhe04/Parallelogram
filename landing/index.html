@@ -46,6 +46,7 @@
         <a class="nav-github" href="https://github.com/Thatayotlhe04/Parallelogram" aria-label="Parallelogram on GitHub">
           <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" d="M8 1.8l1.9 3.9 4.3.6-3.1 3 .7 4.3L8 11.6l-3.8 2 .7-4.3-3.1-3 4.3-.6z"/></svg>
           <span>GitHub</span>
+          <span class="stars" data-stars="5" title="GitHub stars">5</span>
         </a>
         <a class="btn btn-primary btn-sm" href="#install">Install</a>
       </div>
@@ -211,54 +212,73 @@
         <h2 id="how-title">Check. Fix. Gate.</h2>
         <p class="sub">Every issue gets a line and a rule. Mechanical problems are repaired, the rest are dropped with a reason, and the re-check decides.</p>
       </div>
-      <div class="diagram" role="img" aria-label="train.jsonl is checked; fixable records are repaired and pass a re-check with exit 0; unfixable records are dropped with a reason; a CI gate fails pull requests that regress.">
+      <div class="diagram" role="img" aria-label="train.jsonl is checked; clean records pass straight through, fixable records are repaired and re-checked, and unfixable records are dropped with a reason; a CI gate fails pull requests that regress, and what passes goes to training with exit 0.">
         <svg viewBox="0 0 1104 360" aria-hidden="true">
-          <!-- main timeline -->
-          <line x1="40" y1="180" x2="1064" y2="180" class="d-line"/>
-          <g class="d-ticks">
-            <circle cx="360" cy="180" r="2"/><circle cx="420" cy="180" r="2"/><circle cx="480" cy="180" r="2"/><circle cx="540" cy="180" r="2"/><circle cx="600" cy="180" r="2"/><circle cx="660" cy="180" r="2"/><circle cx="720" cy="180" r="2"/><circle cx="780" cy="180" r="2"/><circle cx="840" cy="180" r="2"/><circle cx="900" cy="180" r="2"/>
-          </g>
-          <!-- input card -->
-          <rect x="40" y="160" width="196" height="40" rx="4" class="d-card"/>
-          <rect x="50" y="170" width="52" height="20" rx="3" class="d-tag-live"/>
+          <defs>
+            <mask id="mk-fix" maskUnits="userSpaceOnUse"><path class="draw" style="--s:.16;--d:.14" d="M300 171 V92 Q300 80 312 80 H372" pathLength="1" stroke="#fff" stroke-width="6" fill="none"/></mask>
+            <mask id="mk-drop" maskUnits="userSpaceOnUse"><path class="draw" style="--s:.16;--d:.14" d="M300 189 V268 Q300 280 312 280 H372" pathLength="1" stroke="#fff" stroke-width="6" fill="none"/></mask>
+          </defs>
+
+          <!-- 1 · input to check -->
+          <rect x="40" y="160" width="196" height="40" rx="4" class="d-card pop" style="--s:0"/>
+          <g class="pop" style="--s:0"><rect x="50" y="170" width="52" height="20" rx="3" class="d-tag-live"/>
           <text x="76" y="184" class="d-tag-text-dark" text-anchor="middle">INPUT</text>
-          <text x="112" y="185" class="d-card-text">train.jsonl</text>
-          <!-- check node -->
-          <text x="288" y="164" class="d-time" text-anchor="end">check</text>
-          <circle cx="300" cy="180" r="9" class="d-node-ring"/><circle cx="300" cy="180" r="4" class="d-node"/>
-          <text x="288" y="206" class="d-time" text-anchor="end">exit 2</text>
-          <!-- fix branch (up) -->
-          <path d="M300 171 V92 Q300 80 312 80 H372" class="d-dash"/>
-          <rect x="372" y="60" width="200" height="40" rx="4" class="d-card"/>
+          <text x="112" y="185" class="d-card-text">train.jsonl</text></g>
+          <path d="M236 180 H291" pathLength="1" class="d-line draw" style="--s:.04;--d:.08"/>
+          <g class="pop" style="--s:.11">
+            <circle cx="300" cy="180" r="9" class="d-node-ring"/><circle cx="300" cy="180" r="4" class="d-node"/>
+            <text x="288" y="164" class="d-time" text-anchor="end">check</text>
+            <text x="288" y="206" class="d-time" text-anchor="end">exit 2</text>
+          </g>
+
+          <!-- 2 · fixable records: repaired, re-checked, merged back -->
+          <path d="M300 171 V92 Q300 80 312 80 H372" class="d-dash" mask="url(#mk-fix)"/>
+          <g class="pop" style="--s:.28"><rect x="372" y="60" width="200" height="40" rx="4" class="d-card"/>
           <rect x="382" y="70" width="40" height="20" rx="3" class="d-tag-dark"/>
           <text x="402" y="84" class="d-tag-text" text-anchor="middle">FIX</text>
-          <text x="432" y="85" class="d-card-text">clean.jsonl</text>
-          <line x1="572" y1="80" x2="812" y2="80" class="d-ok-line"/>
-          <text x="660" y="52" class="d-label" text-anchor="middle">Re-check passed</text>
-          <circle cx="660" cy="80" r="16" class="d-ok-ring"/>
-          <path d="M653 80 l5 5 l9 -10" class="d-ok-glyph"/>
-          <text x="828" y="52" class="d-label" text-anchor="middle">Ready to train</text>
-          <circle cx="828" cy="80" r="16" class="d-ok-ring"/>
-          <path d="M828 88 V72 M821 79 l7 -7 l7 7" class="d-ok-glyph"/>
-          <text x="868" y="85" class="d-time">exit 0</text>
-          <!-- drop branch (down) -->
-          <path d="M300 189 V268 Q300 280 312 280 H372" class="d-dash"/>
-          <rect x="372" y="260" width="200" height="40" rx="4" class="d-card"/>
+          <text x="432" y="85" class="d-card-text">clean.jsonl</text></g>
+          <path d="M572 80 H644" pathLength="1" class="d-ok-line draw" style="--s:.36;--d:.08"/>
+          <g class="pop" style="--s:.43">
+            <circle cx="660" cy="80" r="16" class="d-ok-ring"/>
+            <path d="M653 80 l5 5 l9 -10" class="d-ok-glyph"/>
+            <text x="660" y="52" class="d-label" text-anchor="middle">Re-check passed</text>
+          </g>
+          <path d="M676 80 H744 Q764 80 764 100 V160 Q764 180 784 180" pathLength="1" class="d-ok-line draw" style="--s:.48;--d:.12"/>
+
+          <!-- 3 · unfixable records: dropped, with reasons -->
+          <path d="M300 189 V268 Q300 280 312 280 H372" class="d-dash" mask="url(#mk-drop)"/>
+          <g class="pop" style="--s:.28"><rect x="372" y="260" width="200" height="40" rx="4" class="d-card"/>
           <rect x="382" y="270" width="52" height="20" rx="3" class="d-tag-dark"/>
           <text x="408" y="284" class="d-tag-text" text-anchor="middle">DROP</text>
-          <text x="444" y="285" class="d-card-text">3 records</text>
-          <line x1="572" y1="280" x2="812" y2="280" class="d-err-line"/>
-          <circle cx="660" cy="280" r="16" class="d-err-ring"/>
-          <path d="M660 272 V283 M660 288 v0.5" class="d-err-glyph"/>
-          <text x="660" y="318" class="d-label" text-anchor="middle">roles: unfixable</text>
-          <circle cx="828" cy="280" r="16" class="d-err-ring"/>
-          <path d="M822 274 l12 12 M834 274 l-12 12" class="d-err-glyph"/>
-          <text x="828" y="318" class="d-label" text-anchor="middle">Kept out, with reasons</text>
-          <!-- gate node -->
-          <text x="980" y="150" class="d-time" text-anchor="middle">gate</text>
-          <circle cx="980" cy="180" r="9" class="d-node-ring"/><circle cx="980" cy="180" r="4" class="d-node"/>
-          <rect x="912" y="200" width="136" height="32" rx="16" class="d-chip"/>
-          <text x="980" y="221" class="d-chip-text" text-anchor="middle">CI · exit 3 on regress</text>
+          <text x="444" y="285" class="d-card-text">3 records</text></g>
+          <path d="M572 280 H644" pathLength="1" class="d-err-line draw" style="--s:.36;--d:.08"/>
+          <g class="pop" style="--s:.43">
+            <circle cx="660" cy="280" r="16" class="d-err-ring"/>
+            <path d="M654 274 l12 12 M666 274 l-12 12" class="d-err-glyph"/>
+            <text x="660" y="318" class="d-label" text-anchor="middle">Kept out, with reasons</text>
+          </g>
+
+          <!-- 4 · clean records pass straight through to the gate and on to training -->
+          <path d="M309 180 H851" pathLength="1" class="d-line draw" style="--s:.2;--d:.42"/>
+          <g class="pop" style="--s:.64">
+            <circle cx="860" cy="180" r="9" class="d-node-ring"/><circle cx="860" cy="180" r="4" class="d-node"/>
+            <text x="860" y="160" class="d-time" text-anchor="middle">gate</text>
+            <rect x="792" y="202" width="136" height="32" rx="16" class="d-chip"/>
+            <text x="860" y="223" class="d-chip-text" text-anchor="middle">CI · exit 3 on regress</text>
+          </g>
+          <path d="M869 180 H928" pathLength="1" class="d-ok-line draw" style="--s:.72;--d:.08"/>
+          <path d="M926 175.5 L935 180 L926 184.5 z" class="d-arrowhead pop" style="--s:.79"/>
+          <g class="pop" style="--s:.82"><rect x="936" y="160" width="128" height="40" rx="4" class="d-card"/>
+          <rect x="946" y="170" width="54" height="20" rx="3" class="d-tag-ok"/>
+          <text x="973" y="184" class="d-tag-text-dark" text-anchor="middle">EXIT 0</text>
+          <text x="1010" y="185" class="d-card-text">train</text></g>
+
+          <!-- once connected: records keep flowing -->
+          <g class="flow">
+            <circle r="3.5" class="d-packet"><animateMotion dur="3.6s" repeatCount="indefinite" path="M236 180 H936"/></circle>
+            <circle r="3.5" class="d-packet"><animateMotion dur="4.2s" begin="1.4s" repeatCount="indefinite" path="M300 180 V92 Q300 80 312 80 H744 Q764 80 764 100 V160 Q764 180 784 180 H936"/></circle>
+            <circle r="3.5" class="d-packet d-packet-err"><animateMotion dur="3s" begin="0.8s" repeatCount="indefinite" path="M300 180 V268 Q300 280 312 280 H644"/></circle>
+          </g>
         </svg>
       </div>
       <ol class="steps">
