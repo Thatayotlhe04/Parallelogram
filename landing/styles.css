@@ -300,3 +300,7 @@ h3 { font: 500 16px/1.4 var(--sans); }
   .d-dash { animation: none; }
   .diagram .flow { display: none; }
 }
+
+/* Inline links inside FAQ answers */
+.faq details p a { text-decoration: underline; text-underline-offset: 3px; }
+.faq details p a:hover { color: var(--accent); }

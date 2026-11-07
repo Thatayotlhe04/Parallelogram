@@ -100,11 +100,12 @@
       <div class="pill-toggle" role="tablist" aria-label="Where it runs">
         <button type="button" role="tab" id="tab-cli" aria-selected="true" aria-controls="pane-cli">CLI</button>
         <button type="button" role="tab" id="tab-ci" aria-selected="false" aria-controls="pane-ci" tabindex="-1">CI</button>
+        <button type="button" role="tab" id="tab-agents" aria-selected="false" aria-controls="pane-agents" tabindex="-1">Agents</button>
       </div>
       <h2 id="run-title">Catch It Before The GPU Does</h2>
-      <p class="sub">One command between your dataset and your trainer, on your machine or in CI.</p>
+      <p class="sub">One command between your dataset and your trainer: on your machine, in CI, or called by your coding agent.</p>
       <figure class="terminal" id="pane-cli" role="tabpanel" aria-labelledby="tab-cli">
-        <figcaption><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span>train.jsonl</span><span class="mono dim">parallelogram 1.1.0</span></figcaption>
+        <figcaption><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span>train.jsonl</span><span class="mono dim">parallelogram 1.2.0</span></figcaption>
 <pre><code><span class="t-cmd">$ parallelogram check train.jsonl --eval eval.jsonl</span>
 <span class="t-err">✗ train.jsonl:2 [secrets] Message 0 contains a likely OpenAI API key: sk-pro…</span>
 <span class="t-err">✗ train.jsonl:3 [preference] Chosen and rejected answers are identical</span>
@@ -142,6 +143,22 @@
 
 <span class="t-dim"># The health report lands in the job summary. A dataset PR that breaks
 # role order fails the same way a code PR with a failing test does.</span></code></pre>
+      </figure>
+      <figure class="terminal" id="pane-agents" role="tabpanel" aria-labelledby="tab-agents" hidden>
+        <figcaption><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span>MCP · Claude Code, Codex, Cursor</span><span class="mono dim">parallelogram mcp</span></figcaption>
+<pre><code><span class="t-cmd">$ claude mcp add parallelogram -- parallelogram mcp</span>       <span class="t-dim"># Claude Code</span>
+<span class="t-cmd">$ codex mcp add parallelogram -- parallelogram mcp</span>        <span class="t-dim"># Codex</span>
+
+<span class="t-ok">→ check_dataset</span> <span class="t-dim">{"path": "train.jsonl", "eval_path": "eval.jsonl", "limit": 3}</span>
+{ "summary": { "errors": 4, "warnings": 2 },  "issues_truncated": true,
+  "by_rule": { "secrets": …, "preference": …, "duplicates": …, "eval-overlap": … },
+  "issues": [
+    { "rule": <span class="t-err">"secrets"</span>,    "line": 2, "message": "…OpenAI API key: sk-pro…",  "fixable": true },
+    { "rule": <span class="t-err">"preference"</span>, "line": 3, "message": "…answers are identical", "fixable": false },
+    { "rule": <span class="t-err">"duplicates"</span>, "line": 4, "message": "Duplicate of line 1",      "fixable": true } ] }
+
+<span class="t-ok">→ fix_dataset</span> <span class="t-dim">{"path": "train.jsonl", "eval_path": "eval.jsonl", "output": "clean.jsonl"}</span>
+{ "summary": { "fixed": 2, "dropped": 3, "emitted": 3 } }                 <span class="t-dim">clean.jsonl rechecks clean</span></code></pre>
       </figure>
     </section>
 
@@ -296,10 +313,10 @@
         <a class="textlink" href="https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/CHANGELOG.md">Full changelog <span aria-hidden="true">→</span></a>
       </div>
       <ol class="log">
-        <li><time datetime="2026-11-06">Nov 6, 2026</time><span class="chip chip-accent">1.1.0</span><p>Alpaca and DPO formats, secrets and PII checks, train/eval leakage with <code>--eval</code></p></li>
+        <li><time datetime="2026-11-07">Nov 7, 2026</time><span class="chip chip-accent">1.2.0</span><p>For coding agents: an MCP server, a Python API and <code>--json --limit</code></p></li>
+        <li><time datetime="2026-11-07">Nov 7, 2026</time><span class="chip">1.1.1</span><p>Fixes from an independent review, including secrets quoted in diagnostics</p></li>
+        <li><time datetime="2026-11-06">Nov 6, 2026</time><span class="chip">1.1.0</span><p>Alpaca and DPO formats, secrets and PII checks, train/eval leakage with <code>--eval</code></p></li>
         <li><time datetime="2026-11-06">Nov 6, 2026</time><span class="chip">1.0.0</span><p>Stable contract: prompt/completion format, GitHub Action, versioned JSON, <code>--version</code></p></li>
-        <li><time datetime="2026-06-13">Jun 13, 2026</time><span class="chip">0.4.2</span><p>OpenAI chat and ShareGPT records auto-detected per line</p></li>
-        <li><time datetime="2026-06-12">Jun 12, 2026</time><span class="chip">0.4.1</span><p><code>report</code> and the CI regression gate</p></li>
       </ol>
     </section>
 
@@ -336,6 +353,10 @@
           <p>Add <code>uses: Thatayotlhe04/Parallelogram@v1</code> to a workflow. It writes a report to the job summary and fails on errors, or on regressions against a <code>--baseline</code>.</p>
         </details>
         <details>
+          <summary>Can my coding agent run it?</summary>
+          <p>Yes. <code>parallelogram mcp</code> gives Claude Code, Codex and Cursor three tools: check, fix and list rules. Agents using the shell can run <code>check --json --limit 50</code>, which keeps every count exact but lists only the most important issues. Setup is in the <a href="https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/docs/agents.md">agent guide</a>.</p>
+        </details>
+        <details>
           <summary>Is it free?</summary>
           <p>Yes. Apache-2.0, on PyPI and GitHub.</p>
         </details>
@@ -364,7 +385,7 @@
           <span>parallelogram</span>
         </a>
         <p>The linter for fine-tuning data.</p>
-        <p class="mono dim">v1.1.0 · Apache-2.0 · runs offline</p>
+        <p class="mono dim">v1.2.0 · Apache-2.0 · runs offline</p>
       </div>
       <div class="footer-col">
         <h3>Product</h3>
