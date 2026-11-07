@@ -45,6 +45,41 @@
     });
   });
 
+  // ── Star count ────────────────────────────────────────────────────
+  // The number is written into the page by .github/workflows/stars.yml, so
+  // the site makes no third-party requests. It counts up once on load.
+  document.querySelectorAll('.stars[data-stars]').forEach(el => {
+    const target = Number(el.dataset.stars) || 0;
+    const fmt = n => n >= 1000 ? (n / 1000).toFixed(n >= 10000 ? 0 : 1) + 'k' : String(n);
+    el.setAttribute('aria-label', `${target} GitHub stars`);
+    if (reduceMotion || target === 0) { el.textContent = fmt(target); return; }
+    const t0 = performance.now(), dur = 1200;
+    const step = now => {
+      const k = Math.min(1, (now - t0) / dur), eased = 1 - Math.pow(1 - k, 3);
+      el.textContent = fmt(Math.round(target * eased));
+      if (k < 1) requestAnimationFrame(step);
+    };
+    el.textContent = '0';
+    requestAnimationFrame(step);
+  });
+
+  // ── Check / fix / gate: draws in as you scroll ────────────────────
+  const diagram = document.querySelector('.diagram');
+  if (diagram && !reduceMotion) {
+    let ticking = false;
+    const update = () => {
+      ticking = false;
+      const r = diagram.getBoundingClientRect(), vh = window.innerHeight;
+      // 0 when the diagram's top reaches 90% of the viewport, 1 at 35%.
+      const p = Math.min(1, Math.max(0, (0.9 * vh - r.top) / (0.55 * vh)));
+      diagram.style.setProperty('--p', p.toFixed(3));
+    };
+    const onScroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } };
+    update();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+  }
+
   // ── Works-with strip ──────────────────────────────────────────────
   // Logos are official files dropped into landing/logos/. A logo that
   // fails to load is hidden; the strip appears once three or more load,

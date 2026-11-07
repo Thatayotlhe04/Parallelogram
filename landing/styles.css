@@ -54,6 +54,7 @@ code, .mono { font-family: var(--mono); }
 .nav-actions { margin-left: auto; display: flex; align-items: center; gap: 16px; }
 .nav-github { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: #d4d4d4; }
 .nav-github svg { width: 16px; height: 16px; }
+.stars { min-width: 2ch; padding: 1px 7px; border: 1px solid var(--line-strong); border-radius: 999px; font: 400 12px/18px var(--mono); color: var(--text); text-align: center; font-variant-numeric: tabular-nums; }
 
 /* ── Buttons ───────────────────────────────────────── */
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; border-radius: 4px; font: 500 16px/24px var(--sans); cursor: pointer; transition: background .15s, color .15s, border-color .15s; white-space: nowrap; }
@@ -162,9 +163,21 @@ h3 { font: 500 16px/1.4 var(--sans); }
 .chip-accent { border-color: var(--accent-line); color: var(--accent); }
 
 /* ── Diagram ───────────────────────────────────────── */
-.diagram { margin-top: 56px; overflow-x: auto; }
+.diagram { --p: 1; margin-top: 56px; overflow-x: auto; }
+/* Scroll-linked build: main.js sets --p from 0 to 1 as the diagram scrolls
+   into view. Each stroke draws over [--s, --s + --d]; each label fades in at --s.
+   Without JS, or with reduced motion, --p stays 1: the finished drawing. */
+.diagram .draw { stroke-dasharray: 1; stroke-dashoffset: calc(1 - clamp(0, (var(--p) - var(--s)) / var(--d), 1)); }
+.diagram .pop { opacity: clamp(0, (var(--p) - var(--s)) / .06, 1); }
+.diagram .flow { opacity: clamp(0, (var(--p) - .9) / .08, 1); }
+.d-packet { fill: var(--accent); }
+.d-packet-err { fill: var(--err); }
+.d-tag-ok { fill: var(--ok); }
+.d-arrowhead { fill: var(--ok); }
+.d-dash { animation: march 1.6s linear infinite; }
+@keyframes march { to { stroke-dashoffset: -16; } }
 .diagram svg { display: block; width: 100%; min-width: 880px; height: auto; }
-.d-line { stroke: #3a3a3a; stroke-width: 1.5; }
+.d-line { fill: none; stroke: #3a3a3a; stroke-width: 1.5; }
 .d-ticks circle { fill: #3a3a3a; }
 .d-dash { fill: none; stroke: #6b6b6b; stroke-width: 1.5; stroke-dasharray: 4 4; }
 .d-card { fill: #fff; }
@@ -177,10 +190,10 @@ h3 { font: 500 16px/1.4 var(--sans); }
 .d-label { font: 400 12px var(--sans); fill: #a3a3a3; }
 .d-node { fill: var(--accent); }
 .d-node-ring { fill: var(--accent-soft); stroke: var(--accent-line); }
-.d-ok-line { stroke: var(--ok-line); stroke-width: 1.5; }
+.d-ok-line { fill: none; stroke: var(--ok-line); stroke-width: 1.5; }
 .d-ok-ring { fill: #0a0a0a; stroke: var(--ok); stroke-width: 1.5; }
 .d-ok-glyph { fill: none; stroke: var(--ok); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-.d-err-line { stroke: rgba(248, 113, 113, .55); stroke-width: 1.5; }
+.d-err-line { fill: none; stroke: rgba(248, 113, 113, .55); stroke-width: 1.5; }
 .d-err-ring { fill: #0a0a0a; stroke: var(--err); stroke-width: 1.5; }
 .d-err-glyph { fill: none; stroke: var(--err); stroke-width: 1.8; stroke-linecap: round; }
 .d-chip { fill: #111; stroke: #3a3a3a; }
@@ -284,4 +297,6 @@ h3 { font: 500 16px/1.4 var(--sans); }
   * { transition: none !important; }
   .eater .frame-open { animation: none !important; visibility: visible; }
   .eater .frame-closed { animation: none !important; visibility: hidden; }
+  .d-dash { animation: none; }
+  .diagram .flow { display: none; }
 }
