@@ -209,7 +209,7 @@ class Fixer:
             outcomes_partial[ln] = RecordOutcome(
                 line_no=ln,
                 disposition=Disposition.DROPPED,
-                rules_fixed=[rid],
+                rules_fixed=outcomes_partial[ln].rules_fixed + [rid],
             )
 
         # ── Stage 3: re-validate fixed records ─────────────────────────
