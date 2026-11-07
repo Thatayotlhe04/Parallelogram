@@ -49,7 +49,6 @@ class EvalOverlapRule(Rule):
     def __init__(self, config: dict[str, Any] | None = None):
         super().__init__(config)
         self.eval_path: str | None = self.config.get("eval_path")
-        self.dataset_format: str = self.config.get("dataset_format", "auto")
         self._full: dict[str, int] | None = None
         self._prompts: dict[str, int] = {}
 
@@ -61,7 +60,7 @@ class EvalOverlapRule(Rule):
         self._full, self._prompts = {}, {}
         if not self.eval_path:
             return
-        for parsed in get_parser(self.dataset_format)(self.eval_path):
+        for parsed in get_parser("auto")(self.eval_path):
             if parsed.record is None:
                 continue
             h = record_hash(parsed.record)
