@@ -15,12 +15,13 @@ that disables this rule pays no startup cost.
 """
 from __future__ import annotations
 
+from copy import copy
 from typing import Any, Iterable, Optional
 
 from ..core.rules import Rule, registry
 from ..core.report import Issue, Severity
 from ..core.tokenization import TokenCounter, resolve_counter
-from ..core.conversation import conversations
+from ..core.conversation import conversations, message_slots
 
 
 @registry.register
@@ -160,32 +161,35 @@ class ContextWindowRule(Rule):
             return record
 
         msgs = [dict(m) if isinstance(m, dict) else m for m in messages]
+        fixed = copy(record)
+        fixed["messages"] = msgs
+        if isinstance(record.get("rejected"), list):
+            fixed["rejected"] = [dict(m) if isinstance(m, dict) else m for m in record["rejected"]]
 
         # Defensive cap so we don't loop forever on a tokenizer that
         # disagrees with our estimate. The prompt is shared by both sides of
         # a preference pair, so shrinking it shortens both.
         for _ in range(20):
-            total = self._longest_total({**record, "messages": msgs})
+            total = self._longest_total(fixed)
             if total <= self.max_seq_len:
-                return {**record, "messages": msgs}
+                return fixed
 
-            # Find the longest user message
-            user_idxs = [i for i, m in enumerate(msgs)
-                         if isinstance(m, dict) and m.get("role") == "user"
-                         and isinstance(m.get("content"), str)]
-            if not user_idxs:
-                return None  # nothing left to shrink
-
-            longest_i = max(user_idxs,
-                            key=lambda i: len(msgs[i]["content"]))
-            current = msgs[longest_i]["content"]
+            # Either continuation can contain user turns in multi-turn pairs.
+            users = [(label, i, m) for label, i, m in message_slots(fixed)
+                     if isinstance(m, dict) and m.get("role") == "user"
+                     and isinstance(m.get("content"), str)]
+            if not users:
+                return None
+            label, longest_i, longest = max(users, key=lambda slot: len(slot[2]["content"]))
+            target = fixed["rejected" if label else "messages"]
+            current = longest["content"]
             if len(current) <= 1:
                 return None  # already minimal, can't shrink further
 
             # Cut to 80% of current length, keeping the start of the
             # message (which usually contains the actual question).
             new_len = max(1, int(len(current) * 0.8))
-            msgs[longest_i] = {**msgs[longest_i],
+            target[longest_i] = {**longest,
                                "content": current[:new_len]}
 
         # Couldn't fit after 20 iterations — give up.

@@ -14,6 +14,7 @@ import json
 from typing import Any, Iterable
 
 from ..core.rules import Rule, registry
+from ..core.conversation import prompt_end
 from ..core.report import Issue, Severity
 
 
@@ -39,7 +40,8 @@ def record_hash(record: Any) -> str:
         # Two preference pairs with the same prompt and chosen answer but
         # different rejected answers are different training examples.
         if isinstance(record.get("rejected"), list):
-            normalized = {"messages": normalized, "rejected": norm(record["rejected"])}
+            normalized = {"messages": normalized, "rejected": norm(record["rejected"]),
+                          "prompt_length": prompt_end(record)}
         canon = json.dumps(normalized, sort_keys=True, ensure_ascii=False)
     except (TypeError, ValueError):
         return ""
