@@ -39,6 +39,8 @@ def field_errors(record: dict) -> list[str]:
             errors.append(f"Missing '{key}' field")
         elif not isinstance(record[key], (str, list)):
             errors.append(f"'{key}' must be a string or list; found {type(record[key]).__name__}")
+        elif isinstance(record[key], list) and not record[key]:
+            errors.append(f"'{key}' must not be empty")
     if "prompt" in record:
         if not isinstance(record["prompt"], (str, list)):
             errors.append(f"'prompt' must be a string or list; found {type(record['prompt']).__name__}")

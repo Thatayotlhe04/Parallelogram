@@ -27,7 +27,8 @@ class ConversationRecord(dict):
 def prompt_end(record: dict) -> int:
     if isinstance(record, ConversationRecord):
         return record.prompt_length
-    return completion_start(record["messages"])
+    messages = record.get("messages")
+    return completion_start(messages) if isinstance(messages, list) else 0
 
 
 def completion_start(messages: list) -> int:
