@@ -80,6 +80,8 @@ def source_metadata(record: Any) -> dict[str, Any]:
         "has_input": "input" in record,
         "has_system": "system" in record,
         "has_history": "history" in record,
+        "null_fields": [k for k in ("input", "system", "history")
+                        if k in record and record[k] is None],
         "extras": [k for k in record if k not in _KEYS],
     }
 
@@ -148,6 +150,9 @@ def to_alpaca(record: Any, metadata: dict[str, Any] | None = None) -> Any:
     if msgs or meta.get("has_history"):
         out["history"] = [[msgs[i].get("content"), msgs[i + 1].get("content")]
                           for i in range(0, len(msgs) - 1, 2)]
+    for key in meta.get("null_fields", []):
+        if not out.get(key):
+            out[key] = None
     for key in meta.get("extras", []):
         if key in record:
             out[key] = record[key]

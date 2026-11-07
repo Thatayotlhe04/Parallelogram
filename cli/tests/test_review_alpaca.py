@@ -26,3 +26,13 @@ def test_redacting_instruction_preserves_input(tmp_path, instruction, expected):
     assert result.exit_code == 0, result.output
     assert json.loads(out.read_text()) == {**original, 'instruction': expected}
     assert runner.invoke(app, ['check', str(out)]).exit_code == 0
+
+
+@pytest.mark.parametrize('key', ['input', 'system', 'history'])
+def test_null_optional_fields_round_trip_without_coercion(tmp_path, key):
+    original = {'instruction': 'Q', 'output': 'A', key: None, 'metadata': {'id': 42}}
+    path, out = tmp_path / 'data.jsonl', tmp_path / 'fixed.jsonl'
+    path.write_text(json.dumps(original) + '\n')
+    result = runner.invoke(app, ['check', str(path), '--fix', '--output', str(out)])
+    assert result.exit_code == 0, result.output
+    assert json.loads(out.read_text()) == original
