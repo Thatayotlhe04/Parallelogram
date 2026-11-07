@@ -36,3 +36,40 @@ def test_redaction_cannot_rescue_an_original_eval_overlap(tmp_path):
     assert data['summary']['dropped'] == 1
     assert data['outcomes'][0]['rules_fixed'] == ['pii', 'eval-overlap']
     assert json.loads(out.read_text()) == {'prompt': 'safe', 'completion': 'B'}
+
+
+def test_fixes_recheck_for_pii_revealed_by_encoding_repair(tmp_path):
+    train, out = tmp_path / 'train.jsonl', tmp_path / 'fixed.jsonl'
+    train.write_text(json.dumps({'instruction': 'Email person@\ufeffgmail.com', 'output': 'OK'}) + '\n')
+    result = CliRunner().invoke(app, ['check', str(train), '--fix', '--output', str(out), '--json'])
+    assert result.exit_code == 0, result.output
+    assert json.loads(out.read_text()) == {'instruction': 'Email [REDACTED_EMAIL]', 'output': 'OK'}
+    assert CliRunner().invoke(app, ['check', str(out)]).exit_code == 0
+
+
+
+def test_revealed_pii_respects_disabled_rule(tmp_path):
+    train, out = tmp_path / 'train.jsonl', tmp_path / 'fixed.jsonl'
+    train.write_text(json.dumps({'prompt': 'Email person@\ufeffgmail.com', 'completion': 'OK'}) + '\n')
+    result = CliRunner().invoke(app, ['check', str(train), '--fix', '--output', str(out), '--disable', 'pii'])
+    assert result.exit_code == 0, result.output
+    assert json.loads(out.read_text())['prompt'] == 'Email person@gmail.com'
+
+
+def test_nonconverging_fixer_fails_without_looping():
+    from parallelogram.core.fixer import Fixer
+    from parallelogram.core.report import Issue, Severity
+    from parallelogram.core.rules import Rule
+
+    class NoProgress(Rule):
+        id = 'no-progress'
+        fixable = True
+
+        def check_record(self, record, line_no):
+            return [Issue(self.id, Severity.WARNING, line_no, 'still bad')]
+
+    rule = NoProgress()
+    report = Fixer([rule]).fix([(1, {})], list(rule.check_record({}, 1)), set())
+    assert report.dropped == 1
+    assert report.clean_records == []
+    assert report.fixer_errors == ['Record fixes did not converge on line 1']

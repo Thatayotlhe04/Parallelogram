@@ -31,12 +31,12 @@ def test_eval_detects_its_own_format(tmp_path, command, format_id, record):
     assert 'eval-overlap' in (payload.get('issues_by_rule') or {i['rule'] for i in payload['issues']})
 
 
-@pytest.mark.parametrize('options', [[], ['--fix'], ['--json']])
-@pytest.mark.parametrize('command', ['check', 'report'])
+@pytest.mark.parametrize('command,options', [
+    ('check', []), ('check', ['--fix']), ('check', ['--json']),
+    ('report', []), ('report', ['--json']),
+])
 @pytest.mark.parametrize('bad_eval', ['not json\n', 'null\n', '{"instruction": "Q"}\n'])
 def test_bad_eval_fails_closed(tmp_path, command, options, bad_eval):
-    if command == 'report' and options == ['--fix']:
-        return
     train = write(tmp_path / 'train.jsonl', {'prompt': 'Q', 'completion': 'A'})
     ev = tmp_path / 'eval.jsonl'
     ev.write_text(bad_eval)

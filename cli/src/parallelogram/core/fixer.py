@@ -137,27 +137,44 @@ class Fixer:
             current = record
             applied: list[str] = []
             failed = False
-            for issue in non_dup_issues:
-                rule = self._rules_by_id.get(issue.rule_id)
-                if rule is None or not rule.fixable:
-                    continue
-                try:
-                    new = rule.fix_record(current, issue)
-                except Exception as exc:  # noqa: BLE001 — defensive
-                    # Don't swallow: a crashing fix means we drop this record,
-                    # but the user needs to know the fixer itself misbehaved.
-                    fr.fixer_errors.append(
-                        f"{rule.id}: fix_record raised on line {line_no}: "
-                        f"{type(exc).__name__}: {exc}"
-                    )
-                    failed = True
+            pending = non_dup_issues
+            # Text repairs can expose another rule's match (e.g. a BOM inside
+            # an email). Recheck until clean, with a bound for broken fixers.
+            for _ in range(len(self.rules) + 1):
+                for issue in pending:
+                    rule = self._rules_by_id.get(issue.rule_id)
+                    if rule is None or not rule.fixable:
+                        continue
+                    try:
+                        new = rule.fix_record(current, issue)
+                    except Exception as exc:  # noqa: BLE001 — defensive
+                        # Don't swallow: a crashing fix means we drop this record,
+                        # but the user needs to know the fixer itself misbehaved.
+                        fr.fixer_errors.append(
+                            f"{rule.id}: fix_record raised on line {line_no}: "
+                            f"{type(exc).__name__}: {exc}"
+                        )
+                        failed = True
+                        break
+                    if new is None:
+                        failed = True
+                        break
+                    if new is not current:
+                        applied.append(rule.id)
+                    current = new
+                if failed:
                     break
-                if new is None:
-                    failed = True
+                pending = [
+                    issue for rule in self.rules
+                    if rule.fixable and rule.fix_scope != "dataset"
+                    for issue in rule.check_record(current, line_no)
+                    if issue.severity != Severity.INFO
+                ]
+                if not pending:
                     break
-                if new is not current:
-                    applied.append(rule.id)
-                current = new
+            else:
+                failed = True
+                fr.fixer_errors.append(f"Record fixes did not converge on line {line_no}")
 
             if failed:
                 outcomes_partial[line_no] = RecordOutcome(
