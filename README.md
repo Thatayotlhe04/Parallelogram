@@ -6,6 +6,29 @@ The linter for fine-tuning data. **If `parallelogram check` exits 0 with all rul
 [![Python](https://img.shields.io/pypi/pyversions/parallelogram)](https://pypi.org/project/parallelogram/)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue)](cli/LICENSE)
 
+## Agents and Python (1.2)
+
+```bash
+parallelogram check train.jsonl --json --limit 50
+parallelogram rules --json
+parallelogram mcp
+```
+
+```python
+from parallelogram import check, fix, rules
+
+result = check("train.jsonl", limit=50)
+payload = result.to_dict()
+status = result.exit_code
+fixed = fix("train.jsonl", output="clean.jsonl")
+```
+
+The API and CLI share their check/fix implementation. JSON retains
+`schema_version: 1`, with exact `by_rule` counts and `issues_truncated`; limiting
+issues never limits validation. Fixes require a separate output path and refuse
+input/eval aliases. [Agent guide](cli/docs/agents.md): MCP tools, Claude Code/Codex/Cursor
+configuration, Python errors, and a six-line AGENTS.md/CLAUDE.md snippet.
+
 ## The problem
 
 Every fine-tuning framework assumes your data is clean. None of them verify it:
@@ -208,6 +231,7 @@ parallelogram check data.jsonl --disable encoding --disable duplicates
 | `--fix` | Attempt mechanical repair of fixable issues. |
 | `--dry-run` | With `--fix`, report what would change without writing. |
 | `--json` | Machine-readable report on stdout. |
+| `--limit` | Maximum check JSON issues to list; all counts remain exact. |
 | `--disable` | Disable a rule by id. Repeatable. |
 | `--no-color` | Plain output. |
 
@@ -220,7 +244,7 @@ parallelogram check data.jsonl --disable encoding --disable duplicates
 | `0`  | Clean — no errors or warnings. | All records emitted clean. | Clean. |
 | `1`  | Warnings only. | Some records dropped (partial fix). | Warnings only. |
 | `2`  | Errors. | Nothing fixable. | Errors. |
-| `3`  | Invalid/unreadable eval input. | Invalid/unreadable eval input. | Invalid/unreadable eval input, or quality regressed vs `--baseline`. |
+| `3`  | Operational failure, such as an unreadable or invalid `--eval` file. | Operational failure, such as an unreadable or invalid `--eval` file. | Invalid `--eval` input, or quality regressed vs `--baseline`. |
 
 These map directly to CI gates without any extra wiring.
 
@@ -314,7 +338,7 @@ Deploy by dropping `landing/` on Vercel, Netlify, Cloudflare Pages, or GitHub Pa
 
 ## Status
 
-**CLI v1.1.0, stable** — local pre-training validation with nine default rules and optional eval-overlap detection, mechanical `--fix`, model-specific tokenizers, chat/ShareGPT/prompt-completion/Alpaca/preference auto-detection, versioned JSON output, and a composite GitHub Action.
+**CLI v1.2.0, stable** — local pre-training validation with nine default rules and optional eval-overlap detection, mechanical `--fix`, model-specific tokenizers, chat/ShareGPT/prompt-completion/Alpaca/preference auto-detection, versioned JSON output, a Python API and an MCP server for coding agents, and a composite GitHub Action.
 
 **Landing page** — [parallelogram.dev](https://parallelogram.dev): checks, the check/fix/gate workflow, changelog and FAQ, with privacy policy and terms of use. No cookies.
 

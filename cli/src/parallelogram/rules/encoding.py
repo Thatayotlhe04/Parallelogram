@@ -55,6 +55,7 @@ def fix_text(text: str) -> str:
 class EncodingRule(Rule):
     id = "encoding"
     description = "BOM markers and common mojibake patterns"
+    fix_description = 'Strip BOM markers and replace known mojibake patterns.'
     severity = Severity.WARNING
     fixable = True
 

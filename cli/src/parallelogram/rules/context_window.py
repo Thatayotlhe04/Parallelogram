@@ -28,6 +28,7 @@ from ..core.conversation import conversations, message_slots
 class ContextWindowRule(Rule):
     id = "context-window"
     description = "Total token count must not exceed max_seq_len"
+    fix_description = 'Truncate the longest user messages to fit the token budget; drop records that cannot fit.'
     severity = Severity.ERROR
     fixable = True  # truncation is mechanical; semantically lossy fixes are SLM-tier
 
