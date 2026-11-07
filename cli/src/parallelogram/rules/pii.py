@@ -90,6 +90,7 @@ def redact(text: str) -> str:
 class PiiRule(Rule):
     id = "pii"
     description = "Email addresses, phone numbers and card numbers in training data"
+    fix_description = 'Replace detected email addresses, phone numbers and card numbers with typed placeholders.'
     severity = Severity.WARNING
     fixable = True
 

@@ -27,6 +27,7 @@ def _text(msgs: list) -> list:
 class PreferenceRule(Rule):
     id = "preference"
     description = "Chosen and rejected answers in a preference pair must differ"
+    fix_description = 'No mechanical repair; identical chosen/rejected pairs are dropped.'
     severity = Severity.ERROR
     fixable = False  # which answer is better is a judgment call
 

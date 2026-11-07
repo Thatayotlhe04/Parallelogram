@@ -3,6 +3,30 @@
 All notable changes to the `parallelogram` CLI. Versions correspond to
 [PyPI releases](https://pypi.org/project/parallelogram/) and `cli-v*` git tags.
 
+## 1.2.0 — 2026-11-07
+
+### Added
+- Silent Python API: `check`, `fix`, `rules` and `ParallelogramError`, exported
+  from `parallelogram`. CLI check/fix now use this same implementation and JSON
+  serialization; results expose `exit_code` and `to_dict()`.
+- Dependency-free `parallelogram mcp` stdio server with `check_dataset`,
+  `fix_dataset` and `list_rules`, JSON Schemas, protocol negotiation, compact
+  text and structured results, recoverable errors and clean EOF handling.
+- `check --json --limit N` / API `limit=` with full validation and exact counts.
+  Additive `issues_truncated` and per-rule `by_rule` error/warning/info counts
+  retain JSON `schema_version: 1`. Issues sort by severity then line.
+- `parallelogram rules [--json]` exposes metadata and mechanical fix behavior
+  directly from rule classes.
+- Agent guide with Python/MCP usage, Claude Code/Codex/Cursor setup and a
+  reusable AGENTS.md/CLAUDE.md block; `landing/llms.txt` discovery document.
+
+### Changed
+- Check/fix output refuses input and eval path aliases, including symlinks and
+  hard links, even during dry runs. Fixes continue preserving source formats.
+- Check/fix read/write failures raise `ParallelogramError` in Python and exit 3
+  with stderr diagnostics in the CLI, without emitting a success JSON result.
+  Invalid options remain exit 2; report's baseline regression remains exit 3.
+
 ## 1.1.0 — 2026-11-06
 
 The biggest release since the first one: two new dataset formats, three new

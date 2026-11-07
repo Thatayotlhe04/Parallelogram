@@ -12,6 +12,29 @@ that cause your model to memorize instead of generalize.
 on anything that would silently corrupt training. **If it exits 0 with all rules enabled,
 your run won't fail because of data.**
 
+## Agents and Python (1.2)
+
+```bash
+parallelogram check train.jsonl --json --limit 50
+parallelogram rules --json
+parallelogram mcp
+```
+
+```python
+from parallelogram import check, fix, rules
+
+result = check("train.jsonl", limit=50)
+payload = result.to_dict()
+status = result.exit_code
+fixed = fix("train.jsonl", output="clean.jsonl")
+```
+
+The API and CLI share their check/fix implementation. JSON retains
+`schema_version: 1`, with exact `by_rule` counts and `issues_truncated`; limiting
+issues never limits validation. Fixes require a separate output path and refuse
+input/eval aliases. [Agent guide](docs/agents.md): MCP tools, Claude Code/Codex/Cursor
+configuration, Python errors, and a six-line AGENTS.md/CLAUDE.md snippet.
+
 ## Install
 
 ```bash
@@ -275,6 +298,7 @@ left enabled passed — which may or may not be enough.
 | `--fix` | Attempt mechanical repair of fixable issues. |
 | `--dry-run` | With `--fix`, report what would change without writing. |
 | `--json` | Machine-readable report on stdout. |
+| `--limit` | Maximum check JSON issues to list; all counts remain exact. |
 | `--disable` | Disable a rule by id. Repeatable. |
 | `--no-color` | Plain output. |
 
@@ -285,7 +309,7 @@ left enabled passed — which may or may not be enough.
 | `0`  | Clean. | All records emitted clean. | Clean. |
 | `1`  | Warnings only. | Some records dropped (partial fix). | Warnings only. |
 | `2`  | Errors. | Nothing fixable. | Errors. |
-| `3`  | — | — | Quality regressed vs `--baseline`. |
+| `3`  | Operational failure. | Operational failure. | Quality regressed vs `--baseline`. |
 
 These are stable and map directly to CI gates without any extra wiring.
 Informational notes (like "context-window counts are approximate" when running
@@ -309,7 +333,7 @@ default install.
 
 ## Status
 
-v1.0.0 — stable CLI contract, local pre-training validation. No telemetry, no network, no upload boundary.
+v1.2.0 — stable CLI and Python API, bounded JSON diagnostics, rule discovery, and local MCP tools. No telemetry, no network, no upload boundary.
 
 ## Roadmap
 

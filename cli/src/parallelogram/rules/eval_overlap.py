@@ -42,6 +42,7 @@ def prompt_hash(record: Any) -> str:
 class EvalOverlapRule(Rule):
     id = "eval-overlap"
     description = "Training records must not repeat eval records or eval prompts"
+    fix_description = 'With eval_path/--eval, drop train records matching eval content or prompts.'
     severity = Severity.ERROR
     fixable = True
     fix_scope = "dataset"  # drops whole train records

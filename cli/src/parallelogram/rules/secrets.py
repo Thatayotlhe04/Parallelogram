@@ -78,6 +78,7 @@ def redact(text: str) -> str:
 class SecretsRule(Rule):
     id = "secrets"
     description = "API keys, tokens and private keys must not be in training data"
+    fix_description = 'Redact detected credentials and private keys with placeholders.'
     severity = Severity.ERROR
     fixable = True  # redaction is mechanical
 

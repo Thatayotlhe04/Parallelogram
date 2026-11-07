@@ -1,0 +1,28 @@
+# Parallelogram
+
+> A local, offline validator and mechanical fixer for LLM fine-tuning JSONL, with a Python API and stdio MCP tools for coding agents.
+
+Install with Python 3.10+: pip install parallelogram
+Runtime dependencies are typer and rich. No telemetry or dataset uploads.
+Accepted formats: auto, openai-chat, sharegpt, prompt-completion, alpaca, preference.
+
+Commands:
+- parallelogram check train.jsonl --json --limit 50
+- parallelogram check train.jsonl --eval eval.jsonl --json --limit 50
+- parallelogram check train.jsonl --fix --dry-run --json
+- parallelogram check train.jsonl --fix --output clean.jsonl --json
+- parallelogram rules --json
+- parallelogram report train.jsonl --json
+- parallelogram mcp
+
+Check exits: 0 no errors/warnings, 1 warnings, 2 errors/invalid arguments, 3 operational failure.
+Fix exits: 0 all records emitted, 1 partial fix, 2 none emitted, 3 operational failure.
+Report exit 3 means regression against --baseline.
+JSON schema_version is 1. Limits bound issues, never counts; inspect issues_truncated and by_rule.
+Never overwrite the input or eval set. Fix into a separate output file and recheck it.
+
+## Documentation
+
+- [Agent guide](https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/docs/agents.md): Python API, MCP tools, client setup and instructions to paste into AGENTS.md or CLAUDE.md.
+- [JSON contract](https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/docs/json-output.md): Stable fields, counts and exit codes.
+- [CLI guide](https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/README.md): Installation, formats, rules and commands.

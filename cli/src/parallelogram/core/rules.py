@@ -30,6 +30,7 @@ class Rule(ABC):
     # dataset by fix_dataset (duplicates, eval overlap), which may drop
     # whole records; the fixer skips these issues in its per-record stage.
     fix_scope: str = "record"
+    fix_description: str = "No mechanical repair; affected records are dropped."
 
     def __init__(self, config: dict[str, Any] | None = None):
         self.config = config or {}

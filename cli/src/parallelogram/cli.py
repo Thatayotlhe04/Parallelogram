@@ -1,16 +1,17 @@
 """parallelogram CLI.
 
-Two commands, both designed as the fastest possible local pre-flight
-before kicking off a training run:
+Local pre-flight validation plus discovery and agent tools:
 
   parallelogram check <path>   — line-by-line diagnostics (+ --fix)
   parallelogram report <path>  — aggregate dataset health, for humans and CI
+  parallelogram rules          — discover rule metadata and repair behavior
+  parallelogram mcp            — serve local dataset tools over stdio
 
 Exit codes are deliberately minimal and stable:
   0 — clean (no issues)
   1 — warnings only
   2 — errors
-  3 — quality regression vs --baseline (report only)
+  3 — operational failure (check/fix), quality regression vs --baseline (report)
 
 These map cleanly to CI gates without any extra wiring.
 
@@ -30,58 +31,12 @@ from typing import Optional
 import typer
 from rich.console import Console
 
-from . import __version__
-from .core.fixer import Fixer, Disposition
-from .core.io import atomic_write_jsonl
+from . import __version__, api
+from .api import ParallelogramError, _build_rules
+from .core.fixer import Disposition
 from .core.report import Severity
-from .core.runner import Runner
-from .core.rules import registry
 from .formats import supported_formats
-from .formats.sharegpt import to_sharegpt
-from .formats.prompt_completion import to_prompt_completion
-from .formats.alpaca import to_alpaca
-from .formats.preference import to_preference
-
-# Importing the rule modules triggers self-registration via @registry.register.
-from .rules import (  # noqa: F401
-    schema,
-    roles,
-    empty_content,
-    context_window,
-    duplicates,
-    encoding,
-    preference,
-    secrets,
-    pii,
-    eval_overlap,
-)
 from .output.terminal import render_report
-from .output.json_output import render_json
-
-
-_WRITERS = {
-    "sharegpt": lambda rec, meta: to_sharegpt(rec),
-    "prompt-completion": to_prompt_completion,
-    "alpaca": to_alpaca,
-    "preference": to_preference,
-}
-
-
-def _build_rules(disabled: set[str], tokenizer: Optional[str], max_seq_len: int,
-                 eval_path: Optional[Path], dataset_format: str) -> list:
-    """Instantiate the enabled rules. eval-overlap only runs with --eval."""
-    rules = []
-    for rc in registry.all():
-        if rc.id in disabled:
-            continue
-        if rc.id == "context-window":
-            rules.append(rc({"tokenizer": tokenizer, "max_seq_len": max_seq_len}))
-        elif rc.id == "eval-overlap":
-            if eval_path is not None:
-                rules.append(rc({"eval_path": str(eval_path), "dataset_format": dataset_format}))
-        else:
-            rules.append(rc())
-    return rules
 
 
 app = typer.Typer(
@@ -161,182 +116,89 @@ def check(
         help="Disable a rule by id. Repeat to disable multiple. "
              "Disabling rules invalidates the exit-0 guarantee — see warnings.",
     ),
+    limit: Optional[int] = typer.Option(
+        None, "--limit", min=0, help="Maximum JSON issues to list; counts remain exact.",
+    ),
     no_color: bool = typer.Option(False, "--no-color", help="Disable colored output."),
 ) -> None:
     """Check a fine-tuning dataset for problems that would silently corrupt training."""
-    if dataset_format not in supported_formats():
-        typer.echo(
-            f"format {dataset_format!r} is not supported. "
-            f"Valid formats: {supported_formats()}",
-            err=True,
-        )
-        raise typer.Exit(2)
-
     if dry_run and not fix:
         typer.echo("--dry-run is only meaningful with --fix.", err=True)
         raise typer.Exit(2)
-
-    # ── --disable handling — three layers of safety ───────────────────────
-    #
-    # 1. Reject unknown rule ids outright. Typos here are a foot-gun: the
-    #    user thinks they disabled something but the run uses the full set.
-    # 2. Refuse to disable schema. Every other rule assumes structurally
-    #    valid records; disabling schema means the others silently no-op
-    #    on malformed input, producing deceptively clean output.
-    # 3. Loud stderr warning naming exactly what got disabled, plus an
-    #    explicit note that the exit-0 guarantee no longer applies.
-    known_rule_ids = {rc.id for rc in registry.all()}
-    disabled = set(disable)
-    unknown = disabled - known_rule_ids
-    if unknown:
-        typer.echo(
-            f"unknown rule id(s) in --disable: {sorted(unknown)}. "
-            f"Valid rule ids: {sorted(known_rule_ids)}",
-            err=True,
-        )
+    if fix and limit is not None:
+        typer.echo("--limit applies to check issues, not --fix outcomes.", err=True)
         raise typer.Exit(2)
 
-    if "schema" in disabled:
-        typer.echo(
-            "the 'schema' rule cannot be disabled — every other rule "
-            "depends on its guarantees about record structure.",
-            err=True,
-        )
+    try:
+        options = {"format": dataset_format, "tokenizer": tokenizer,
+                   "max_seq_len": max_seq_len, "eval_path": eval_path, "disable": disable,
+                   "output": output}
+        result = (api.fix(path, dry_run=dry_run, **options) if fix
+                  else api.check(path, limit=limit, **options))
+    except ValueError as exc:
+        typer.echo(str(exc), err=True)
         raise typer.Exit(2)
+    except ParallelogramError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(3)
 
-    if disabled:
-        sorted_disabled = sorted(disabled)
-        typer.echo(
-            "  ! WARNING: --disable in effect for: "
-            + ", ".join(sorted_disabled),
-            err=True,
-        )
-        typer.echo(
-            "    The 'if it exits 0, your run won't fail' guarantee "
-            "applies only with all rules enabled.",
-            err=True,
-        )
+    if result.disabled_rules:
+        typer.echo("  ! WARNING: --disable in effect for: "
+                   + ", ".join(result.disabled_rules), err=True)
+        typer.echo("    The 'if it exits 0, your run won't fail' guarantee "
+                   "applies only with all rules enabled.", err=True)
 
-    rules = _build_rules(disabled, tokenizer, max_seq_len, eval_path, dataset_format)
-
-    runner = Runner(rules, dataset_format=dataset_format)
     console = Console(no_color=no_color)
+    if json_output:
+        json.dump(result.to_dict(), sys.stdout, indent=2)
+        sys.stdout.write("\n")
+    elif fix:
+        _render_fix_report(console, result.report, str(path), dry_run,
+                           has_output=output is not None,
+                           disabled_rules=result.disabled_rules)
+    else:
+        render_report(result.report, console, str(path),
+                      disabled_rules=result.disabled_rules)
 
     if fix:
-        # ── Fix mode ────────────────────────────────────────────────────
-        report, parsed, _, unparseable = runner.run_with_records(str(path))
-        source_formats = dict(runner.source_formats)
-        source_metadata = dict(runner.source_metadata)
-        fixer = Fixer(rules)
-        fix_report = fixer.fix(parsed, report.issues, unparseable)
-
-        # Format and emit results.
-        if json_output:
-            payload = {
-                "schema_version": 1,
-                "file": str(path),
-                "mode": "fix",
-                "dry_run": dry_run,
-                "disabled_rules": sorted(disabled),
-                "summary": {
-                    "total": fix_report.total_records,
-                    "unchanged": fix_report.unchanged,
-                    "fixed": fix_report.fixed,
-                    "dropped": fix_report.dropped,
-                    "unparseable": fix_report.unparseable,
-                    "emitted": len(fix_report.clean_records),
-                },
-                "fixes_by_rule": fix_report.fixes_by_rule,
-                "fixer_errors": fix_report.fixer_errors,
-                "outcomes": [
-                    {
-                        "line": o.line_no,
-                        "disposition": o.disposition.value,
-                        "rules_fixed": o.rules_fixed,
-                        "rules_unfixable": o.rules_unfixable,
-                    }
-                    for o in fix_report.outcomes
-                ],
-            }
-            json.dump(payload, sys.stdout, indent=2)
-            sys.stdout.write("\n")
-        else:
-            _render_fix_report(console, fix_report, str(path), dry_run,
-                               has_output=output is not None,
-                               disabled_rules=sorted(disabled))
-
-        # Surface any fixer crashes loudly on stderr — these are bugs in a
-        # fix rule, not data problems, and must never hide behind exit 0.
-        for err in fix_report.fixer_errors:
+        for err in result.report.fixer_errors:
             typer.echo(f"  ! FIXER ERROR: {err}", err=True)
+        if not json_output and not dry_run:
+            if output:
+                console.print(f"  [green]→[/green] Wrote {len(result.report.clean_records)} records to {output}")
+            else:
+                console.print("  [yellow]![/yellow] --fix was requested without --output. "
+                              "Re-run with --output PATH to write the repaired dataset.")
+    elif output and not json_output:
+        clean_line_nos = {ln for ln, _ in result.clean_records}
+        warned_lines = {i.line_no for i in result.report.issues
+                        if i.severity == Severity.WARNING and i.line_no in clean_line_nos}
+        console.print(f"  [green]→[/green] Wrote {len(result.clean_records)} error-free records to {output}")
+        if warned_lines:
+            console.print(f"  [yellow]![/yellow] {len(warned_lines)} of them still carry "
+                          "warnings (e.g. mojibake/BOM) and were copied verbatim — "
+                          "re-run with [bold]--fix --output[/bold] to repair them.")
+    raise typer.Exit(result.exit_code)
 
-        if not dry_run and output:
-            # Records were normalized to OpenAI-chat shape at parse time. When the
-            # input used another shape, map back so --fix emits the same format.
-            def _to_disk(line_no, rec):
-                writer = _WRITERS.get(source_formats.get(line_no, dataset_format))
-                return writer(rec, source_metadata.get(line_no)) if writer else rec
 
-            lines = [json.dumps(_to_disk(line_no, rec), ensure_ascii=False)
-                     for line_no, rec in fix_report.clean_records]
-            atomic_write_jsonl(output, lines)
-            if not json_output:
-                console.print(f"  [green]→[/green] Wrote {len(lines)} records to {output}")
-        elif not dry_run and not output:
-            # Without --output, --fix does nothing destructive but we should
-            # tell the user that no file was written.
-            if not json_output:
-                console.print(
-                    "  [yellow]![/yellow] --fix was requested without --output. "
-                    "Re-run with --output PATH to write the repaired dataset."
-                )
-
-        # Exit code semantics for fix mode:
-        #   0 if everything is now clean (no dropped records)
-        #   1 if some records were dropped (partial fix) or a fixer crashed
-        #   2 if nothing was fixable (no records emitted)
-        if not fix_report.clean_records:
-            raise typer.Exit(2)
-        if fix_report.dropped or fix_report.unparseable or fix_report.fixer_errors:
-            raise typer.Exit(1)
-        raise typer.Exit(0)
-
-    # ── Check-only mode (existing behavior) ────────────────────────────
-    report, clean = runner.run(str(path))
-
+@app.command("rules")
+def list_rules(json_output: bool = typer.Option(False, "--json", help="Emit rule metadata as JSON.")) -> None:
+    """List validation rules and what mechanical fixes do."""
+    metadata = api.rules()
     if json_output:
-        render_json(report, str(path), disabled_rules=sorted(disabled))
+        typer.echo(json.dumps(metadata, indent=2))
     else:
-        render_report(report, console, str(path), disabled_rules=sorted(disabled))
+        for rule in metadata:
+            typer.echo(f"{rule['id']} ({rule['severity']}; fixable={str(rule['fixable']).lower()}; "
+                       f"fix_scope={rule['fix_scope']}): {rule['description']}")
+            typer.echo(f"  --fix: {rule['fix_description']}")
 
-    if output:
-        # `clean` is error-free, but error-free is not warning-free: records
-        # carrying warnings (mojibake, BOM) pass the error gate and are copied
-        # to --output *verbatim*, unrepaired. Don't call them "clean" and don't
-        # let the warnings vanish silently — point the user at --fix.
-        clean_line_nos = {ln for ln, _ in clean}
-        warned_lines = {
-            i.line_no for i in report.issues
-            if i.severity == Severity.WARNING and i.line_no in clean_line_nos
-        }
-        lines = [raw if raw.endswith("\n") else raw + "\n" for _, raw in clean]
-        atomic_write_jsonl(output, [line.rstrip("\n") for line in lines])
-        if not json_output:
-            console.print(
-                f"  [green]→[/green] Wrote {len(clean)} error-free records to {output}"
-            )
-            if warned_lines:
-                console.print(
-                    f"  [yellow]![/yellow] {len(warned_lines)} of them still carry "
-                    f"warnings (e.g. mojibake/BOM) and were copied verbatim — "
-                    f"re-run with [bold]--fix --output[/bold] to repair them."
-                )
 
-    if report.has_errors:
-        raise typer.Exit(2)
-    if report.has_warnings:
-        raise typer.Exit(1)
-    raise typer.Exit(0)
+@app.command()
+def mcp() -> None:
+    """Serve local dataset tools over newline-delimited JSON-RPC on stdio."""
+    from .mcp_server import serve
+    serve()
 
 
 @app.command()

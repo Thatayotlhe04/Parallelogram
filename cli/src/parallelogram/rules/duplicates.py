@@ -51,6 +51,7 @@ class DuplicatesRule(Rule):
     id = "duplicates"
     fix_scope = "dataset"
     description = "Exact-content duplicates cause memorization instead of generalization"
+    fix_description = 'Keep the first occurrence and drop later content duplicates.'
     severity = Severity.ERROR
     fixable = True  # mechanical: drop all but the first occurrence
 

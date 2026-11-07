@@ -12,6 +12,7 @@ from ..core.conversation import map_messages, message_slots, where
 class EmptyContentRule(Rule):
     id = "empty-content"
     description = "Message content must not be empty or whitespace-only"
+    fix_description = 'Remove empty message turns; drop records that fail revalidation.'
     severity = Severity.ERROR
     fixable = True  # mechanical: drop record or drop empty turn
 

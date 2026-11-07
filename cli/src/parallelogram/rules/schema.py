@@ -28,6 +28,7 @@ _FIELD_CHECKS = (
 class SchemaRule(Rule):
     id = "schema"
     description = "Records must be well-formed in a supported dataset format"
+    fix_description = 'No mechanical repair; malformed records and invalid JSON lines are omitted.'
     severity = Severity.ERROR
     fixable = False
 

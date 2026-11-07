@@ -1,2 +1,8 @@
 """parallelogram — strict validator for fine-tuning datasets."""
-__version__ = "1.1.0"
+from __future__ import annotations
+
+__version__ = "1.2.0"
+
+from .api import ParallelogramError, check, fix, rules
+
+__all__ = ["ParallelogramError", "__version__", "check", "fix", "rules"]
