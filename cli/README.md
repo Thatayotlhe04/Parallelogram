@@ -337,7 +337,7 @@ default install.
 
 ## Status
 
-v1.5.0 — stable CLI and Python API, agent-sized JSON output, rule discovery and a local MCP server. No telemetry, no network, no upload boundary.
+v1.5.1 — stable CLI and Python API, agent-sized JSON output, rule discovery and a local MCP server. No telemetry, no network, no upload boundary.
 
 ## Roadmap
 

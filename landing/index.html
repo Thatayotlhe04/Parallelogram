@@ -131,13 +131,13 @@
       <h2 id="run-title">Catch It Before The GPU Does</h2>
       <p class="sub">One command between your dataset and your trainer: on your machine, in CI, or called by your coding agent.</p>
       <figure class="terminal" id="pane-cli" role="tabpanel" aria-labelledby="tab-cli">
-        <figcaption><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span>train.jsonl</span><span class="mono dim">parallelogram 1.5.0</span></figcaption>
+        <figcaption><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span>train.jsonl</span><span class="mono dim">parallelogram 1.5.1</span></figcaption>
 <pre><code><span class="t-cmd">$ parallelogram check train.jsonl --eval eval.jsonl</span>
 <span class="t-err">✗ train.jsonl:2 [secrets] Message 0 contains a likely OpenAI API key: sk-pro…</span>
 <span class="t-err">✗ train.jsonl:3 [preference] Chosen and rejected answers are identical</span>
 <span class="t-err">✗ train.jsonl:4 [duplicates] Duplicate of line 1</span>
 <span class="t-warn">! train.jsonl:5 [encoding] Message 1 contains likely mojibake: 'â€™'</span>
-<span class="t-warn">! train.jsonl:5 [pii] Message 0 contains an email address: t***@gmail.com</span>
+<span class="t-warn">! train.jsonl:5 [pii] Message 0 contains an email address: t***@***.com</span>
 <span class="t-err">✗ train.jsonl:6 [eval-overlap] Prompt also appears in the eval set (eval.jsonl:1)</span>
 <span class="t-dim">6 records  2 clean  4 errors  2 warnings</span>                 <span class="t-err">exit 2</span>
 
@@ -339,10 +339,10 @@
         <a class="textlink" href="https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/CHANGELOG.md">Full changelog <span aria-hidden="true">→</span></a>
       </div>
       <ol class="log">
-        <li><time datetime="2026-11-07">Nov 7, 2026</time><span class="chip chip-accent">1.5.0</span><p>For coding agents: an MCP server, a Python API and <code>--json --limit</code></p></li>
+        <li><time datetime="2026-11-07">Nov 7, 2026</time><span class="chip chip-accent">1.5.1</span><p>Every field scanned for keys and personal data, and a CI gate that can't be crashed open</p></li>
+        <li><time datetime="2026-11-07">Nov 7, 2026</time><span class="chip">1.5.0</span><p>For coding agents: an MCP server, a Python API and <code>--json --limit</code></p></li>
         <li><time datetime="2026-11-07">Nov 7, 2026</time><span class="chip">1.1.1</span><p>Fixes from an independent review, including secrets quoted in diagnostics</p></li>
         <li><time datetime="2026-11-07">Nov 7, 2026</time><span class="chip">1.1.0</span><p>Alpaca and DPO formats, secrets and PII checks, train/eval leakage with <code>--eval</code></p></li>
-        <li><time datetime="2026-11-06">Nov 6, 2026</time><span class="chip">1.0.0</span><p>Stable contract: prompt/completion format, GitHub Action, versioned JSON, <code>--version</code></p></li>
       </ol>
     </section>
 
@@ -411,7 +411,7 @@
           <span>parallelogram</span>
         </a>
         <p>The linter for fine-tuning data.</p>
-        <p class="mono dim">v1.5.0 · Apache-2.0 · runs offline</p>
+        <p class="mono dim">v1.5.1 · Apache-2.0 · runs offline</p>
       </div>
       <div class="footer-col">
         <h3>Product</h3>
@@ -450,7 +450,7 @@ canonical: https://parallelogram.dev/
 markdown_url: https://parallelogram.dev/index.md
 llms_url: https://parallelogram.dev/llms.txt
 agent_guide: https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/docs/agents.md
-version: 1.5.0
+version: 1.5.1
 updated: 2026-11-07
 ---
 
@@ -474,7 +474,7 @@ codex mcp add parallelogram -- parallelogram mcp     # Codex
 Cursor, Windsurf, Cline and other MCP clients: a stdio server with command `parallelogram` and args `["mcp"]`.
 
 - `check_dataset` {path, format?, eval_path?, disable?, limit?}: validate without changing files. Counts are exact; at most `limit` issues are listed (default 50), errors first. Returns `exit_code`.
-- `fix_dataset` {path, output, format?, eval_path?, disable?, dry_run?, limit?}: write a repaired copy to `output`, never over the input or eval file. Lists only dropped, unparseable and fixed records. Returns `exit_code`.
+- `fix_dataset` {path, output, format?, eval_path?, disable?, dry_run?, overwrite?, limit?}: write a repaired copy to `output`, which must be inside the server's working directory (or `--root`) and must not already exist unless `overwrite` is true. Never writes over the input or eval file. Lists only dropped, unparseable and fixed records. Returns `exit_code`.
 - `list_rules` {}: every rule with its severity, whether it is fixable, and what the fix does.
 
 ## Use it from the shell
@@ -514,8 +514,8 @@ Auto-detected per line: OpenAI chat (`messages`), ShareGPT (`conversations`), pr
 | duplicates | error | The first copy is kept |
 | encoding | warning | BOMs and mojibake are repaired |
 | preference | error | Pairs with identical chosen and rejected answers are dropped |
-| secrets | error | API keys, tokens and private keys are redacted |
-| pii | warning | Emails, phone numbers and card numbers are replaced with placeholders |
+| secrets | error | API keys, tokens and private keys are redacted, in every field of a record |
+| pii | warning | Emails, phone numbers and card numbers are replaced with placeholders, in every field |
 | eval-overlap | error | Train records that repeat the eval set are dropped (only with `--eval`) |
 
 Without `--tokenizer`, token counts are estimates and an estimated overflow is a warning, not an error.

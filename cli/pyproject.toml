@@ -30,7 +30,7 @@ tokenizer = ["tokenizers>=0.15", "tiktoken>=0.7"]
 dev = ["pytest>=8", "ruff>=0.5"]
 
 [project.scripts]
-parallelogram = "parallelogram.cli:app"
+parallelogram = "parallelogram.cli:run"
 
 [project.urls]
 Homepage = "https://parallelogram.dev"

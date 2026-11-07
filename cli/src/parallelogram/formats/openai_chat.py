@@ -14,6 +14,7 @@ import json
 from typing import Iterator
 
 from . import ParseResult, VALID_ROLES  # noqa: F401 — re-exported for back-compat
+from .jsonline import PARSE_ERRORS, describe
 
 
 def iter_jsonl(path: str) -> Iterator[ParseResult]:
@@ -31,11 +32,11 @@ def iter_jsonl(path: str) -> Iterator[ParseResult]:
                     record=record,
                     source_format="openai-chat",
                 )
-            except json.JSONDecodeError as e:
+            except PARSE_ERRORS as e:
                 yield ParseResult(
                     line_no=line_no,
                     raw=raw,
                     record=None,
-                    parse_error=f"{e.msg} at column {e.colno}",
+                    parse_error=describe(e),
                     source_format="openai-chat",
                 )

@@ -17,7 +17,7 @@ import re
 from collections.abc import Iterable
 from typing import Any
 
-from ..core.conversation import map_messages, message_slots, where
+from ..core.fields import map_record_strings, scan_targets
 from ..core.report import Issue, Severity
 from ..core.rules import Rule, registry
 
@@ -85,7 +85,8 @@ _PLACEHOLDER = {"email address": "[REDACTED_EMAIL]", "phone number": "[REDACTED_
 def mask(kind: str, value: str) -> str:
     if kind == "email address":
         local, _, domain = value.partition("@")
-        return f"{local[:1]}***@{domain}"
+        # A company domain can identify a person on its own; keep only the TLD.
+        return f"{local[:1]}***@***.{domain.rsplit('.', 1)[-1]}"
     digits = re.sub(r"\D", "", value)
     return f"…{digits[-4:]}"
 
@@ -106,23 +107,17 @@ class PiiRule(Rule):
     fixable = True
 
     def check_record(self, record: Any, line_no: int) -> Iterable[Issue]:
-        for label, i, msg in message_slots(record):
-            if not isinstance(msg, dict) or not isinstance(msg.get("content"), str):
-                continue
-            for kind, m in find_pii(msg["content"]):
+        for label, text in scan_targets(record):
+            for kind, m in find_pii(text):
                 yield Issue(
                     rule_id=self.id,
                     severity=Severity.WARNING,
                     line_no=line_no,
-                    message=f"{where(label)}Message {i} contains {'an' if kind[0] in 'aeiou' else 'a'} {kind}: {mask(kind, m.group(0))}",
+                    message=f"{label} contains {'an' if kind[0] in 'aeiou' else 'a'} {kind}: {mask(kind, m.group(0))}",
                     detail="The model can learn and repeat it; --fix replaces it with a placeholder",
                     fixable=True,
                     context={"kind": kind},
                 )
 
     def fix_record(self, record: Any, issue: Issue) -> Any | None:
-        def scrub(msg: dict) -> dict:
-            content = msg.get("content")
-            return {**msg, "content": redact(content)} if isinstance(content, str) else msg
-
-        return map_messages(record, scrub)
+        return map_record_strings(record, redact)

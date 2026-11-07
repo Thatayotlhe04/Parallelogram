@@ -15,6 +15,7 @@ import json
 from typing import Any, Iterator
 
 from . import ParseResult
+from .jsonline import PARSE_ERRORS, describe
 
 
 # ShareGPT `from` → canonical role. Unknown values are passed through untouched.
@@ -97,12 +98,12 @@ def iter_jsonl(path: str) -> Iterator[ParseResult]:
                     record=normalize(record),
                     source_format="sharegpt",
                 )
-            except json.JSONDecodeError as e:
+            except PARSE_ERRORS as e:
                 yield ParseResult(
                     line_no=line_no,
                     raw=raw,
                     record=None,
-                    parse_error=f"{e.msg} at column {e.colno}",
+                    parse_error=describe(e),
                     source_format="sharegpt",
                 )
 

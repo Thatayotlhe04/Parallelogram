@@ -3,6 +3,42 @@
 All notable changes to the `parallelogram` CLI. Versions correspond to
 [PyPI releases](https://pypi.org/project/parallelogram/) and `cli-v*` git tags.
 
+## 1.5.1 — 2026-11-07
+
+Fixes from an independent leak audit of 1.5.0. Every fix has a regression
+test. Upgrade if you run Parallelogram in CI or let an agent call it.
+
+### Security
+- `secrets` and `pii` scan every string in a record, not only message text:
+  ids, metadata and other extra fields, message names, tool-call arguments and
+  multimodal content parts. Before, a key in a record's `id` passed `check`
+  and `--fix` wrote it out unchanged.
+- One line with an integer over 4,300 digits, or nested thousands of levels
+  deep, crashed `report` with exit 1, and the GitHub Action read exit 1 as
+  "warnings only" and passed. Such lines are now invalid JSON lines like any
+  other. Any unexpected crash exits 3, and the Action fails when the CLI exits
+  1 without writing a report.
+- `--fix` redacts before it truncates. Truncating first could leave most of a
+  key in the output, too short to match again.
+- An email address or phone number used as a role value is no longer printed
+  in diagnostics, `report` or the Action summary. Email masks no longer show the
+  domain (`j***@***.com`).
+- MCP `fix_dataset` writes only inside the server's root (its working
+  directory, or `parallelogram mcp --root DIR`), refuses symlinked outputs, and
+  replaces an existing file only with `overwrite: true`. `path` and `eval_path`
+  must be regular files, so a pipe or `/dev/stdin` can't block the server, and
+  request lines over 1,000,000 characters are rejected.
+- Values in the Markdown summary (paths, roles, formats, tokenizer names) are
+  fenced so they can't inject links or images into a job summary.
+- New secret kinds: PGP private key blocks, AWS secret access keys next to
+  their name, Slack webhooks and `xoxe-` tokens, Google OAuth client secrets,
+  and keys that directly follow an underscore.
+
+### Changed
+- The publish workflow runs tests and the build without PyPI credentials;
+  only a separate publish job can mint a token, and its actions are pinned to
+  commit SHAs.
+
 ## 1.5.0 — 2026-11-07
 
 Parallelogram for coding agents. Claude Code, Codex, Cursor or your own

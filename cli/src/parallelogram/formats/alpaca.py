@@ -17,6 +17,7 @@ from collections.abc import Iterator
 from typing import Any
 
 from . import ParseResult
+from .jsonline import PARSE_ERRORS, describe
 
 _KEYS = ("instruction", "input", "output", "system", "history")
 _OTHER_SHAPES = ("messages", "conversations", "conversation", "prompt",
@@ -93,9 +94,9 @@ def iter_jsonl(path: str) -> Iterator[ParseResult]:
                 continue
             try:
                 record = json.loads(raw)
-            except json.JSONDecodeError as exc:
+            except PARSE_ERRORS as exc:
                 yield ParseResult(line_no=line_no, raw=raw, record=None,
-                                  parse_error=f"{exc.msg} at column {exc.colno}",
+                                  parse_error=describe(exc),
                                   source_format="alpaca")
                 continue
             yield ParseResult(line_no=line_no, raw=raw, record=normalize(record),

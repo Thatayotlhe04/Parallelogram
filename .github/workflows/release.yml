@@ -5,25 +5,22 @@ on:
     tags:
       - "cli-v*"
 
+permissions:
+  contents: read
+
 jobs:
-  publish:
-    name: Build and publish Parallelogram CLI
+  # Tests and the build run without the PyPI token. Only the publish job can
+  # mint one, and it runs nothing from the repository: it downloads the built
+  # files and uploads them. Actions are pinned to commit SHAs.
+  build:
+    name: Test and build
     runs-on: ubuntu-latest
-
-    environment:
-      name: pypi
-      url: https://pypi.org/p/parallelogram
-
-    permissions:
-      contents: read
-      id-token: write
-
     steps:
       - name: Check out repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.12"
 
@@ -37,13 +34,45 @@ jobs:
         working-directory: cli
         run: pytest -q
 
+      - name: Check the tag matches the package version
+        working-directory: cli
+        run: |
+          version="$(python -c 'import parallelogram; print(parallelogram.__version__)')"
+          if [[ "${GITHUB_REF_NAME}" != "cli-v${version}" ]]; then
+            echo "tag ${GITHUB_REF_NAME} does not match package version ${version}" >&2
+            exit 1
+          fi
+
       - name: Build package
         working-directory: cli
         run: |
           python -m pip install --upgrade build
           python -m build
 
-      - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+      - name: Keep the built files
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          packages-dir: cli/dist
+          name: dist
+          path: cli/dist/
+          if-no-files-found: error
+
+  publish:
+    name: Publish to PyPI
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/parallelogram
+    permissions:
+      id-token: write
+    steps:
+      - name: Fetch the built files
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # release/v1
+        with:
+          packages-dir: dist/

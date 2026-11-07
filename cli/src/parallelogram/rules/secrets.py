@@ -16,24 +16,34 @@ import re
 from collections.abc import Iterable
 from typing import Any
 
-from ..core.conversation import map_messages, message_slots, where
+from ..core.fields import map_record_strings, scan_targets
 from ..core.report import Issue, Severity
 from ..core.rules import Rule, registry
 
 REDACTED = "[REDACTED_SECRET]"
 
 # (kind, pattern). Order matters: more specific prefixes first.
+# Keys often follow an underscore (OPENAI_API_KEY_sk-...), where \b doesn't
+# match, so prefixes are anchored on "not preceded by a letter or digit".
+_B = r"(?<![A-Za-z0-9])"
+
 PATTERNS: list[tuple[str, re.Pattern]] = [
     ("private key", re.compile(
-        r"-----BEGIN (?:[A-Z]+ )*PRIVATE KEY-----[\s\S]*?(?:-----END (?:[A-Z]+ )*PRIVATE KEY-----|\Z)")),
-    ("Anthropic API key", re.compile(r"\bsk-ant-[A-Za-z0-9_-]{20,}")),
-    ("OpenAI API key", re.compile(r"\bsk-(?:proj|svcacct|admin)-[A-Za-z0-9_-]{20,}|\bsk-[A-Za-z0-9]{32,}\b")),
-    ("AWS access key", re.compile(r"\b(?:AKIA|ASIA)[0-9A-Z]{16}\b")),
-    ("GitHub token", re.compile(r"\bgh[pousr]_[A-Za-z0-9]{36,}\b|\bgithub_pat_[A-Za-z0-9_]{22,}")),
-    ("Hugging Face token", re.compile(r"\bhf_[A-Za-z0-9]{30,}\b")),
-    ("Slack token", re.compile(r"\bxox[abprs]-[A-Za-z0-9-]{10,}")),
-    ("Google API key", re.compile(r"\bAIza[0-9A-Za-z_-]{35}(?![0-9A-Za-z_-])")),
-    ("Stripe secret key", re.compile(r"\b(?:sk|rk)_live_[0-9A-Za-z]{16,}\b")),
+        r"-----BEGIN (?:[A-Z]+ )*PRIVATE KEY(?: BLOCK)?-----[\s\S]*?"
+        r"(?:-----END (?:[A-Z]+ )*PRIVATE KEY(?: BLOCK)?-----|\Z)")),
+    ("Anthropic API key", re.compile(_B + r"sk-ant-[A-Za-z0-9_-]{20,}")),
+    ("OpenAI API key", re.compile(_B + r"sk-(?:proj|svcacct|admin)-[A-Za-z0-9_-]{20,}|" + _B + r"sk-[A-Za-z0-9]{32,}(?![A-Za-z0-9])")),
+    ("AWS access key", re.compile(_B + r"(?:AKIA|ASIA)[0-9A-Z]{16}(?![0-9A-Za-z])")),
+    # A secret access key has no prefix of its own; require the name beside it.
+    ("AWS secret access key", re.compile(
+        r"(?i:aws_?secret(?:_?access)?_?key)[\"']?\s*[:=]\s*[\"']?[A-Za-z0-9/+]{40}(?![A-Za-z0-9/+])")),
+    ("GitHub token", re.compile(_B + r"gh[pousr]_[A-Za-z0-9]{36,}(?![A-Za-z0-9])|" + _B + r"github_pat_[A-Za-z0-9_]{22,}")),
+    ("Hugging Face token", re.compile(_B + r"hf_[A-Za-z0-9]{30,}(?![A-Za-z0-9])")),
+    ("Slack token", re.compile(_B + r"xox[abeprs]-[A-Za-z0-9-]{10,}")),
+    ("Slack webhook", re.compile(r"https://hooks\.slack\.com/(?:services|workflows|triggers)/[A-Za-z0-9/_-]{20,}")),
+    ("Google API key", re.compile(_B + r"AIza[0-9A-Za-z_-]{35}(?![0-9A-Za-z_-])")),
+    ("Google OAuth client secret", re.compile(_B + r"GOCSPX-[A-Za-z0-9_-]{24,}")),
+    ("Stripe secret key", re.compile(_B + r"(?:sk|rk)_live_[0-9A-Za-z]{16,}(?![0-9A-Za-z])")),
 ]
 
 _PLACEHOLDER_WORDS = ("your", "example", "xxxx", "dummy", "fake", "redacted", "placeholder", "sample", "test1234")
@@ -85,23 +95,19 @@ class SecretsRule(Rule):
     fixable = True  # redaction is mechanical
 
     def check_record(self, record: Any, line_no: int) -> Iterable[Issue]:
-        for label, i, msg in message_slots(record):
-            if not isinstance(msg, dict) or not isinstance(msg.get("content"), str):
-                continue
-            for kind, m in find_secrets(msg["content"]):
+        # Every string, not only message content: ids, metadata, names and
+        # tool-call arguments carry keys too, and a key there leaks just as well.
+        for label, text in scan_targets(record):
+            for kind, m in find_secrets(text):
                 yield Issue(
                     rule_id=self.id,
                     severity=Severity.ERROR,
                     line_no=line_no,
-                    message=f"{where(label)}Message {i} contains a likely {kind}: {mask(m.group(0))}",
+                    message=f"{label} contains a likely {kind}: {mask(m.group(0))}",
                     detail="A model trained on it can repeat it; --fix redacts it",
                     fixable=True,
                     context={"kind": kind},
                 )
 
     def fix_record(self, record: Any, issue: Issue) -> Any | None:
-        def scrub(msg: dict) -> dict:
-            content = msg.get("content")
-            return {**msg, "content": redact(content)} if isinstance(content, str) else msg
-
-        return map_messages(record, scrub)
+        return map_record_strings(record, redact)

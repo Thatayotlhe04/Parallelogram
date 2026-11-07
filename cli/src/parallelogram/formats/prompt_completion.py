@@ -6,6 +6,7 @@ from collections.abc import Iterator
 from typing import Any
 
 from . import ParseResult
+from .jsonline import PARSE_ERRORS, describe
 
 
 def is_prompt_completion_record(record: Any) -> bool:
@@ -55,10 +56,10 @@ def iter_jsonl(path: str) -> Iterator[ParseResult]:
                 continue
             try:
                 record = json.loads(raw)
-            except json.JSONDecodeError as exc:
+            except PARSE_ERRORS as exc:
                 yield ParseResult(
                     line_no=line_no, raw=raw, record=None,
-                    parse_error=f"{exc.msg} at column {exc.colno}",
+                    parse_error=describe(exc),
                     source_format="prompt-completion",
                 )
                 continue

@@ -15,6 +15,9 @@ on:
       - "scripts/build_agent_view.py"
       - ".github/workflows/landing-ci.yml"
 
+permissions:
+  contents: read
+
 jobs:
   csp:
     name: CSP consistency
