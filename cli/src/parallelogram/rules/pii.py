@@ -49,7 +49,10 @@ def find_pii(text: str) -> list[tuple[str, re.Match]]:
             continue
         found.append(("email address", m))
     for m in PHONE_INTL.finditer(text):
-        if 8 <= len(re.sub(r"\D", "", m.group(0))) <= 15:
+        digits = re.sub(r"\D", "", m.group(0))
+        if len(digits) == 11 and digits.startswith("1") and digits[4:7] == "555":
+            continue
+        if 8 <= len(digits) <= 15:
             found.append(("phone number", m))
     for m in PHONE_US.finditer(text):
         if m.group(2) != "555":
