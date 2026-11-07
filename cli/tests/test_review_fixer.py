@@ -23,3 +23,16 @@ def test_dataset_drops_keep_prior_fix_attribution(tmp_path):
     assert data['outcomes'][1]['rules_fixed'] == ['encoding', 'duplicates']
     assert Counter(data['fixes_by_rule']) == Counter(
         rule for outcome in data['outcomes'] for rule in outcome['rules_fixed'])
+
+
+def test_redaction_cannot_rescue_an_original_eval_overlap(tmp_path):
+    train, ev, out = (tmp_path / name for name in ['train.jsonl', 'eval.jsonl', 'fixed.jsonl'])
+    leak = {'prompt': 'Email person@gmail.com', 'completion': 'A'}
+    train.write_text(json.dumps(leak) + '\n' + json.dumps({'prompt': 'safe', 'completion': 'B'}) + '\n')
+    ev.write_text(json.dumps(leak) + '\n')
+    result = CliRunner().invoke(app, ['check', str(train), '--eval', str(ev), '--fix', '--json', '--output', str(out)])
+    assert result.exit_code == 1, result.output
+    data = json.loads(result.stdout)
+    assert data['summary']['dropped'] == 1
+    assert data['outcomes'][0]['rules_fixed'] == ['pii', 'eval-overlap']
+    assert json.loads(out.read_text()) == {'prompt': 'safe', 'completion': 'B'}

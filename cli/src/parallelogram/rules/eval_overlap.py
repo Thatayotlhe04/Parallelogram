@@ -55,6 +55,10 @@ class EvalOverlapRule(Rule):
         self.eval_path: str | None = self.config.get("eval_path")
         self._full: dict[str, int] | None = None
         self._prompts: dict[str, int] = {}
+        self._matched_lines: set[int] = set()
+
+    def reset(self) -> None:
+        self._matched_lines = set()
 
     def _load(self) -> None:
         if self._full is not None:
@@ -99,6 +103,7 @@ class EvalOverlapRule(Rule):
         hit = self._match(record)
         if hit is None:
             return
+        self._matched_lines.add(line_no)
         kind, eval_line = hit
         name = os.path.basename(self.eval_path)
         yield Issue(
@@ -115,4 +120,5 @@ class EvalOverlapRule(Rule):
     def fix_dataset(self, records: list[tuple[int, Any]]) -> list[tuple[int, Any]]:
         if not self.eval_path:
             return records
-        return [(ln, rec) for ln, rec in records if self._match(rec) is None]
+        return [(ln, rec) for ln, rec in records
+                if ln not in self._matched_lines and self._match(rec) is None]
