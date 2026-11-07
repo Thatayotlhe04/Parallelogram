@@ -34,6 +34,10 @@ parallelogram = "parallelogram.cli:app"
 
 [project.urls]
 Homepage = "https://parallelogram.dev"
+Source = "https://github.com/Thatayotlhe04/Parallelogram"
+Documentation = "https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/docs/agents.md"
+Changelog = "https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/CHANGELOG.md"
+Issues = "https://github.com/Thatayotlhe04/Parallelogram/issues"
 
 [build-system]
 requires = ["hatchling"]

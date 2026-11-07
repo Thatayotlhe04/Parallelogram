@@ -72,7 +72,7 @@ are shared.
   misdetected.
 - Docs: format lists and exit codes now match the CLI.
 
-## 1.1.0 — 2026-11-06
+## 1.1.0 — 2026-11-07
 
 The biggest release since the first one: two new dataset formats, three new
 checks that run by default, and train/eval leakage detection.
