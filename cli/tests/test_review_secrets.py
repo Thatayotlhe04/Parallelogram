@@ -59,3 +59,13 @@ def test_placeholder_substrings_do_not_hide_credentials(word):
     key = 'sk-proj-Ab3dEf9hIjK2' + word + 'mNoPqR5sTuVwXyZ01234'
     assert len(find_secrets(key)) == 1
     assert redact(key) == '[REDACTED_SECRET]'
+
+
+@pytest.mark.parametrize('last', ['-', '_'])
+def test_google_keys_allow_urlsafe_final_character(last):
+    from parallelogram.rules.secrets import find_secrets, redact
+
+    key = 'AIza' + 'Ab3dEf9hIjK2mNoPqR5sTuVwXyZ0123456' + last
+    assert len(key) == 39
+    assert [kind for kind, _ in find_secrets(key)] == ['Google API key']
+    assert redact(key) == '[REDACTED_SECRET]'
