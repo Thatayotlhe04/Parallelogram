@@ -23,6 +23,7 @@ Never overwrite the input or eval set. Fix into a separate output file and reche
 
 ## Documentation
 
+- [Machine-readable page](https://parallelogram.dev/index.md): The landing page as markdown, with MCP setup, commands, exit codes and every check.
 - [Agent guide](https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/docs/agents.md): Python API, MCP tools, client setup and instructions to paste into AGENTS.md or CLAUDE.md.
 - [JSON contract](https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/docs/json-output.md): Stable fields, counts and exit codes.
 - [CLI guide](https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/README.md): Installation, formats, rules and commands.

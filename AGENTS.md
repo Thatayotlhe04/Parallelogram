@@ -28,7 +28,8 @@ cli/                      the Python package (the product), published to PyPI
   smoke.py, smoke_fix.py  stdlib-only smoke scripts
   examples/               small sample datasets used by tests and CI
 landing/                  static site for parallelogram.dev (Vercel)
-scripts/                  release + CSP check helpers
+  index.md                the machine-readable page; source of the Agent view
+scripts/                  release, CSP check and Agent view helpers
 ```
 
 ## Commands
@@ -54,7 +55,9 @@ change; put them in `cli/tests/`.
   a stated reason in the PR description. Optional extras go in
   `[project.optional-dependencies]`.
 - **Exit codes are a public API:** 0 clean, 1 warnings only (or partial fix),
-  2 errors, 3 regression vs `--baseline` (report only). Do not change them.
+  2 errors, 3 an operational failure (unreadable input or output, invalid
+  `--eval` file) or a regression vs `--baseline` in `report`. Do not change
+  them. MCP tool results carry the same `exit_code`.
 - **Informational notes never affect the exit code.** A clean dataset must exit
   0 on a default install (no extras).
 - **`schema` cannot be disabled.** Unknown rule ids passed to `--disable` are

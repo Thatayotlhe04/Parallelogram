@@ -1,4 +1,4 @@
-/* parallelogram.dev — copy buttons, CLI/CI tabs, and the eater.
+/* parallelogram.dev — copy buttons, CLI/CI tabs, Human/Agent views, and the eater.
    The page reads fine without JavaScript; everything here is enhancement. */
 (() => {
   'use strict';
@@ -80,28 +80,66 @@
     window.addEventListener('resize', onScroll);
   }
 
-  // ── Works-with strip ──────────────────────────────────────────────
-  // Logos are official files dropped into landing/logos/. A logo that
-  // fails to load is hidden; the strip appears once three or more load,
-  // so the page never shows a half-empty row.
-  const works = document.getElementById('works');
-  if (works) {
-    const imgs = Array.from(works.querySelectorAll('img'));
-    let settled = 0, loaded = 0;
-    const done = (img, ok) => {
-      settled++;
-      if (ok) loaded++; else img.closest('li').classList.add('missing');
-      if (settled === imgs.length && loaded >= 3) works.hidden = false;
-    };
-    imgs.forEach(img => {
-      img.loading = 'eager';  // hidden images never load lazily
-      if (img.complete) done(img, img.naturalWidth > 0);
-      else {
-        img.addEventListener('load', () => done(img, true), { once: true });
-        img.addEventListener('error', () => done(img, false), { once: true });
-      }
-    });
+  // ── Human / Agent ─────────────────────────────────────────────────
+  // Agent shows the machine-readable page (landing/index.md, embedded by
+  // scripts/build_agent_view.py) in place of the designed one. The choice
+  // is remembered per browser; ?view=agent links straight to it.
+  const modeButtons = Array.from(document.querySelectorAll('.mode [data-mode]'));
+  const agentView = document.getElementById('agent-view');
+  const agentMd = document.getElementById('agent-md');
+  const markdown = agentMd ? agentMd.textContent : '';
+  let highlighted = false;
+
+  const esc = text => text.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+  const inline = text => esc(text)
+    .replace(/`([^`]+)`/g, '<span class="md-code">`$1`</span>')
+    .replace(/(https?:\/\/[^\s<)]+)/g, '<span class="md-link">$1</span>');
+  function highlight() {
+    if (highlighted || !agentMd) return;
+    let fence = false, front = 0;
+    agentMd.innerHTML = markdown.split('\n').map(line => {
+      if (line === '---' && front < 2) { front++; return '<span class="md-dim">---</span>'; }
+      if (front === 1) return '<span class="md-dim">' + esc(line) + '</span>';
+      if (line.startsWith('```')) { fence = !fence; return '<span class="md-dim">' + esc(line) + '</span>'; }
+      if (fence) return '<span class="md-pre">' + esc(line) + '</span>';
+      const h = line.match(/^(#{1,6}) (.*)$/);
+      if (h) return '<span class="md-mark">' + h[1] + '</span> <span class="md-h">' + inline(h[2]) + '</span>';
+      if (line.startsWith('> ')) return '<span class="md-dim">' + inline(line) + '</span>';
+      const li = line.match(/^(\s*- )(.*)$/);
+      if (li) return '<span class="md-mark">' + li[1] + '</span>' + inline(li[2]);
+      return inline(line);
+    }).join('\n');
+    highlighted = true;
   }
+
+  function setMode(mode, remember) {
+    if (!agentView) return;
+    const agent = mode === 'agent';
+    if (agent) highlight();
+    document.documentElement.dataset.mode = agent ? 'agent' : 'human';
+    agentView.hidden = !agent;
+    modeButtons.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === mode)));
+    if (remember) {
+      try { localStorage.setItem('pg-mode', mode); } catch { /* storage unavailable */ }
+      window.scrollTo(0, 0);
+    }
+  }
+  modeButtons.forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode, true)));
+  let initial = 'human';
+  try { initial = localStorage.getItem('pg-mode') || 'human'; } catch { /* storage unavailable */ }
+  if (new URLSearchParams(location.search).get('view') === 'agent') initial = 'agent';
+  if (initial === 'agent') setMode('agent', false);
+
+  const copyPage = document.getElementById('agent-copy');
+  if (copyPage) copyPage.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(markdown);
+      copyPage.textContent = 'Copied';
+    } catch {
+      copyPage.textContent = 'Select and copy';
+    }
+    setTimeout(() => { copyPage.textContent = 'Copy page'; }, 2000);
+  });
 
   // ── The eater ─────────────────────────────────────────────────────
   // A pixel parallelogram walks the track above the install row and

@@ -6,11 +6,13 @@ on:
     paths:
       - "landing/**"
       - "scripts/check_csp.py"
+      - "scripts/build_agent_view.py"
       - ".github/workflows/landing-ci.yml"
   pull_request:
     paths:
       - "landing/**"
       - "scripts/check_csp.py"
+      - "scripts/build_agent_view.py"
       - ".github/workflows/landing-ci.yml"
 
 jobs:
@@ -27,3 +29,6 @@ jobs:
 
       - name: Check every loaded resource against the CSP in vercel.json
         run: python scripts/check_csp.py
+
+      - name: Check the Agent view matches landing/index.md
+        run: python scripts/build_agent_view.py --check
