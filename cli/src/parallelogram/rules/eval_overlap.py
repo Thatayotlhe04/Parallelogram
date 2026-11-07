@@ -38,6 +38,10 @@ def prompt_hash(record: Any) -> str:
     return hashlib.sha256(canon.encode("utf-8")).hexdigest()
 
 
+class EvalInputError(ValueError):
+    """The eval set could not be indexed reliably."""
+
+
 @registry.register
 class EvalOverlapRule(Rule):
     id = "eval-overlap"
@@ -49,27 +53,38 @@ class EvalOverlapRule(Rule):
     def __init__(self, config: dict[str, Any] | None = None):
         super().__init__(config)
         self.eval_path: str | None = self.config.get("eval_path")
-        self.dataset_format: str = self.config.get("dataset_format", "auto")
         self._full: dict[str, int] | None = None
         self._prompts: dict[str, int] = {}
+        self._matched_lines: set[int] = set()
+
+    def reset(self) -> None:
+        self._matched_lines = set()
 
     def _load(self) -> None:
         if self._full is not None:
             return
         from ..formats import get_parser
+        from .schema import SchemaRule
 
-        self._full, self._prompts = {}, {}
-        if not self.eval_path:
-            return
-        for parsed in get_parser(self.dataset_format)(self.eval_path):
-            if parsed.record is None:
-                continue
-            h = record_hash(parsed.record)
-            if h:
-                self._full.setdefault(h, parsed.line_no)
-            p = prompt_hash(parsed.record)
-            if p:
-                self._prompts.setdefault(p, parsed.line_no)
+        full, prompts = {}, {}
+        if self.eval_path:
+            try:
+                for parsed in get_parser("auto")(self.eval_path):
+                    if parsed.parse_error is not None:
+                        raise EvalInputError(f"Invalid eval JSON at line {parsed.line_no}")
+                    if any(SchemaRule().check_record(parsed.record, parsed.line_no)):
+                        raise EvalInputError(f"Invalid eval schema at line {parsed.line_no}")
+                    h = record_hash(parsed.record)
+                    if h:
+                        full.setdefault(h, parsed.line_no)
+                    p = prompt_hash(parsed.record)
+                    if p:
+                        prompts.setdefault(p, parsed.line_no)
+            except OSError as exc:
+                # Never include eval content (or exception text) in diagnostics.
+                raise EvalInputError("Could not read eval file") from exc
+        # Cache only a complete index; a failed load must not become an empty set.
+        self._full, self._prompts = full, prompts
 
     def _match(self, record: Any) -> tuple[str, int] | None:
         self._load()
@@ -87,6 +102,7 @@ class EvalOverlapRule(Rule):
         hit = self._match(record)
         if hit is None:
             return
+        self._matched_lines.add(line_no)
         kind, eval_line = hit
         name = os.path.basename(self.eval_path)
         yield Issue(
@@ -103,4 +119,5 @@ class EvalOverlapRule(Rule):
     def fix_dataset(self, records: list[tuple[int, Any]]) -> list[tuple[int, Any]]:
         if not self.eval_path:
             return records
-        return [(ln, rec) for ln, rec in records if self._match(rec) is None]
+        return [(ln, rec) for ln, rec in records
+                if ln not in self._matched_lines and self._match(rec) is None]

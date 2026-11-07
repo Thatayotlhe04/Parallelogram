@@ -10,7 +10,7 @@ Exit codes are deliberately minimal and stable:
   0 — clean (no issues)
   1 — warnings only
   2 — errors
-  3 — quality regression vs --baseline (report only)
+  3 — invalid eval input, or quality regression vs --baseline (report only)
 
 These map cleanly to CI gates without any extra wiring.
 
@@ -78,7 +78,13 @@ def _build_rules(disabled: set[str], tokenizer: Optional[str], max_seq_len: int,
             rules.append(rc({"tokenizer": tokenizer, "max_seq_len": max_seq_len}))
         elif rc.id == "eval-overlap":
             if eval_path is not None:
-                rules.append(rc({"eval_path": str(eval_path), "dataset_format": dataset_format}))
+                rule = rc({"eval_path": str(eval_path)})
+                try:
+                    rule._load()
+                except eval_overlap.EvalInputError as exc:
+                    typer.echo(str(exc), err=True)
+                    raise typer.Exit(3)
+                rules.append(rule)
         else:
             rules.append(rc())
     return rules
@@ -394,7 +400,7 @@ def report(
     """Summarize dataset health: clean/error/warning counts, what --fix would
     do, token risk, duplicate clusters, and shape — for humans and CI.
 
-    Exit codes: 0 clean · 1 warnings · 2 errors · 3 regression vs --baseline.
+    Exit codes: 0 clean · 1 warnings · 2 errors · 3 invalid eval input or regression vs --baseline.
     """
     from .core.summary import build_summary, compare_to_baseline
     from .output.summary_output import render_terminal_summary, render_markdown_summary

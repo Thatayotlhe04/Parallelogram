@@ -18,6 +18,7 @@ from collections.abc import Iterator
 from typing import Any
 
 from . import ParseResult
+from ..core.conversation import ConversationRecord, prompt_end
 
 _KEYS = ("prompt", "chosen", "rejected")
 _OTHER_SHAPES = ("messages", "conversations", "conversation")
@@ -38,6 +39,8 @@ def field_errors(record: dict) -> list[str]:
             errors.append(f"Missing '{key}' field")
         elif not isinstance(record[key], (str, list)):
             errors.append(f"'{key}' must be a string or list; found {type(record[key]).__name__}")
+        elif isinstance(record[key], list) and not record[key]:
+            errors.append(f"'{key}' must not be empty")
     if "prompt" in record:
         if not isinstance(record["prompt"], (str, list)):
             errors.append(f"'prompt' must be a string or list; found {type(record['prompt']).__name__}")
@@ -73,7 +76,8 @@ def normalize(record: Any) -> Any:
         n = min(n, len(chosen_full) - 1, len(rejected_full) - 1)
         n = max(n, 0)
         prompt, chosen, rejected = chosen_full[:n], chosen_full[n:], rejected_full[n:]
-    return {**extras, "messages": prompt + chosen, "rejected": rejected}
+    return ConversationRecord({**extras, "messages": prompt + chosen, "rejected": rejected},
+                              prompt_length=len(prompt))
 
 
 def source_metadata(record: Any) -> dict[str, Any]:
@@ -112,13 +116,11 @@ def _restore(turns: list, kind: str, role: str) -> Any:
 
 def to_preference(record: Any, metadata: dict[str, Any] | None = None) -> Any:
     """Inverse of :func:`normalize` for ``--fix --output``."""
-    from ..core.conversation import completion_start
-
     if not isinstance(record, dict) or not isinstance(record.get("messages"), list):
         return record
     meta = metadata or {}
     messages = record["messages"]
-    split = completion_start(messages)
+    split = prompt_end(record)
     prompt, chosen = messages[:split], messages[split:]
     rejected = record.get("rejected") or []
     kinds = meta.get("kinds", {})

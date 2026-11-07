@@ -8,7 +8,27 @@ which on-disk format the record came from.
 """
 from __future__ import annotations
 
+from copy import copy
 from typing import Any
+
+
+class ConversationRecord(dict):
+    """Normalized chat with an explicit prompt boundary outside user fields.
+
+    A dict attribute avoids reserving (and overwriting) dataset metadata keys.
+    Mechanical copies must retain it; it is never serialized to disk.
+    """
+
+    def __init__(self, record: dict, prompt_length: int):
+        super().__init__(record)
+        self.prompt_length = prompt_length
+
+
+def prompt_end(record: dict) -> int:
+    if isinstance(record, ConversationRecord):
+        return record.prompt_length
+    messages = record.get("messages")
+    return completion_start(messages) if isinstance(messages, list) else 0
 
 
 def completion_start(messages: list) -> int:
@@ -29,7 +49,7 @@ def prompt_messages(record: Any) -> list:
     if not isinstance(record, dict) or not isinstance(record.get("messages"), list):
         return []
     messages = record["messages"]
-    return messages[:completion_start(messages)]
+    return messages[:prompt_end(record)]
 
 
 def has_rejected(record: Any) -> bool:
@@ -86,18 +106,25 @@ def map_messages(record: Any, fn) -> Any:
     message, or None to drop it."""
     if not isinstance(record, dict):
         return record
-    out = dict(record)
+    out = copy(record)
     for key in ("messages", "rejected"):
         msgs = record.get(key)
         if not isinstance(msgs, list):
             continue
         new = []
-        for msg in msgs:
+        prompt_length = 0
+        for i, msg in enumerate(msgs):
             if not isinstance(msg, dict):
                 new.append(msg)
+                if isinstance(record, ConversationRecord) and i < record.prompt_length:
+                    prompt_length += 1
                 continue
             m = fn(msg)
             if m is not None:
                 new.append(m)
+                if isinstance(record, ConversationRecord) and i < record.prompt_length:
+                    prompt_length += 1
         out[key] = new
+        if key == "messages" and isinstance(out, ConversationRecord):
+            out.prompt_length = prompt_length
     return out

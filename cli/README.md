@@ -86,6 +86,10 @@ parallelogram check train.jsonl --eval eval.jsonl
 
 Flags train records whose whole content, or whose prompt, also appears in the
 eval set. `--fix` drops them from the train output; the eval file is never touched.
+Eval records are auto-detected independently of `--format`. Matching trims message
+edges but preserves case and internal whitespace. An empty eval file is allowed;
+invalid JSON, invalid schema, or a read failure aborts with exit 3 and a stderr
+diagnostic, before any output dataset is written.
 
 ### Check prompt/completion data
 
@@ -233,7 +237,7 @@ jobs:
 its version matches the selected ref. Setting `tokenizer` installs the tokenizer
 extras. The required `path` points to your checked-out dataset; all other inputs
 are optional, with defaults shown above (tokenizer and baseline default to empty).
-Errors (exit 2) and baseline regressions (exit 3) always fail. Warning-only reports
+Errors (exit 2), invalid eval inputs and baseline regressions (exit 3) always fail. Warning-only reports
 (exit 1) pass by default; use `fail-on: warning` to fail on them too. The report is
 appended to the job summary even when validation fails.
 
@@ -285,7 +289,7 @@ left enabled passed — which may or may not be enough.
 | `0`  | Clean. | All records emitted clean. | Clean. |
 | `1`  | Warnings only. | Some records dropped (partial fix). | Warnings only. |
 | `2`  | Errors. | Nothing fixable. | Errors. |
-| `3`  | — | — | Quality regressed vs `--baseline`. |
+| `3`  | Invalid/unreadable eval input. | Invalid/unreadable eval input. | Invalid/unreadable eval input, or quality regressed vs `--baseline`. |
 
 These are stable and map directly to CI gates without any extra wiring.
 Informational notes (like "context-window counts are approximate" when running
@@ -309,7 +313,7 @@ default install.
 
 ## Status
 
-v1.0.0 — stable CLI contract, local pre-training validation. No telemetry, no network, no upload boundary.
+v1.1.1 — stable CLI contract, local pre-training validation. No telemetry, no network, no upload boundary.
 
 ## Roadmap
 

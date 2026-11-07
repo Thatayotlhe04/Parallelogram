@@ -80,6 +80,8 @@ def source_metadata(record: Any) -> dict[str, Any]:
         "has_input": "input" in record,
         "has_system": "system" in record,
         "has_history": "history" in record,
+        "null_fields": [k for k in ("input", "system", "history")
+                        if k in record and record[k] is None],
         "extras": [k for k in record if k not in _KEYS],
     }
 
@@ -109,11 +111,18 @@ def _split_user(content: str, metadata: dict[str, Any]) -> tuple[str, str]:
     everything in the instruction rather than guess.
     """
     from ..rules.encoding import fix_text
+    from ..rules.secrets import redact as redact_secrets
+    from ..rules.pii import redact as redact_pii
 
     instruction = metadata.get("instruction")
     if not metadata.get("input") or not isinstance(instruction, str):
         return content, ""
-    for candidate in dict.fromkeys((instruction, fix_text(instruction))):
+    candidates = [instruction]
+    # Recognize each mechanical text repair, including compositions and runs
+    # where an earlier rule was disabled. Never substitute unredacted metadata.
+    for repair in (fix_text, redact_secrets, redact_pii):
+        candidates.extend(repair(text) for text in list(candidates))
+    for candidate in dict.fromkeys(candidates):
         if content.startswith(candidate + "\n\n"):
             return candidate, content[len(candidate) + 2:]
     return content, ""
@@ -141,6 +150,9 @@ def to_alpaca(record: Any, metadata: dict[str, Any] | None = None) -> Any:
     if msgs or meta.get("has_history"):
         out["history"] = [[msgs[i].get("content"), msgs[i + 1].get("content")]
                           for i in range(0, len(msgs) - 1, 2)]
+    for key in meta.get("null_fields", []):
+        if not out.get(key):
+            out[key] = None
     for key in meta.get("extras", []):
         if key in record:
             out[key] = record[key]

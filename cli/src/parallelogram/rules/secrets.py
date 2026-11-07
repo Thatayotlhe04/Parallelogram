@@ -32,7 +32,7 @@ PATTERNS: list[tuple[str, re.Pattern]] = [
     ("GitHub token", re.compile(r"\bgh[pousr]_[A-Za-z0-9]{36,}\b|\bgithub_pat_[A-Za-z0-9_]{22,}")),
     ("Hugging Face token", re.compile(r"\bhf_[A-Za-z0-9]{30,}\b")),
     ("Slack token", re.compile(r"\bxox[abprs]-[A-Za-z0-9-]{10,}")),
-    ("Google API key", re.compile(r"\bAIza[0-9A-Za-z_-]{35}\b")),
+    ("Google API key", re.compile(r"\bAIza[0-9A-Za-z_-]{35}(?![0-9A-Za-z_-])")),
     ("Stripe secret key", re.compile(r"\b(?:sk|rk)_live_[0-9A-Za-z]{16,}\b")),
 ]
 
@@ -42,7 +42,9 @@ _PLACEHOLDER_WORDS = ("your", "example", "xxxx", "dummy", "fake", "redacted", "p
 def looks_placeholder(value: str) -> bool:
     """Documentation and tutorial data is full of fake keys; skip them."""
     low = value.lower()
-    if any(word in low for word in _PLACEHOLDER_WORDS):
+    if value == "AKIAIOSFODNN7EXAMPLE" or any(
+        part in _PLACEHOLDER_WORDS for part in re.split(r"[-_]", low)
+    ):
         return True
     body = re.sub(r"^[A-Za-z]+[-_]", "", value)
     return len(set(body)) < 8

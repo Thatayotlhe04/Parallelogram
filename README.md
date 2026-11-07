@@ -99,6 +99,10 @@ parallelogram check train.jsonl --eval eval.jsonl
 
 Flags train records whose whole content, or whose prompt, also appears in the
 eval set. `--fix` drops them from the train output; the eval file is never touched.
+Eval records are auto-detected independently of `--format`. Matching trims message
+edges but preserves case and internal whitespace. An empty eval file is allowed;
+invalid JSON, invalid schema, or a read failure aborts with exit 3 and a stderr
+diagnostic, before any output dataset is written.
 
 ### Check prompt/completion data
 
@@ -216,7 +220,7 @@ parallelogram check data.jsonl --disable encoding --disable duplicates
 | `0`  | Clean — no errors or warnings. | All records emitted clean. | Clean. |
 | `1`  | Warnings only. | Some records dropped (partial fix). | Warnings only. |
 | `2`  | Errors. | Nothing fixable. | Errors. |
-| `3`  | — | — | Quality regressed vs `--baseline`. |
+| `3`  | Invalid/unreadable eval input. | Invalid/unreadable eval input. | Invalid/unreadable eval input, or quality regressed vs `--baseline`. |
 
 These map directly to CI gates without any extra wiring.
 
@@ -263,7 +267,7 @@ jobs:
 its version matches the selected ref. Setting `tokenizer` installs the tokenizer
 extras. The required `path` points to your checked-out dataset; all other inputs
 are optional, with defaults shown above (tokenizer and baseline default to empty).
-Errors (exit 2) and baseline regressions (exit 3) always fail. Warning-only reports
+Errors (exit 2), invalid eval inputs and baseline regressions (exit 3) always fail. Warning-only reports
 (exit 1) pass by default; use `fail-on: warning` to fail on them too. The report is
 appended to the job summary even when validation fails.
 
@@ -310,7 +314,7 @@ Deploy by dropping `landing/` on Vercel, Netlify, Cloudflare Pages, or GitHub Pa
 
 ## Status
 
-**CLI v1.0.0, stable** — local pre-training validation with six rules, mechanical `--fix`, model-specific tokenizers, chat/ShareGPT/prompt-completion auto-detection, versioned JSON output, and a composite GitHub Action.
+**CLI v1.1.1, stable** — local pre-training validation with nine default rules and optional eval-overlap detection, mechanical `--fix`, model-specific tokenizers, chat/ShareGPT/prompt-completion/Alpaca/preference auto-detection, versioned JSON output, and a composite GitHub Action.
 
 **Landing page** — [parallelogram.dev](https://parallelogram.dev): checks, the check/fix/gate workflow, changelog and FAQ, with privacy policy and terms of use. No cookies.
 

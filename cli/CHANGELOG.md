@@ -3,6 +3,43 @@
 All notable changes to the `parallelogram` CLI. Versions correspond to
 [PyPI releases](https://pypi.org/project/parallelogram/) and `cli-v*` git tags.
 
+## 1.1.1 — 2026-11-07
+
+Fixes from an independent review of 1.1.0. Every fix has a regression test.
+Upgrade if you use `--eval`, preference or Alpaca data, or run in CI where logs
+are shared.
+
+### Security
+- A credential inside a malformed field, such as a message `role`, was quoted in
+  full by the schema diagnostic. All diagnostics and the report's role summary
+  are now redacted centrally, even when the `secrets` rule is disabled.
+- Real keys containing words like `your` or `example` inside them were treated
+  as documentation placeholders and skipped. Placeholders now have to be a
+  whole segment of the key.
+- Google API keys ending in `-` were missed.
+
+### Fixed
+- `--eval`: the eval file's format is detected on its own instead of assumed to
+  match the training file. An eval file with an invalid line now exits 3 with
+  the line number instead of being partly ignored.
+- `--fix` on Alpaca: redacting text in the instruction no longer merges the
+  `input` field into it, and `null` optional fields stay `null`.
+- Preference pairs keep their real prompt boundary through validation and
+  `--fix`, so multi-turn `chosen` and `rejected` answers are checked, matched
+  against `--eval` and deduplicated correctly. An empty `chosen` answer is now
+  an error.
+- `pii`: fewer false positives on arithmetic, coordinates, identifiers that
+  embed digits and NANP-invalid numbers; subdomains of reserved example
+  domains and `+1 555` numbers are ignored as documented.
+- `--fix` rechecks a record after each text repair, so an issue uncovered by
+  one fix (for example an email hidden behind a stray BOM) is repaired too.
+- Records dropped by `eval-overlap` or `duplicates` keep the record of fixes
+  already applied to them, and overlap decisions are made on the original text.
+- Non-string `role` values are reported as schema errors instead of crashing.
+- A ShareGPT-looking record that also has `messages` is no longer
+  misdetected.
+- Docs: format lists and exit codes now match the CLI.
+
 ## 1.1.0 — 2026-11-06
 
 The biggest release since the first one: two new dataset formats, three new

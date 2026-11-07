@@ -11,7 +11,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 from typing import Any
 
-from ..core.conversation import completion_start
+from ..core.conversation import prompt_end
 from ..core.report import Issue, Severity
 from ..core.rules import Rule, registry
 
@@ -36,7 +36,7 @@ class PreferenceRule(Rule):
         messages = record.get("messages")
         if not isinstance(messages, list):
             return
-        chosen = messages[completion_start(messages):]
+        chosen = messages[prompt_end(record):]
         if chosen and _text(chosen) == _text(record["rejected"]):
             yield Issue(
                 rule_id=self.id,

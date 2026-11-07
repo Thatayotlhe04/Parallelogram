@@ -73,7 +73,7 @@ def normalize(record: Any) -> Any:
             messages.append(turn)
             continue
         frm = turn.get("from")
-        role = _FROM_TO_ROLE.get(frm, frm)
+        role = _FROM_TO_ROLE.get(frm, frm) if isinstance(frm, str) else frm
         messages.append({"role": role, "content": turn.get("value")})
 
     return {"messages": messages}

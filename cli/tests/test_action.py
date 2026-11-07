@@ -19,7 +19,7 @@ def environment(tmp_path):
         "PATH": str(Path(sys.executable).parent) + os.pathsep + os.environ["PATH"],
         "DATASET_PATH": str(ROOT / "cli/examples/clean.jsonl"),
         "DATASET_FORMAT": "auto", "MAX_SEQ_LEN": "4096", "TOKENIZER": "",
-        "BASELINE": "", "FAIL_ON": "error",
+        "BASELINE": "", "EVAL_PATH": "", "FAIL_ON": "error",
         "GITHUB_STEP_SUMMARY": str(tmp_path / "summary.md"),
     }
 
@@ -42,7 +42,7 @@ def test_exit_mapping_and_literal_arguments(tmp_path, code, fail_on):
         "PATH": str(tmp_path) + os.pathsep + env["PATH"],
         "CAPTURE": str(tmp_path / "args.json"), "REPORT_EXIT": str(code),
         "DATASET_PATH": hostile, "DATASET_FORMAT": hostile,
-        "MAX_SEQ_LEN": hostile, "TOKENIZER": hostile, "BASELINE": hostile,
+        "MAX_SEQ_LEN": hostile, "TOKENIZER": hostile, "BASELINE": hostile, "EVAL_PATH": hostile,
         "FAIL_ON": fail_on,
     })
     summary = Path(env["GITHUB_STEP_SUMMARY"])
@@ -51,7 +51,7 @@ def test_exit_mapping_and_literal_arguments(tmp_path, code, fail_on):
     assert result.returncode == (0 if code == 1 and fail_on == "error" else code), result.stderr
     assert json.loads((tmp_path / "args.json").read_text()) == [
         "report", "--markdown", "--format", hostile, "--max-seq-len", hostile,
-        "--tokenizer", hostile, "--baseline", hostile, "--", hostile,
+        "--tokenizer", hostile, "--baseline", hostile, "--eval", hostile, "--", hostile,
     ]
     assert summary.read_text() == "Existing summary\n# Dataset report\n"
     assert not (tmp_path / "INJECTED").exists()

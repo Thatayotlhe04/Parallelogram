@@ -24,6 +24,16 @@ class Issue:
     context: dict[str, Any] = field(default_factory=dict)
 
 
+    def __post_init__(self) -> None:
+        # Schema/role diagnostics may quote malformed values containing keys.
+        # Scrub centrally, including when the secrets rule itself is disabled.
+        from ..rules.secrets import redact
+
+        self.message = redact(self.message)
+        if self.detail is not None:
+            self.detail = redact(self.detail)
+
+
 @dataclass
 class Report:
     """Aggregated result of a validation run."""
