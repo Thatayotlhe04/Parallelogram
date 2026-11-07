@@ -38,6 +38,10 @@ def prompt_hash(record: Any) -> str:
     return hashlib.sha256(canon.encode("utf-8")).hexdigest()
 
 
+class EvalInputError(ValueError):
+    """The eval set could not be indexed reliably."""
+
+
 @registry.register
 class EvalOverlapRule(Rule):
     id = "eval-overlap"
@@ -57,18 +61,27 @@ class EvalOverlapRule(Rule):
             return
         from ..formats import get_parser
 
-        self._full, self._prompts = {}, {}
-        if not self.eval_path:
-            return
-        for parsed in get_parser("auto")(self.eval_path):
-            if parsed.record is None:
-                continue
-            h = record_hash(parsed.record)
-            if h:
-                self._full.setdefault(h, parsed.line_no)
-            p = prompt_hash(parsed.record)
-            if p:
-                self._prompts.setdefault(p, parsed.line_no)
+        from .schema import SchemaRule
+
+        full, prompts = {}, {}
+        if self.eval_path:
+            try:
+                for parsed in get_parser("auto")(self.eval_path):
+                    if parsed.parse_error is not None:
+                        raise EvalInputError(f"Invalid eval JSON at line {parsed.line_no}")
+                    if any(SchemaRule().check_record(parsed.record, parsed.line_no)):
+                        raise EvalInputError(f"Invalid eval schema at line {parsed.line_no}")
+                    h = record_hash(parsed.record)
+                    if h:
+                        full.setdefault(h, parsed.line_no)
+                    p = prompt_hash(parsed.record)
+                    if p:
+                        prompts.setdefault(p, parsed.line_no)
+            except OSError as exc:
+                # Never include eval content (or exception text) in diagnostics.
+                raise EvalInputError("Could not read eval file") from exc
+        # Cache only a complete index; a failed load must not become an empty set.
+        self._full, self._prompts = full, prompts
 
     def _match(self, record: Any) -> tuple[str, int] | None:
         self._load()

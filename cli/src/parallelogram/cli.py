@@ -78,7 +78,13 @@ def _build_rules(disabled: set[str], tokenizer: Optional[str], max_seq_len: int,
             rules.append(rc({"tokenizer": tokenizer, "max_seq_len": max_seq_len}))
         elif rc.id == "eval-overlap":
             if eval_path is not None:
-                rules.append(rc({"eval_path": str(eval_path), "dataset_format": dataset_format}))
+                rule = rc({"eval_path": str(eval_path)})
+                try:
+                    rule._load()
+                except eval_overlap.EvalInputError as exc:
+                    typer.echo(str(exc), err=True)
+                    raise typer.Exit(3)
+                rules.append(rule)
         else:
             rules.append(rc())
     return rules
