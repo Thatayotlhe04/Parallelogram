@@ -23,8 +23,8 @@ from ..core.rules import Rule, registry
 
 EMAIL = re.compile(r"\b[A-Za-z0-9._%+-]+@([A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,})\b")
 PHONE_INTL = re.compile(r"(?<![\w+])\+\d{1,3}(?:[ .-]?\(?\d{1,4}\)?){1,5}(?!\w)")
-PHONE_US = re.compile(r"(?<!\d)\(?(\d{3})\)?[ .-](\d{3})[ .-](\d{4})(?!\d)")
-CARD = re.compile(r"(?<!\d)(?:\d[ -]?){12,18}\d(?!\d)")
+PHONE_US = re.compile(r"(?<!\w)\(?([2-9]\d{2})\)?[ .-]([2-9]\d{2})[ .-](\d{4})(?!\w)")
+CARD = re.compile(r"(?<!\w)(?:\d[ -]?){12,18}\d(?!\w)")
 
 _EXAMPLE_DOMAINS = ("example.com", "example.org", "example.net")
 _EXAMPLE_SUFFIXES = (".example", ".test", ".invalid", ".localhost", ".local")
@@ -49,6 +49,13 @@ def find_pii(text: str) -> list[tuple[str, re.Match]]:
             continue
         found.append(("email address", m))
     for m in PHONE_INTL.finditer(text):
+        # A signed decimal is typically a coordinate, not a phone number.
+        if re.fullmatch(r"\+\d+\.\d+", m.group(0)):
+            continue
+        # Do not consume the signed operand of an explicit arithmetic equation.
+        if (re.search(r"[\d)]\s*$", text[:m.start()])
+                and re.match(r"\s*(?:[=<>*/]|[+-]\s*\d)", text[m.end():])):
+            continue
         digits = re.sub(r"\D", "", m.group(0))
         if len(digits) == 11 and digits.startswith("1") and digits[4:7] == "555":
             continue
