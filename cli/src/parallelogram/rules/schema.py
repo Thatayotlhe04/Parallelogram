@@ -118,7 +118,7 @@ class SchemaRule(Rule):
                     line_no=line_no,
                     message=f"{prefix}Message {i} missing 'role' field",
                 )
-            elif msg["role"] not in VALID_ROLES:
+            elif not isinstance(msg["role"], str) or msg["role"] not in VALID_ROLES:
                 yield Issue(
                     rule_id=self.id,
                     severity=Severity.ERROR,
