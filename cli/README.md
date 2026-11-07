@@ -313,7 +313,7 @@ default install.
 
 ## Status
 
-v1.1.0 — stable CLI contract, local pre-training validation. No telemetry, no network, no upload boundary.
+v1.1.1 — stable CLI contract, local pre-training validation. No telemetry, no network, no upload boundary.
 
 ## Roadmap
 
