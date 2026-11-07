@@ -44,7 +44,8 @@ def find_pii(text: str) -> list[tuple[str, re.Match]]:
     found: list[tuple[str, re.Match]] = []
     for m in EMAIL.finditer(text):
         domain = m.group(1).lower()
-        if domain in _EXAMPLE_DOMAINS or domain.endswith(_EXAMPLE_SUFFIXES):
+        if (any(domain == d or domain.endswith("." + d) for d in _EXAMPLE_DOMAINS)
+                or domain.endswith(_EXAMPLE_SUFFIXES)):
             continue
         found.append(("email address", m))
     for m in PHONE_INTL.finditer(text):
