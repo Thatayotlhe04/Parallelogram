@@ -85,12 +85,16 @@ def test_context_fix_can_shorten_rejected_user_turn(tmp_path):
 
 
 @pytest.mark.parametrize('command', ['check', 'report'])
-def test_empty_chosen_completion_is_invalid(tmp_path, command):
+@pytest.mark.parametrize('rejected', [[a('Other answer')], [u('Again'), a('Bad')]])
+def test_empty_chosen_completion_is_invalid(tmp_path, command, rejected):
     path = tmp_path / 'data.jsonl'
     path.write_text(json.dumps({'prompt': [u('Q'), a('Old answer')], 'chosen': [],
-                                'rejected': [u('Again'), a('Bad')]}) + '\n')
+                                'rejected': rejected}) + '\n')
     result = CliRunner().invoke(app, [command, str(path), '--json'])
     assert result.exit_code == 2, result.output
     payload = json.loads(result.stdout)
     if command == 'check':
         assert any(i['rule'] == 'schema' and 'chosen' in i['message'] for i in payload['issues'])
+
+    else:
+        assert payload['issues_by_rule']['schema']['errors'] > 0
