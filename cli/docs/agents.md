@@ -88,12 +88,14 @@ when the client's working directory is uncertain.
 Boundaries, so an agent can't be talked into damage:
 
 - `fix_dataset` writes only inside the server's root: its working directory, or
-  the directory given with `parallelogram mcp --root DIR`. Paths outside it,
-  including `..` and symlinks, are refused.
+  the directory given with `parallelogram mcp --root DIR`. Relative paths
+  resolve against the root. Outputs outside it, including through `..` and
+  symlinks, are refused.
 - An existing output file is never replaced unless the call sets
   `overwrite: true`. The input and eval files can't be overwritten at all.
-- `path` and `eval_path` must be regular files; pipes and devices such as
-  `/dev/stdin` are refused rather than blocking the server.
+- `path` and `eval_path` must be regular files outside `/proc`, `/sys` and
+  `/dev`; pipes and devices such as `/dev/stdin` are refused rather than
+  blocking the server.
 - A request line over 1,000,000 characters is rejected with `-32600`, and the
   server keeps serving.
 

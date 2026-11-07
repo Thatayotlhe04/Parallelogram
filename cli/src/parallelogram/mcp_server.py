@@ -36,7 +36,7 @@ TOOLS = [
     },
     {
         "name": "fix_dataset",
-        "description": "Mechanically repair a local fine-tuning JSONL dataset into the required output path, preserving each record's source format. Redacts detected secrets/PII, repairs encoding, truncates overlong user turns, and drops duplicates, eval overlap and unrepairable records. Returns the fix JSON plus exit_code: 0 every record was emitted, 1 some were dropped or unparseable, 2 nothing was emitted. summary and fixes_by_rule are exact; outcomes lists only records that were dropped, unparseable or fixed (in that order, then by line), at most limit of them (default 50), with outcomes_truncated. Review dropped records for data loss; use dry_run=true to preview without writing. Output must be inside the server's root directory (its working directory unless started with --root), must differ from the input and eval files, and must not already exist unless overwrite=true. Recheck the repaired copy with check_dataset before training.",
+        "description": "Mechanically repair a local fine-tuning JSONL dataset into the required output path, preserving each record's source format. Redacts detected secrets/PII, repairs encoding, truncates overlong user turns, and drops duplicates, eval overlap and unrepairable records. Returns the fix JSON plus exit_code: 0 every record was emitted, 1 some were dropped or unparseable, 2 nothing was emitted. summary and fixes_by_rule are exact; outcomes lists only records that were dropped, unparseable or fixed (in that order, then by line), at most limit of them (default 50), with outcomes_truncated. Review dropped records for data loss; use dry_run=true to preview without writing. Relative paths are resolved against the server's root directory (its working directory unless started with --root). Output must be inside that root, must differ from the input and eval files, and must not already exist unless overwrite=true. Recheck the repaired copy with check_dataset before training.",
         "inputSchema": _schema({**_COMMON,
                                 "output": {"type": "string", "minLength": 1},
                                 "dry_run": {"type": "boolean", "default": False},
@@ -101,10 +101,16 @@ class ToolRefused(Exception):
     """A tool call the server won't carry out; returned as an isError result."""
 
 
+_PSEUDO_FS = ("/proc", "/sys", "/dev")
+
+
 def _regular_file(value: str, name: str) -> None:
     # A FIFO or a device (/dev/stdin, /dev/zero) would block or never end and
     # the server handles one request at a time, so only regular files are read.
-    if not Path(value).is_file():
+    # Kernel pseudo-files (/proc/kmsg) report as regular files but can block too.
+    resolved = str(Path(value).resolve())
+    if not Path(value).is_file() or any(
+            resolved == top or resolved.startswith(top + "/") for top in _PSEUDO_FS):
         raise ToolRefused(f"{name} is not a regular file: {value}")
 
 
@@ -223,6 +229,9 @@ def serve(stdin: TextIO | None = None, stdout: TextIO | None = None,
     stdin = sys.stdin if stdin is None else stdin
     stdout = sys.stdout if stdout is None else stdout
     root = Path(root or os.getcwd()).resolve()
+    # Relative paths in tool calls resolve against the root. This process
+    # serves one client, so changing its working directory is safe.
+    os.chdir(root)
     for line in _lines(stdin):
         if line is None:
             response = _error(None, -32600, "Request too large")

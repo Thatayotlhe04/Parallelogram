@@ -25,8 +25,12 @@ from .report import Issue, Severity, scrub
 from .rules import Rule
 
 
-# Record fixes that rewrite text in place run first, cutting fixes last.
-_FIX_ORDER = {"secrets": 0, "pii": 1, "encoding": 2, "empty-content": 3, "context-window": 4}
+# Order of record repairs, one kind per pass. Encoding first: stripping a BOM
+# or repairing mojibake can join the halves of a key so the secrets pattern
+# sees all of it. Then redaction, then anything that removes or cuts text,
+# which could otherwise leave most of a key behind, too short to match.
+# alpaca._split_user recognizes repaired text in this same order.
+_FIX_ORDER = {"encoding": 0, "secrets": 1, "pii": 2, "empty-content": 3, "context-window": 4}
 
 class Disposition(str, Enum):
     UNCHANGED = "unchanged"   # was already clean

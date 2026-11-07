@@ -29,7 +29,7 @@ codex mcp add parallelogram -- parallelogram mcp     # Codex
 Cursor, Windsurf, Cline and other MCP clients: a stdio server with command `parallelogram` and args `["mcp"]`.
 
 - `check_dataset` {path, format?, eval_path?, disable?, limit?}: validate without changing files. Counts are exact; at most `limit` issues are listed (default 50), errors first. Returns `exit_code`.
-- `fix_dataset` {path, output, format?, eval_path?, disable?, dry_run?, overwrite?, limit?}: write a repaired copy to `output`, which must be inside the server's working directory (or `--root`) and must not already exist unless `overwrite` is true. Never writes over the input or eval file. Lists only dropped, unparseable and fixed records. Returns `exit_code`.
+- `fix_dataset` {path, output, format?, eval_path?, disable?, dry_run?, overwrite?, limit?}: write a repaired copy to `output`, which must be inside the server's root (its working directory, or `--root`; relative paths resolve against it) and must not already exist unless `overwrite` is true. Never writes over the input or eval file. Lists only dropped, unparseable and fixed records. Returns `exit_code`.
 - `list_rules` {}: every rule with its severity, whether it is fixable, and what the fix does.
 
 ## Use it from the shell
@@ -70,7 +70,7 @@ Auto-detected per line: OpenAI chat (`messages`), ShareGPT (`conversations`), pr
 | encoding | warning | BOMs and mojibake are repaired |
 | preference | error | Pairs with identical chosen and rejected answers are dropped |
 | secrets | error | API keys, tokens and private keys are redacted, in every field of a record |
-| pii | warning | Emails, phone numbers and card numbers are replaced with placeholders, in every field |
+| pii | warning | Emails, phone numbers and card numbers in training text are replaced with placeholders |
 | eval-overlap | error | Train records that repeat the eval set are dropped (only with `--eval`) |
 
 Without `--tokenizer`, token counts are estimates and an estimated overflow is a warning, not an error.

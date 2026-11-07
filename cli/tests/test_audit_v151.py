@@ -59,15 +59,72 @@ def test_secret_outside_content_is_found_and_redacted(tmp_path, record):
     assert GH not in out.read_text()
 
 
-def test_pii_outside_content_is_found_and_redacted(tmp_path):
-    src = write(tmp_path / "in.jsonl", {"instruction": "Say hi", "output": "hi", "contact": EMAIL})
-    result = check(src)
-    assert any(i["rule"] == "pii" for i in result.to_dict()["issues"])
+def test_pii_is_checked_in_training_text_not_ids_or_metadata(tmp_path):
+    """Second audit pass: PII in every field flagged SKUs, UUIDs and git
+    remotes and rewrote them. PII is checked where a model learns it."""
+    records = [
+        {"instruction": "Write to " + EMAIL, "output": "ok", "contact": EMAIL},
+        {"messages": [{"role": "user", "content": [{"type": "text", "text": "call +1 415 867 5309"}]},
+                      {"role": "assistant", "content": "ok"}]},
+    ]
+    src = write(tmp_path / "in.jsonl", *records)
+    issues = [i for i in check(src).to_dict()["issues"] if i["rule"] == "pii"]
+    assert {i["line"] for i in issues} == {1, 2}
     out = tmp_path / "out.jsonl"
     fix(src, output=out)
-    written = json.loads(out.read_text())
-    assert EMAIL not in out.read_text() and written["contact"] == "[REDACTED_EMAIL]"
-    assert written["instruction"] == "Say hi"  # format round-trips
+    first = json.loads(out.read_text().splitlines()[0])
+    assert first["instruction"] == "Write to [REDACTED_EMAIL]" and first["contact"] == EMAIL
+    assert "415 867 5309" not in out.read_text()
+
+
+def test_ordinary_structured_fields_stay_clean(tmp_path):
+    import uuid
+    rows = []
+    for i in range(200):
+        args = json.dumps({"order": f"220-611-{5000 + i:04d}", "ref": 4539148803436467 + i})
+        rows.append({
+            "id": str(uuid.UUID(int=i)), "num_id": f"{4000000000000000 + i * 7919:016d}",
+            "repo": "git@github.com:org/x.git", "sku": f"220-611-{5000 + i:04d}",
+            "metadata": {"tool": "lookup", "arguments": args},
+            "messages": [{"role": "user", "content": "Where is my order?"},
+                         {"role": "assistant", "content": f"It shipped. ({i})"}]})
+    src = write(tmp_path / "in.jsonl", *rows)
+    assert check(src).exit_code == 0
+    out = tmp_path / "out.jsonl"
+    fix(src, output=out)
+    assert [json.loads(l) for l in out.read_text().splitlines()] == rows
+
+
+@pytest.mark.parametrize("record", [
+    {"prompt": "p", "completion": "c", "id": GH},
+    {"conversations": [{"from": "human", "value": "q"}, {"from": "gpt", "value": "a"}], "id": GH},
+    chat("hi", "hello", metadata={"ratings": {GH: 1}}),
+])
+def test_secrets_in_sharegpt_pc_extras_and_dict_keys(tmp_path, record):
+    src = write(tmp_path / "in.jsonl", record)
+    assert check(src).exit_code == 2
+    out = tmp_path / "out.jsonl"
+    fix(src, output=out)
+    text = out.read_text()
+    assert GH not in text and "[REDACTED_SECRET]" in text
+    kept = json.loads(text)
+    assert set(kept) == set(record)  # extras written back, nothing dropped
+
+
+def test_key_split_by_a_bom_is_redacted_whole(tmp_path):
+    """Second audit pass: redaction ran before the encoding repair, so a BOM
+    inside a key left its tail behind."""
+    key = "sk-ant-api03-" + "Ab3Cd5Ef7Gh9Ij2Kl4Mn6Op8" + "\ufeff" + "Qr1St2Uv3Wx4Yz5Ab6Cd7Ef8Gh9Ij0Kl1Mn2Op3Qr4St5Uv6Wx7Yz8Ab9Cd0Ef1Gh2Ij3Kl4Mn5" + "AA"
+    for record in (chat("my key is " + key, "ok"),
+                   {"instruction": "use " + key, "input": "keep me separate", "output": "ok"}):
+        src = write(tmp_path / "in.jsonl", record)
+        out = tmp_path / "out.jsonl"
+        fix(src, output=out)
+        text = out.read_text()
+        assert "Qr1St2Uv3Wx4" not in text and "[REDACTED_SECRET]" in text, text
+        if "instruction" in record:
+            assert json.loads(text)["input"] == "keep me separate"
+        assert check(out).exit_code == 0
 
 
 def test_email_mask_hides_the_domain(tmp_path):
@@ -152,6 +209,8 @@ def test_markup_in_output_path_does_not_crash(tmp_path):
     "xoxe-" + "1-Ab3Cd5Ef7Gh9Ij2Kl4Mn6",
     "GOCSPX-" + "Ab3Cd5Ef7Gh9Ij2Kl4Mn6Op8Qr",
     "OPENAI_KEY_" + GH,
+    '"SecretAccessKey": "' + "wJalrXUtnFEMI" + '/K7MDENG/bPxRfiCYzQ8sLpQ2mN"',
+    "api_org_" + "Ab3Cd5Ef7Gh9Ij2Kl4Mn6Op8Qr0St1Uv2W",
 ])
 def test_newly_detected_secrets(tmp_path, text):
     src = write(tmp_path / "in.jsonl", chat("note: " + text, "ok"))
@@ -225,3 +284,28 @@ def test_mcp_survives_oversized_and_deeply_nested_lines(tmp_path):
     assert responses[0]["error"]["code"] == -32600
     assert responses[1]["error"]["code"] == -32700
     assert responses[2] == {"jsonrpc": "2.0", "id": 3, "result": {}}
+
+
+def test_mcp_relative_paths_resolve_against_root(tmp_path):
+    import io
+    work = tmp_path / "work"
+    work.mkdir()
+    write(work / "in.jsonl", chat("a", "b"))
+    elsewhere = tmp_path / "elsewhere"
+    elsewhere.mkdir()
+    cwd = os.getcwd()
+    os.chdir(elsewhere)
+    out = io.StringIO()
+    try:
+        serve(io.StringIO(json.dumps(_fix(1, path="in.jsonl", output="out.jsonl")) + "\n"), out, root=work)
+    finally:
+        os.chdir(cwd)
+    response = json.loads(out.getvalue())
+    assert not response["result"].get("isError"), response
+    assert (work / "out.jsonl").exists() and not (elsewhere / "out.jsonl").exists()
+
+
+def test_mcp_refuses_kernel_pseudo_files(tmp_path):
+    responses = _session(tmp_path, {"jsonrpc": "2.0", "id": 1, "method": "tools/call",
+                                    "params": {"name": "check_dataset", "arguments": {"path": "/proc/self/status"}}})
+    assert responses[0]["result"]["isError"]

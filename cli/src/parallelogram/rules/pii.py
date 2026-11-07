@@ -17,7 +17,7 @@ import re
 from collections.abc import Iterable
 from typing import Any
 
-from ..core.fields import map_record_strings, scan_targets
+from ..core.fields import map_record_text, text_targets
 from ..core.report import Issue, Severity
 from ..core.rules import Rule, registry
 
@@ -107,7 +107,8 @@ class PiiRule(Rule):
     fixable = True
 
     def check_record(self, record: Any, line_no: int) -> Iterable[Issue]:
-        for label, text in scan_targets(record):
+        # Training text only: see core/fields.py for why ids and metadata are skipped.
+        for label, text in text_targets(record):
             for kind, m in find_pii(text):
                 yield Issue(
                     rule_id=self.id,
@@ -120,4 +121,4 @@ class PiiRule(Rule):
                 )
 
     def fix_record(self, record: Any, issue: Issue) -> Any | None:
-        return map_record_strings(record, redact)
+        return map_record_text(record, redact)

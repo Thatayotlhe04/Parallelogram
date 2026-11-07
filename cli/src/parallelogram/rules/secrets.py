@@ -36,9 +36,10 @@ PATTERNS: list[tuple[str, re.Pattern]] = [
     ("AWS access key", re.compile(_B + r"(?:AKIA|ASIA)[0-9A-Z]{16}(?![0-9A-Za-z])")),
     # A secret access key has no prefix of its own; require the name beside it.
     ("AWS secret access key", re.compile(
-        r"(?i:aws_?secret(?:_?access)?_?key)[\"']?\s*[:=]\s*[\"']?[A-Za-z0-9/+]{40}(?![A-Za-z0-9/+])")),
+        r"(?i:(?:aws_?)?secret_?access_?key|aws_?secret_?key)[\"']?\s*[:=]\s*[\"']?"
+        r"[A-Za-z0-9/+]{40}(?![A-Za-z0-9/+])")),
     ("GitHub token", re.compile(_B + r"gh[pousr]_[A-Za-z0-9]{36,}(?![A-Za-z0-9])|" + _B + r"github_pat_[A-Za-z0-9_]{22,}")),
-    ("Hugging Face token", re.compile(_B + r"hf_[A-Za-z0-9]{30,}(?![A-Za-z0-9])")),
+    ("Hugging Face token", re.compile(_B + r"(?:hf_|api_org_)[A-Za-z0-9]{30,}(?![A-Za-z0-9])")),
     ("Slack token", re.compile(_B + r"xox[abeprs]-[A-Za-z0-9-]{10,}")),
     ("Slack webhook", re.compile(r"https://hooks\.slack\.com/(?:services|workflows|triggers)/[A-Za-z0-9/_-]{20,}")),
     ("Google API key", re.compile(_B + r"AIza[0-9A-Za-z_-]{35}(?![0-9A-Za-z_-])")),

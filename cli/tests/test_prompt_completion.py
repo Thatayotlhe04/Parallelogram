@@ -27,7 +27,8 @@ def write_records(tmp_path, records):
 def test_normalization(tmp_path, prompt, completion, format_id):
     path = write_records(tmp_path, [{"prompt": prompt, "completion": completion, "extra": 42}])
     parsed, = get_parser(format_id)(str(path))
-    assert parsed.record == {"messages": [USER, ASSISTANT]}
+    # Extra fields ride along so rules can scan them and --fix writes them back.
+    assert parsed.record == {"extra": 42, "messages": [USER, ASSISTANT]}
     assert parsed.source_format == "prompt-completion"
     assert "prompt-completion" in supported_formats()
 
@@ -123,6 +124,7 @@ def test_fix_round_trip(tmp_path, string_prompt, string_completion, format_id):
     assert json.loads(out.read_text()) == {
         "prompt": "Question" if string_prompt else [USER],
         "completion": "Answer" if string_completion else [ASSISTANT],
+        "extra": {"ignored": True},
     }
     assert runner.invoke(app, ["check", str(out)]).exit_code == 0
 
