@@ -5,7 +5,7 @@ inputs:
     description: Path to the JSONL dataset.
     required: true
   format:
-    description: Dataset parser (auto, openai-chat, sharegpt, or prompt-completion).
+    description: Dataset parser (auto, openai-chat, sharegpt, prompt-completion, alpaca, or preference).
     default: auto
   max-seq-len:
     description: Token budget per record.

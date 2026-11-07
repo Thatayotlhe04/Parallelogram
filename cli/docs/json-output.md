@@ -11,7 +11,11 @@ requires 2.0. Consumers should tolerate additional fields.
 Counts are nonnegative integers unless a different type is stated. Blank lines
 are ignored. Line numbers are one-based physical file lines. Informational
 issues never affect the process exit code. No dataset content is included as a
-separate field, though diagnostic messages can quote malformed values.
+separate field, though diagnostic messages can quote malformed values with detected secrets redacted.
+
+If `--eval` cannot be read or contains invalid JSON/schema, commands abort before
+producing a JSON payload, write a diagnostic to stderr, and exit 3. An empty eval
+file is valid. The eval format is auto-detected independently of the train format.
 
 ## `check --json`
 
@@ -73,7 +77,7 @@ the `rates` object, skipping absent individual rates.
 |---|---|
 | `schema_version` | Integer, always `1`. |
 | `file` | String, dataset path. |
-| `format` | String requested parser: `auto`, `openai-chat`, `sharegpt`, or `prompt-completion`. |
+| `format` | String requested parser: `auto`, `openai-chat`, `sharegpt`, `prompt-completion`, `alpaca`, or `preference`. |
 | `disabled_rules` | Array of disabled rule-id strings; currently always empty for the report command. |
 | `summary.total_records` | Nonblank input lines, including invalid JSON. |
 | `summary.clean_records` | Records without errors; may have warnings (same definition as check's `valid_records`). |
@@ -105,7 +109,7 @@ the `rates` object, skipping absent individual rates.
 | `duplicate_stats.largest_cluster` | Largest duplicate cluster size including its first record; 0 if none. |
 | `format_breakdown.declared_format` | String, same requested parser as `format`. |
 | `format_breakdown.detected_formats` | Object mapping source-format strings to counts of parsed lines, including schema-invalid records but excluding invalid JSON. |
-| `format_breakdown.roles` | Object mapping normalized role strings to message counts. Non-string/missing roles count under `invalid`; unknown string roles retain their names. |
+| `format_breakdown.roles` | Object mapping normalized role strings to message counts. Non-string/missing roles count under `invalid`; unknown string roles retain their names with detected secrets redacted. |
 | `format_breakdown.turns_per_record.min` | Minimum message-list length, or 0 if none. |
 | `format_breakdown.turns_per_record.median` | Integer median message-list length, fractional medians truncated; 0 if none. |
 | `format_breakdown.turns_per_record.max` | Maximum message-list length, or 0 if none. |
