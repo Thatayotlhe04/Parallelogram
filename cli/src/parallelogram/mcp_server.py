@@ -28,15 +28,16 @@ def _schema(properties: dict, required: list[str]) -> dict:
 TOOLS = [
     {
         "name": "check_dataset",
-        "description": "Validate a local fine-tuning JSONL dataset without changing files. Accepts auto-detected chat, ShareGPT, prompt/completion, Alpaca and preference formats; eval_path also checks train/eval leakage. Returns schema_version 1 check JSON with exact counts and at most limit issues (default 50), ordered by severity then line. Inspect summary and by_rule even when issues_truncated is true; use list_rules to understand repairs and fix_dataset to write a separate repaired copy.",
+        "description": "Validate a local fine-tuning JSONL dataset without changing files. Accepts auto-detected chat, ShareGPT, prompt/completion, Alpaca and preference formats; eval_path also checks train/eval leakage. Returns schema_version 1 check JSON plus exit_code: 0 means no errors or warnings, 1 warnings only, 2 errors. Judge the result by exit_code, not summary.clean, which is also false when there is only an informational note. Counts are exact; at most limit issues (default 50) are listed, errors first, then warnings, then by line. Inspect summary and by_rule even when issues_truncated is true; use list_rules to understand repairs and fix_dataset to write a separate repaired copy.",
         "inputSchema": _schema({**_COMMON, "limit": {"type": "integer", "minimum": 0, "default": 50}}, ["path"]),
     },
     {
         "name": "fix_dataset",
-        "description": "Mechanically repair a local fine-tuning JSONL dataset into the required output path, preserving each record's source format. Redacts detected secrets/PII, repairs encoding, truncates overlong user turns, and drops duplicates, eval overlap and unrepairable records. Review summary and outcomes for data loss; use dry_run=true to preview without writing. Output must differ from input and eval paths. Recheck the repaired copy before training.",
+        "description": "Mechanically repair a local fine-tuning JSONL dataset into the required output path, preserving each record's source format. Redacts detected secrets/PII, repairs encoding, truncates overlong user turns, and drops duplicates, eval overlap and unrepairable records. Returns the fix JSON plus exit_code: 0 every record was emitted, 1 some were dropped or unparseable, 2 nothing was emitted. summary and fixes_by_rule are exact; outcomes lists only records that were dropped, unparseable or fixed (in that order, then by line), at most limit of them (default 50), with outcomes_truncated. Review dropped records for data loss; use dry_run=true to preview without writing. Output must differ from input and eval paths. Recheck the repaired copy with check_dataset before training.",
         "inputSchema": _schema({**_COMMON,
                                 "output": {"type": "string", "minLength": 1},
-                                "dry_run": {"type": "boolean", "default": False}}, ["path", "output"]),
+                                "dry_run": {"type": "boolean", "default": False},
+                                "limit": {"type": "integer", "minimum": 0, "default": 50}}, ["path", "output"]),
     },
     {
         "name": "list_rules",
@@ -44,6 +45,17 @@ TOOLS = [
         "inputSchema": _schema({}, []),
     },
 ]
+
+
+_OUTCOME_ORDER = {"dropped": 0, "unparseable": 1, "fixed": 2}
+
+
+def _bounded_fix(obj: dict, limit: int) -> dict:
+    """Keep a fix result agent-sized: unchanged records are only counted, and
+    the records that changed are listed data loss first, at most `limit`."""
+    changed = [o for o in obj.get("outcomes", []) if o.get("disposition") in _OUTCOME_ORDER]
+    changed.sort(key=lambda o: (_OUTCOME_ORDER[o["disposition"]], o.get("line") or 0))
+    return {**obj, "outcomes": changed[:limit], "outcomes_truncated": len(changed) > limit}
 
 
 class InvalidParams(ValueError):
@@ -87,9 +99,13 @@ def _call_tool(params: dict) -> dict:
     arguments = _arguments(name, params.get("arguments", {}))
     try:
         if name == "check_dataset":
-            obj = api.check(**{"limit": 50, **arguments}).to_dict()
+            result = api.check(**{"limit": 50, **arguments})
+            obj = {**result.to_dict(), "exit_code": result.exit_code}
         elif name == "fix_dataset":
-            obj = api.fix(**arguments).to_dict()
+            limit = arguments.pop("limit", 50)
+            result = api.fix(**arguments)
+            obj = _bounded_fix(result.to_dict(), limit)
+            obj["exit_code"] = result.exit_code
         else:
             # structuredContent must be an object, so wrap the API's list.
             obj = {"rules": api.rules()}

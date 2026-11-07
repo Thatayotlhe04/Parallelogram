@@ -12,7 +12,7 @@ that cause your model to memorize instead of generalize.
 on anything that would silently corrupt training. **If it exits 0 with all rules enabled,
 your run won't fail because of data.**
 
-## Agents and Python (1.2)
+## Agents and Python (1.5)
 
 ```bash
 parallelogram check train.jsonl --json --limit 50
@@ -337,7 +337,7 @@ default install.
 
 ## Status
 
-v1.2.0 — stable CLI and Python API, agent-sized JSON output, rule discovery and a local MCP server. No telemetry, no network, no upload boundary.
+v1.5.0 — stable CLI and Python API, agent-sized JSON output, rule discovery and a local MCP server. No telemetry, no network, no upload boundary.
 
 ## Roadmap
 

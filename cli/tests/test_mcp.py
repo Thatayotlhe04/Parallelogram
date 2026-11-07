@@ -63,10 +63,15 @@ def test_real_mcp_session(tmp_path, monkeypatch):
     assert {t["name"] for t in advertised} == {"check_dataset", "fix_dataset", "list_rules"}
     assert all(t["description"] and t["inputSchema"]["type"] == "object" for t in advertised)
     checked = unpack(responses[3])
+    assert checked.pop("exit_code") == 2
     assert checked == check("train.jsonl", limit=50).to_dict()
     assert len(checked["issues"]) == 50 and checked["issues_truncated"]
     assert checked["summary"]["errors"] == 59
-    assert unpack(responses[4]) == fix("train.jsonl").to_dict()
+    fixed, full = unpack(responses[4]), fix("train.jsonl").to_dict()
+    assert fixed.pop("exit_code") == 1
+    assert fixed.pop("outcomes_truncated") is True
+    assert fixed.pop("outcomes") == [o for o in full.pop("outcomes") if o["disposition"] != "unchanged"][:50]
+    assert fixed == full
     assert unpack(responses[5]) == {"rules": rules()}
     assert responses[6]["error"]["code"] == -32601
     assert responses[7] == {"jsonrpc": "2.0", "id": None, "error": {"code": -32700, "message": "Parse error"}}
@@ -142,8 +147,12 @@ def test_eval_disable_and_format_pass_through(tmp_path, monkeypatch):
     args = {"path": "train", "eval_path": "eval", "disable": ["pii"], "format": "prompt-completion"}
     responses = session(tmp_path, [tool(1, "check_dataset", {**args, "limit": 0}),
                                    tool(2, "fix_dataset", {**args, "output": "out"})])
-    assert unpack(responses[0]) == check(**args, limit=0).to_dict()
-    assert unpack(responses[1]) == fix(**args).to_dict()
+    checked = check(**args, limit=0)
+    assert unpack(responses[0]) == {**checked.to_dict(), "exit_code": checked.exit_code}
+    fixed = fix(**args)
+    full = fixed.to_dict()
+    assert unpack(responses[1]) == {**full, "outcomes": [o for o in full["outcomes"] if o["disposition"] != "unchanged"],
+                                    "outcomes_truncated": False, "exit_code": fixed.exit_code}
     assert (tmp_path / "out").read_bytes() == b""
     assert (tmp_path / "eval").read_text() == '{"prompt":"Q","completion":"Different"}\n'
 
@@ -183,3 +192,23 @@ def test_eof_without_messages_exits_cleanly(tmp_path):
                              input="", capture_output=True, text=True, cwd=tmp_path, timeout=10)
     assert process.returncode == 0
     assert process.stdout == process.stderr == ""
+
+
+def test_fix_result_stays_agent_sized(tmp_path):
+    """A large clean dataset must not return one outcome per record."""
+    rows = [json.dumps({"prompt": f"Q{i}", "completion": f"A{i}"}) for i in range(3000)]
+    rows[10] = rows[0]                       # one duplicate -> dropped
+    rows[20] = "not json"                    # one unparseable line
+    rows[30] = json.dumps({"prompt": "Mail me at someone@gmail.com", "completion": "OK"})  # fixed
+    (tmp_path / "train.jsonl").write_text("\n".join(rows) + "\n")
+    responses = session(tmp_path, [tool(1, "fix_dataset", {"path": "train.jsonl", "output": "clean.jsonl"}),
+                                   tool(2, "fix_dataset", {"path": "train.jsonl", "output": "c2.jsonl", "limit": 1}),
+                                   tool(3, "check_dataset", {"path": "clean.jsonl"})])
+    first = unpack(responses[0])
+    assert first["summary"]["total"] == 3000 and first["summary"]["unchanged"] == 2997
+    assert [o["disposition"] for o in first["outcomes"]] == ["dropped", "unparseable", "fixed"]
+    assert first["outcomes_truncated"] is False and first["exit_code"] == 1
+    assert len(json.dumps(responses[0])) < 4000
+    second = unpack(responses[1])
+    assert [o["line"] for o in second["outcomes"]] == [11] and second["outcomes_truncated"] is True
+    assert unpack(responses[2])["exit_code"] == 0

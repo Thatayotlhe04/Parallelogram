@@ -1,6 +1,6 @@
 # Parallelogram for agents
 
-Parallelogram 1.2 validates and mechanically repairs local fine-tuning JSONL.
+Parallelogram 1.5 validates and mechanically repairs local fine-tuning JSONL.
 Use the Python API, JSON CLI, or stdio MCP tools before training and after editing
 data. All three share the same validation and fix paths. Runtime dependencies
 remain `typer` and `rich`; MCP needs no extra package, service, or network.
@@ -87,13 +87,20 @@ when the client's working directory is uncertain.
 
 | Tool | Arguments | Result |
 |---|---|---|
-| `check_dataset` | Required `path`; optional `format`, `eval_path`, `disable` (array of ids), `limit` (nonnegative integer, default 50). | Check JSON with exact counts and bounded issues. |
-| `fix_dataset` | Required `path`, `output`; optional `format`, `eval_path`, `disable`, `dry_run` (default false). | Fix JSON with summary, fixes by rule, fixer errors and outcomes. |
+| `check_dataset` | Required `path`; optional `format`, `eval_path`, `disable` (array of ids), `limit` (nonnegative integer, default 50). | Check JSON with exact counts and bounded issues, plus `exit_code`. |
+| `fix_dataset` | Required `path`, `output`; optional `format`, `eval_path`, `disable`, `dry_run` (default false), `limit` (nonnegative integer, default 50). | Fix JSON with exact summary and fixes by rule, plus `exit_code`. `outcomes` lists only dropped, unparseable and fixed records, in that order, at most `limit`, with `outcomes_truncated`. |
 | `list_rules` | Empty object. | `{"rules": [...]}` containing the API rule list. |
 
 Formats are `auto` (default), `openai-chat`, `sharegpt`, `prompt-completion`,
 `alpaca`, and `preference`. MCP uses the default approximate context counter and
 4096-token budget; use the Python API or CLI for a custom tokenizer/budget.
+
+Both dataset tools add `exit_code` to the result, with the same meaning as the
+CLI: for `check_dataset` 0 is no errors or warnings, 1 warnings only, 2 errors;
+for `fix_dataset` 0 is every record emitted, 1 some dropped or unparseable, 2
+nothing emitted. Judge a check by `exit_code`, not `summary.clean`, which is also
+false when the only finding is an informational note. A fix never returns one
+outcome per unchanged record, so a large clean dataset stays a small result.
 
 Successful tools return both `content: [{"type": "text", "text": "<compact JSON>"}]`
 and `structuredContent` with the same object. Findings in a dataset are successful

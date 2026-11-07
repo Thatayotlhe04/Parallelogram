@@ -3,7 +3,7 @@
 All notable changes to the `parallelogram` CLI. Versions correspond to
 [PyPI releases](https://pypi.org/project/parallelogram/) and `cli-v*` git tags.
 
-## 1.2.0 — 2026-11-07
+## 1.5.0 — 2026-11-07
 
 Parallelogram for coding agents. Claude Code, Codex, Cursor or your own
 pipeline can run the checks, read a result sized for a context window, and fix
@@ -13,8 +13,10 @@ the data without anyone translating terminal output. Includes every fix from
 ### Added
 - **MCP server**: `parallelogram mcp` speaks the Model Context Protocol over
   stdio with three tools, `check_dataset`, `fix_dataset` and `list_rules`. No
-  new dependencies. Setup for Claude Code, Codex and Cursor is in
-  [docs/agents.md](docs/agents.md).
+  new dependencies. Every result carries the CLI's `exit_code`, and
+  `fix_dataset` lists only the records it dropped or changed, so a large clean
+  dataset is still a small result. Setup for Claude Code, Codex and Cursor is
+  in [docs/agents.md](docs/agents.md).
 - **Python API**: `from parallelogram import check, fix, rules`. Results have
   `exit_code` and `to_dict()`, which returns the same object as the CLI's
   `--json`. The CLI now runs on this API, so the two can't drift.
