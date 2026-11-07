@@ -23,6 +23,7 @@ from ..core.conversation import conversations, where
 class RolesRule(Rule):
     id = "roles"
     description = "Role sequence must be valid for training"
+    fix_description = 'No mechanical repair; records with invalid role sequences are dropped.'
     severity = Severity.ERROR
     fixable = False  # restructuring needs judgment — Phase 2 paid layer
 

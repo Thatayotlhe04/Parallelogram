@@ -7,6 +7,7 @@
   <title>Parallelogram — The linter for fine-tuning data</title>
   <meta name="description" content="The linter for fine-tuning data. If it exits 0, your training run won't fail because of data.">
   <link rel="canonical" href="https://parallelogram.dev/">
+  <link rel="alternate" type="text/markdown" href="https://parallelogram.dev/index.md" title="Machine-readable page">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://parallelogram.dev/">
   <meta property="og:title" content="Parallelogram — The linter for fine-tuning data">
@@ -80,31 +81,57 @@
       </div>
     </section>
 
-    <!-- Works with: official logos go in landing/logos/ (see logos/README.md).
-         The strip stays hidden until at least three of them load. -->
-    <section class="works" id="works" aria-label="Works with" hidden>
+    <!-- Works with. Icons: Simple Icons (CC0, simple-icons 16.36.0); every name is a trademark of its owner.
+         Codex has no icon in that set, so it is shown by name. -->
+    <section class="works" aria-label="Works with">
+      <svg class="sprite" aria-hidden="true" focusable="false"><symbol id="i-claude" viewBox="0 0 24 24"><path d="m4.7144 15.9555 4.7174-2.6471.079-.2307-.079-.1275h-.2307l-.7893-.0486-2.6956-.0729-2.3375-.0971-2.2646-.1214-.5707-.1215-.5343-.7042.0546-.3522.4797-.3218.686.0608 1.5179.1032 2.2767.1578 1.6514.0972 2.4468.255h.3886l.0546-.1579-.1336-.0971-.1032-.0972L6.973 9.8356l-2.55-1.6879-1.3356-.9714-.7225-.4918-.3643-.4614-.1578-1.0078.6557-.7225.8803.0607.2246.0607.8925.686 1.9064 1.4754 2.4893 1.8336.3643.3035.1457-.1032.0182-.0728-.164-.2733-1.3539-2.4467-1.445-2.4893-.6435-1.032-.17-.6194c-.0607-.255-.1032-.4674-.1032-.7285L6.287.1335 6.6997 0l.9957.1336.419.3642.6192 1.4147 1.0018 2.2282 1.5543 3.0296.4553.8985.2429.8318.091.255h.1579v-.1457l.1275-1.706.2368-2.0947.2307-2.6957.0789-.7589.3764-.9107.7468-.4918.5828.2793.4797.686-.0668.4433-.2853 1.8517-.5586 2.9021-.3643 1.9429h.2125l.2429-.2429.9835-1.3053 1.6514-2.0643.7286-.8196.85-.9046.5464-.4311h1.0321l.759 1.1293-.34 1.1657-1.0625 1.3478-.8804 1.1414-1.2628 1.7-.7893 1.36.0729.1093.1882-.0183 2.8535-.607 1.5421-.2794 1.8396-.3157.8318.3886.091.3946-.3278.8075-1.967.4857-2.3072.4614-3.4364.8136-.0425.0304.0486.0607 1.5482.1457.6618.0364h1.621l3.0175.2247.7892.522.4736.6376-.079.4857-1.2142.6193-1.6393-.3886-3.825-.9107-1.3113-.3279h-.1822v.1093l1.0929 1.0686 2.0035 1.8092 2.5075 2.3314.1275.5768-.3218.4554-.34-.0486-2.2039-1.6575-.85-.7468-1.9246-1.621h-.1275v.17l.4432.6496 2.3436 3.5214.1214 1.0807-.17.3521-.6071.2125-.6679-.1214-1.3721-1.9246L14.38 17.959l-1.1414-1.9428-.1397.079-.674 7.2552-.3156.3703-.7286.2793-.6071-.4614-.3218-.7468.3218-1.4753.3886-1.9246.3157-1.53.2853-1.9004.17-.6314-.0121-.0425-.1397.0182-1.4328 1.9672-2.1796 2.9446-1.7243 1.8456-.4128.164-.7164-.3704.0667-.6618.4008-.5889 2.386-3.0357 1.4389-1.882.929-1.0868-.0062-.1579h-.0546l-6.3385 4.1164-1.1293.1457-.4857-.4554.0608-.7467.2307-.2429 1.9064-1.3114Z"/></symbol><symbol id="i-cursor" viewBox="0 0 24 24"><path d="M11.503.131 1.891 5.678a.84.84 0 0 0-.42.726v11.188c0 .3.162.575.42.724l9.609 5.55a1 1 0 0 0 .998 0l9.61-5.55a.84.84 0 0 0 .42-.724V6.404a.84.84 0 0 0-.42-.726L12.497.131a1.01 1.01 0 0 0-.996 0M2.657 6.338h18.55c.263 0 .43.287.297.515L12.23 22.918c-.062.107-.229.064-.229-.06V12.335a.59.59 0 0 0-.295-.51l-9.11-5.257c-.109-.063-.064-.23.061-.23"/></symbol><symbol id="i-windsurf" viewBox="0 0 24 24"><path d="M23.55 5.067c-1.2038-.002-2.1806.973-2.1806 2.1765v4.8676c0 .972-.8035 1.7594-1.7597 1.7594-.568 0-1.1352-.286-1.4718-.7659l-4.9713-7.1003c-.4125-.5896-1.0837-.941-1.8103-.941-1.1334 0-2.1533.9635-2.1533 2.153v4.8957c0 .972-.7969 1.7594-1.7596 1.7594-.57 0-1.1363-.286-1.4728-.7658L.4076 5.1598C.2822 4.9798 0 5.0688 0 5.2882v4.2452c0 .2147.0656.4228.1884.599l5.4748 7.8183c.3234.462.8006.8052 1.3509.9298 1.3771.313 2.6446-.747 2.6446-2.0977v-4.893c0-.972.7875-1.7593 1.7596-1.7593h.003a1.798 1.798 0 0 1 1.4718.7658l4.9723 7.0994c.4135.5905 1.05.941 1.8093.941 1.1587 0 2.1515-.9645 2.1515-2.153v-4.8948c0-.972.7875-1.7594 1.7596-1.7594h.194a.22.22 0 0 0 .2204-.2202v-4.622a.22.22 0 0 0-.2203-.2203Z"/></symbol><symbol id="i-cline" viewBox="0 0 24 24"><path d="m23.365 13.556-1.442-2.895V8.994c0-2.764-2.218-5.002-4.954-5.002h-2.464c.178-.367.276-.779.276-1.213A2.77 2.77 0 0 0 12.018 0a2.77 2.77 0 0 0-2.763 2.779c0 .434.098.846.276 1.213H7.067c-2.736 0-4.954 2.238-4.954 5.002v1.667L.64 13.549c-.149.29-.149.636 0 .927l1.472 2.855v1.667C2.113 21.762 4.33 24 7.067 24h9.902c2.736 0 4.954-2.238 4.954-5.002V17.33l1.44-2.865c.143-.286.143-.622.002-.91m-12.854 2.36a2.27 2.27 0 0 1-2.261 2.273 2.27 2.27 0 0 1-2.261-2.273v-4.042A2.27 2.27 0 0 1 8.249 9.6a2.267 2.267 0 0 1 2.262 2.274zm7.285 0a2.27 2.27 0 0 1-2.26 2.273 2.27 2.27 0 0 1-2.262-2.273v-4.042A2.267 2.267 0 0 1 15.535 9.6a2.267 2.267 0 0 1 2.261 2.274z"/></symbol><symbol id="i-githubcopilot" viewBox="0 0 24 24"><path d="M23.922 16.997C23.061 18.492 18.063 22.02 12 22.02 5.937 22.02.939 18.492.078 16.997A.641.641 0 0 1 0 16.741v-2.869a.883.883 0 0 1 .053-.22c.372-.935 1.347-2.292 2.605-2.656.167-.429.414-1.055.644-1.517a10.098 10.098 0 0 1-.052-1.086c0-1.331.282-2.499 1.132-3.368.397-.406.89-.717 1.474-.952C7.255 2.937 9.248 1.98 11.978 1.98c2.731 0 4.767.957 6.166 2.093.584.235 1.077.546 1.474.952.85.869 1.132 2.037 1.132 3.368 0 .368-.014.733-.052 1.086.23.462.477 1.088.644 1.517 1.258.364 2.233 1.721 2.605 2.656a.841.841 0 0 1 .053.22v2.869a.641.641 0 0 1-.078.256Zm-11.75-5.992h-.344a4.359 4.359 0 0 1-.355.508c-.77.947-1.918 1.492-3.508 1.492-1.725 0-2.989-.359-3.782-1.259a2.137 2.137 0 0 1-.085-.104L4 11.746v6.585c1.435.779 4.514 2.179 8 2.179 3.486 0 6.565-1.4 8-2.179v-6.585l-.098-.104s-.033.045-.085.104c-.793.9-2.057 1.259-3.782 1.259-1.59 0-2.738-.545-3.508-1.492a4.359 4.359 0 0 1-.355-.508Zm2.328 3.25c.549 0 1 .451 1 1v2c0 .549-.451 1-1 1-.549 0-1-.451-1-1v-2c0-.549.451-1 1-1Zm-5 0c.549 0 1 .451 1 1v2c0 .549-.451 1-1 1-.549 0-1-.451-1-1v-2c0-.549.451-1 1-1Zm3.313-6.185c.136 1.057.403 1.913.878 2.497.442.544 1.134.938 2.344.938 1.573 0 2.292-.337 2.657-.751.384-.435.558-1.15.558-2.361 0-1.14-.243-1.847-.705-2.319-.477-.488-1.319-.862-2.824-1.025-1.487-.161-2.192.138-2.533.529-.269.307-.437.808-.438 1.578v.021c0 .265.021.562.063.893Zm-1.626 0c.042-.331.063-.628.063-.894v-.02c-.001-.77-.169-1.271-.438-1.578-.341-.391-1.046-.69-2.533-.529-1.505.163-2.347.537-2.824 1.025-.462.472-.705 1.179-.705 2.319 0 1.211.175 1.926.558 2.361.365.414 1.084.751 2.657.751 1.21 0 1.902-.394 2.344-.938.475-.584.742-1.44.878-2.497Z"/></symbol><symbol id="i-googlegemini" viewBox="0 0 24 24"><path d="M11.04 19.32Q12 21.51 12 24q0-2.49.93-4.68.96-2.19 2.58-3.81t3.81-2.55Q21.51 12 24 12q-2.49 0-4.68-.93a12.3 12.3 0 0 1-3.81-2.58 12.3 12.3 0 0 1-2.58-3.81Q12 2.49 12 0q0 2.49-.96 4.68-.93 2.19-2.55 3.81a12.3 12.3 0 0 1-3.81 2.58Q2.49 12 0 12q2.49 0 4.68.96 2.19.93 3.81 2.55t2.55 3.81"/></symbol><symbol id="i-zedindustries" viewBox="0 0 24 24"><path d="M2.25 1.5a.75.75 0 0 0-.75.75v16.5H0V2.25A2.25 2.25 0 0 1 2.25 0h20.095c1.002 0 1.504 1.212.795 1.92L10.764 14.298h3.486V12.75h1.5v1.922a1.125 1.125 0 0 1-1.125 1.125H9.264l-2.578 2.578h11.689V9h1.5v9.375a1.5 1.5 0 0 1-1.5 1.5H5.185L2.562 22.5H21.75a.75.75 0 0 0 .75-.75V5.25H24v16.5A2.25 2.25 0 0 1 21.75 24H1.655C.653 24 .151 22.788.86 22.08L13.19 9.75H9.75v1.5h-1.5V9.375A1.125 1.125 0 0 1 9.375 8.25h5.314l2.625-2.625H5.625V15h-1.5V5.625a1.5 1.5 0 0 1 1.5-1.5h13.19L21.438 1.5z"/></symbol><symbol id="i-jetbrains" viewBox="0 0 24 24"><path d="M2.345 23.997A2.347 2.347 0 0 1 0 21.652V10.988C0 9.665.535 8.37 1.473 7.433l5.965-5.961A5.01 5.01 0 0 1 10.989 0h10.666A2.347 2.347 0 0 1 24 2.345v10.664a5.056 5.056 0 0 1-1.473 3.554l-5.965 5.965A5.017 5.017 0 0 1 13.007 24v-.003H2.345Zm8.969-6.854H5.486v1.371h5.828v-1.371ZM3.963 6.514h13.523v13.519l4.257-4.257a3.936 3.936 0 0 0 1.146-2.767V2.345c0-.678-.552-1.234-1.234-1.234H10.989a3.897 3.897 0 0 0-2.767 1.145L3.963 6.514Zm-.192.192L2.256 8.22a3.944 3.944 0 0 0-1.145 2.768v10.664c0 .678.552 1.234 1.234 1.234h10.666a3.9 3.9 0 0 0 2.767-1.146l1.512-1.511H3.771V6.706Z"/></symbol><symbol id="i-warp" viewBox="0 0 24 24"><path d="M12.035 2.723h9.253A2.712 2.712 0 0 1 24 5.435v10.529a2.712 2.712 0 0 1-2.712 2.713H8.047Zm-1.681 2.6L6.766 19.677h5.598l-.399 1.6H2.712A2.712 2.712 0 0 1 0 18.565V8.036a2.712 2.712 0 0 1 2.712-2.712Z"/></symbol><symbol id="i-trae" viewBox="0 0 24 24"><path d="M24 20.5H3.5V17H0V3.5h24ZM3.5 17h17V7h-17Zm8.5-5-2.5 2.5L7 12l2.5-2.5Zm7 0-2.5 2.5L14 12l2.5-2.5z"/></symbol><symbol id="i-huggingface" viewBox="0 0 24 24"><path d="M12.025 1.13c-5.77 0-10.449 4.647-10.449 10.378 0 1.112.178 2.181.503 3.185.064-.222.203-.444.416-.577a.96.96 0 0 1 .524-.15c.293 0 .584.124.84.284.278.173.48.408.71.694.226.282.458.611.684.951v-.014c.017-.324.106-.622.264-.874s.403-.487.762-.543c.3-.047.596.06.787.203s.31.313.4.467c.15.257.212.468.233.542.01.026.653 1.552 1.657 2.54.616.605 1.01 1.223 1.082 1.912.055.537-.096 1.059-.38 1.572.637.121 1.294.187 1.967.187.657 0 1.298-.063 1.921-.178-.287-.517-.44-1.041-.384-1.581.07-.69.465-1.307 1.081-1.913 1.004-.987 1.647-2.513 1.657-2.539.021-.074.083-.285.233-.542.09-.154.208-.323.4-.467a1.08 1.08 0 0 1 .787-.203c.359.056.604.29.762.543s.247.55.265.874v.015c.225-.34.457-.67.683-.952.23-.286.432-.52.71-.694.257-.16.547-.284.84-.285a.97.97 0 0 1 .524.151c.228.143.373.388.43.625l.006.04a10.3 10.3 0 0 0 .534-3.273c0-5.731-4.678-10.378-10.449-10.378M8.327 6.583a1.5 1.5 0 0 1 .713.174 1.487 1.487 0 0 1 .617 2.013c-.183.343-.762-.214-1.102-.094-.38.134-.532.914-.917.71a1.487 1.487 0 0 1 .69-2.803m7.486 0a1.487 1.487 0 0 1 .689 2.803c-.385.204-.536-.576-.916-.71-.34-.12-.92.437-1.103.094a1.487 1.487 0 0 1 .617-2.013 1.5 1.5 0 0 1 .713-.174m-10.68 1.55a.96.96 0 1 1 0 1.921.96.96 0 0 1 0-1.92m13.838 0a.96.96 0 1 1 0 1.92.96.96 0 0 1 0-1.92M8.489 11.458c.588.01 1.965 1.157 3.572 1.164 1.607-.007 2.984-1.155 3.572-1.164.196-.003.305.12.305.454 0 .886-.424 2.328-1.563 3.202-.22-.756-1.396-1.366-1.63-1.32q-.011.001-.02.006l-.044.026-.01.008-.03.024q-.018.017-.035.036l-.032.04a1 1 0 0 0-.058.09l-.014.025q-.049.088-.11.19a1 1 0 0 1-.083.116 1.2 1.2 0 0 1-.173.18q-.035.029-.075.058a1.3 1.3 0 0 1-.251-.243 1 1 0 0 1-.076-.107c-.124-.193-.177-.363-.337-.444-.034-.016-.104-.008-.2.022q-.094.03-.216.087-.06.028-.125.063l-.13.074q-.067.04-.136.086a3 3 0 0 0-.135.096 3 3 0 0 0-.26.219 2 2 0 0 0-.12.121 2 2 0 0 0-.106.128l-.002.002a2 2 0 0 0-.09.132l-.001.001a1.2 1.2 0 0 0-.105.212q-.013.036-.024.073c-1.139-.875-1.563-2.317-1.563-3.203 0-.334.109-.457.305-.454m.836 10.354c.824-1.19.766-2.082-.365-3.194-1.13-1.112-1.789-2.738-1.789-2.738s-.246-.945-.806-.858-.97 1.499.202 2.362c1.173.864-.233 1.45-.685.64-.45-.812-1.683-2.896-2.322-3.295s-1.089-.175-.938.647 2.822 2.813 2.562 3.244-1.176-.506-1.176-.506-2.866-2.567-3.49-1.898.473 1.23 2.037 2.16c1.564.932 1.686 1.178 1.464 1.53s-3.675-2.511-4-1.297c-.323 1.214 3.524 1.567 3.287 2.405-.238.839-2.71-1.587-3.216-.642-.506.946 3.49 2.056 3.522 2.064 1.29.33 4.568 1.028 5.713-.624m5.349 0c-.824-1.19-.766-2.082.365-3.194 1.13-1.112 1.789-2.738 1.789-2.738s.246-.945.806-.858.97 1.499-.202 2.362c-1.173.864.233 1.45.685.64.451-.812 1.683-2.896 2.322-3.295s1.089-.175.938.647-2.822 2.813-2.562 3.244 1.176-.506 1.176-.506 2.866-2.567 3.49-1.898-.473 1.23-2.037 2.16c-1.564.932-1.686 1.178-1.464 1.53s3.675-2.511 4-1.297c.323 1.214-3.524 1.567-3.287 2.405.238.839 2.71-1.587 3.216-.642.506.946-3.49 2.056-3.522 2.064-1.29.33-4.568 1.028-5.713-.624"/></symbol><symbol id="i-githubactions" viewBox="0 0 24 24"><path d="M10.984 13.836a.5.5 0 0 1-.353-.146l-.745-.743a.5.5 0 1 1 .706-.708l.392.391 1.181-1.18a.5.5 0 0 1 .708.707l-1.535 1.533a.504.504 0 0 1-.354.146zm9.353-.147l1.534-1.532a.5.5 0 0 0-.707-.707l-1.181 1.18-.392-.391a.5.5 0 1 0-.706.708l.746.743a.497.497 0 0 0 .706-.001zM4.527 7.452l2.557-1.585A1 1 0 0 0 7.09 4.17L4.533 2.56A1 1 0 0 0 3 3.406v3.196a1.001 1.001 0 0 0 1.527.85zm2.03-2.436L4 6.602V3.406l2.557 1.61zM24 12.5c0 1.93-1.57 3.5-3.5 3.5a3.503 3.503 0 0 1-3.46-3h-2.08a3.503 3.503 0 0 1-3.46 3 3.502 3.502 0 0 1-3.46-3h-.558c-.972 0-1.85-.399-2.482-1.042V17c0 1.654 1.346 3 3 3h.04c.244-1.693 1.7-3 3.46-3 1.93 0 3.5 1.57 3.5 3.5S13.43 24 11.5 24a3.502 3.502 0 0 1-3.46-3H8c-2.206 0-4-1.794-4-4V9.899A5.008 5.008 0 0 1 0 5c0-2.757 2.243-5 5-5s5 2.243 5 5a5.005 5.005 0 0 1-4.952 4.998A2.482 2.482 0 0 0 7.482 12h.558c.244-1.693 1.7-3 3.46-3a3.502 3.502 0 0 1 3.46 3h2.08a3.503 3.503 0 0 1 3.46-3c1.93 0 3.5 1.57 3.5 3.5zm-15 8c0 1.378 1.122 2.5 2.5 2.5s2.5-1.122 2.5-2.5-1.122-2.5-2.5-2.5S9 19.122 9 20.5zM5 9c2.206 0 4-1.794 4-4S7.206 1 5 1 1 2.794 1 5s1.794 4 4 4zm9 3.5c0-1.378-1.122-2.5-2.5-2.5S9 11.122 9 12.5s1.122 2.5 2.5 2.5 2.5-1.122 2.5-2.5zm9 0c0-1.378-1.122-2.5-2.5-2.5S18 11.122 18 12.5s1.122 2.5 2.5 2.5 2.5-1.122 2.5-2.5zm-13 8a.5.5 0 1 0 1 0 .5.5 0 0 0-1 0zm2 0a.5.5 0 1 0 1 0 .5.5 0 0 0-1 0zm12 0c0 1.93-1.57 3.5-3.5 3.5a3.503 3.503 0 0 1-3.46-3.002c-.007.001-.013.005-.021.005l-.506.017h-.017a.5.5 0 0 1-.016-.999l.506-.017c.018-.002.035.006.052.007A3.503 3.503 0 0 1 20.5 17c1.93 0 3.5 1.57 3.5 3.5zm-1 0c0-1.378-1.122-2.5-2.5-2.5S18 19.122 18 20.5s1.122 2.5 2.5 2.5 2.5-1.122 2.5-2.5z"/></symbol></svg>
       <p class="works-label">Works with</p>
-      <ul class="works-list">
-        <li><img src="logos/openai.svg" alt="OpenAI" height="22" loading="lazy" decoding="async"></li>
-        <li><img src="logos/qwen.svg" alt="Qwen" height="22" loading="lazy" decoding="async"></li>
-        <li><img src="logos/hugging-face.svg" alt="Hugging Face" height="22" loading="lazy" decoding="async"></li>
-        <li><img src="logos/axolotl.svg" alt="Axolotl" height="22" loading="lazy" decoding="async"></li>
-        <li><img src="logos/unsloth.svg" alt="Unsloth" height="22" loading="lazy" decoding="async"></li>
-        <li><img src="logos/llama-factory.svg" alt="LLaMA-Factory" height="22" loading="lazy" decoding="async"></li>
-        <li><img src="logos/github-actions.svg" alt="GitHub Actions" height="22" loading="lazy" decoding="async"></li>
-      </ul>
+      <div class="marquee">
+        <ul class="marquee-track">
+          <li><svg aria-hidden="true" focusable="false"><use href="#i-claude"/></svg><span>Claude Code</span></li>
+          <li><span>Codex</span></li>
+          <li><svg aria-hidden="true" focusable="false"><use href="#i-cursor"/></svg><span>Cursor</span></li>
+          <li><svg aria-hidden="true" focusable="false"><use href="#i-windsurf"/></svg><span>Windsurf</span></li>
+          <li><svg aria-hidden="true" focusable="false"><use href="#i-cline"/></svg><span>Cline</span></li>
+          <li><svg aria-hidden="true" focusable="false"><use href="#i-githubcopilot"/></svg><span>GitHub Copilot</span></li>
+          <li><svg aria-hidden="true" focusable="false"><use href="#i-googlegemini"/></svg><span>Gemini CLI</span></li>
+          <li><svg aria-hidden="true" focusable="false"><use href="#i-zedindustries"/></svg><span>Zed</span></li>
+          <li><svg aria-hidden="true" focusable="false"><use href="#i-jetbrains"/></svg><span>JetBrains</span></li>
+          <li><svg aria-hidden="true" focusable="false"><use href="#i-warp"/></svg><span>Warp</span></li>
+          <li><svg aria-hidden="true" focusable="false"><use href="#i-trae"/></svg><span>TRAE</span></li>
+          <li><svg aria-hidden="true" focusable="false"><use href="#i-huggingface"/></svg><span>Hugging Face</span></li>
+          <li><svg aria-hidden="true" focusable="false"><use href="#i-githubactions"/></svg><span>GitHub Actions</span></li>
+        </ul>
+        <ul class="marquee-track" aria-hidden="true">
+          <li><svg aria-hidden="true" focusable="false"><use href="#i-claude"/></svg><span>Claude Code</span></li>
+          <li><span>Codex</span></li>
+          <li><svg aria-hidden="true" focusable="false"><use href="#i-cursor"/></svg><span>Cursor</span></li>
+          <li><svg aria-hidden="true" focusable="false"><use href="#i-windsurf"/></svg><span>Windsurf</span></li>
+          <li><svg aria-hidden="true" focusable="false"><use href="#i-cline"/></svg><span>Cline</span></li>
+          <li><svg aria-hidden="true" focusable="false"><use href="#i-githubcopilot"/></svg><span>GitHub Copilot</span></li>
+          <li><svg aria-hidden="true" focusable="false"><use href="#i-googlegemini"/></svg><span>Gemini CLI</span></li>
+          <li><svg aria-hidden="true" focusable="false"><use href="#i-zedindustries"/></svg><span>Zed</span></li>
+          <li><svg aria-hidden="true" focusable="false"><use href="#i-jetbrains"/></svg><span>JetBrains</span></li>
+          <li><svg aria-hidden="true" focusable="false"><use href="#i-warp"/></svg><span>Warp</span></li>
+          <li><svg aria-hidden="true" focusable="false"><use href="#i-trae"/></svg><span>TRAE</span></li>
+          <li><svg aria-hidden="true" focusable="false"><use href="#i-huggingface"/></svg><span>Hugging Face</span></li>
+          <li><svg aria-hidden="true" focusable="false"><use href="#i-githubactions"/></svg><span>GitHub Actions</span></li>
+        </ul>
+      </div>
     </section>
+
 
     <!-- Terminal -->
     <section class="section center" aria-labelledby="run-title">
       <div class="pill-toggle" role="tablist" aria-label="Where it runs">
         <button type="button" role="tab" id="tab-cli" aria-selected="true" aria-controls="pane-cli">CLI</button>
         <button type="button" role="tab" id="tab-ci" aria-selected="false" aria-controls="pane-ci" tabindex="-1">CI</button>
+        <button type="button" role="tab" id="tab-agents" aria-selected="false" aria-controls="pane-agents" tabindex="-1">Agents</button>
       </div>
       <h2 id="run-title">Catch It Before The GPU Does</h2>
-      <p class="sub">One command between your dataset and your trainer, on your machine or in CI.</p>
+      <p class="sub">One command between your dataset and your trainer: on your machine, in CI, or called by your coding agent.</p>
       <figure class="terminal" id="pane-cli" role="tabpanel" aria-labelledby="tab-cli">
-        <figcaption><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span>train.jsonl</span><span class="mono dim">parallelogram 1.1.0</span></figcaption>
+        <figcaption><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span>train.jsonl</span><span class="mono dim">parallelogram 1.5.0</span></figcaption>
 <pre><code><span class="t-cmd">$ parallelogram check train.jsonl --eval eval.jsonl</span>
 <span class="t-err">✗ train.jsonl:2 [secrets] Message 0 contains a likely OpenAI API key: sk-pro…</span>
 <span class="t-err">✗ train.jsonl:3 [preference] Chosen and rejected answers are identical</span>
@@ -142,6 +169,22 @@
 
 <span class="t-dim"># The health report lands in the job summary. A dataset PR that breaks
 # role order fails the same way a code PR with a failing test does.</span></code></pre>
+      </figure>
+      <figure class="terminal" id="pane-agents" role="tabpanel" aria-labelledby="tab-agents" hidden>
+        <figcaption><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span>MCP · Claude Code, Codex, Cursor</span><span class="mono dim">parallelogram mcp</span></figcaption>
+<pre><code><span class="t-cmd">$ claude mcp add parallelogram -- parallelogram mcp</span>       <span class="t-dim"># Claude Code</span>
+<span class="t-cmd">$ codex mcp add parallelogram -- parallelogram mcp</span>        <span class="t-dim"># Codex</span>
+
+<span class="t-ok">→ check_dataset</span> <span class="t-dim">{"path": "train.jsonl", "eval_path": "eval.jsonl", "limit": 3}</span>
+{ "summary": { "errors": 4, "warnings": 2 },  "issues_truncated": true,
+  "by_rule": { "secrets": …, "preference": …, "duplicates": …, "eval-overlap": … },
+  "issues": [
+    { "rule": <span class="t-err">"secrets"</span>,    "line": 2, "message": "…OpenAI API key: sk-pro…",  "fixable": true },
+    { "rule": <span class="t-err">"preference"</span>, "line": 3, "message": "…answers are identical", "fixable": false },
+    { "rule": <span class="t-err">"duplicates"</span>, "line": 4, "message": "Duplicate of line 1",      "fixable": true } ] }
+
+<span class="t-ok">→ fix_dataset</span> <span class="t-dim">{"path": "train.jsonl", "eval_path": "eval.jsonl", "output": "clean.jsonl"}</span>
+{ "summary": { "fixed": 2, "dropped": 3, "emitted": 3 } }                 <span class="t-dim">clean.jsonl rechecks clean</span></code></pre>
       </figure>
     </section>
 
@@ -296,10 +339,10 @@
         <a class="textlink" href="https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/CHANGELOG.md">Full changelog <span aria-hidden="true">→</span></a>
       </div>
       <ol class="log">
-        <li><time datetime="2026-11-06">Nov 6, 2026</time><span class="chip chip-accent">1.1.0</span><p>Alpaca and DPO formats, secrets and PII checks, train/eval leakage with <code>--eval</code></p></li>
+        <li><time datetime="2026-11-07">Nov 7, 2026</time><span class="chip chip-accent">1.5.0</span><p>For coding agents: an MCP server, a Python API and <code>--json --limit</code></p></li>
+        <li><time datetime="2026-11-07">Nov 7, 2026</time><span class="chip">1.1.1</span><p>Fixes from an independent review, including secrets quoted in diagnostics</p></li>
+        <li><time datetime="2026-11-06">Nov 6, 2026</time><span class="chip">1.1.0</span><p>Alpaca and DPO formats, secrets and PII checks, train/eval leakage with <code>--eval</code></p></li>
         <li><time datetime="2026-11-06">Nov 6, 2026</time><span class="chip">1.0.0</span><p>Stable contract: prompt/completion format, GitHub Action, versioned JSON, <code>--version</code></p></li>
-        <li><time datetime="2026-06-13">Jun 13, 2026</time><span class="chip">0.4.2</span><p>OpenAI chat and ShareGPT records auto-detected per line</p></li>
-        <li><time datetime="2026-06-12">Jun 12, 2026</time><span class="chip">0.4.1</span><p><code>report</code> and the CI regression gate</p></li>
       </ol>
     </section>
 
@@ -336,6 +379,10 @@
           <p>Add <code>uses: Thatayotlhe04/Parallelogram@v1</code> to a workflow. It writes a report to the job summary and fails on errors, or on regressions against a <code>--baseline</code>.</p>
         </details>
         <details>
+          <summary>Can my coding agent run it?</summary>
+          <p>Yes. <code>parallelogram mcp</code> gives Claude Code, Codex and Cursor three tools: check, fix and list rules. Agents using the shell can run <code>check --json --limit 50</code>, which keeps every count exact but lists only the most important issues. Setup is in the <a href="https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/docs/agents.md">agent guide</a>.</p>
+        </details>
+        <details>
           <summary>Is it free?</summary>
           <p>Yes. Apache-2.0, on PyPI and GitHub.</p>
         </details>
@@ -364,7 +411,7 @@
           <span>parallelogram</span>
         </a>
         <p>The linter for fine-tuning data.</p>
-        <p class="mono dim">v1.1.0 · Apache-2.0 · runs offline</p>
+        <p class="mono dim">v1.5.0 · Apache-2.0 · runs offline</p>
       </div>
       <div class="footer-col">
         <h3>Product</h3>
@@ -389,6 +436,112 @@
     </div>
     <div class="footer-bar"><span>© 2026 parallelogram.dev</span><span class="mono dim">If it exits 0, your run won't fail because of data.</span></div>
   </footer>
+  <!-- Agent view: the machine-readable page. Its text is landing/index.md,
+       copied in by scripts/build_agent_view.py; edit index.md, not this block. -->
+  <section class="agent-view" id="agent-view" aria-label="Machine-readable page" hidden>
+    <div class="agent-bar">
+      <a class="agent-file mono" href="index.md">parallelogram.dev/index.md</a>
+      <button type="button" class="agent-copy" id="agent-copy">Copy page</button>
+    </div>
+    <pre class="agent-doc"><code id="agent-md"><!-- agent-md:start -->---
+title: Parallelogram
+description: Machine-readable overview of parallelogram.dev, for AI agents and for anyone who wants the landing page as text.
+canonical: https://parallelogram.dev/
+markdown_url: https://parallelogram.dev/index.md
+llms_url: https://parallelogram.dev/llms.txt
+agent_guide: https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/docs/agents.md
+version: 1.5.0
+updated: 2026-11-07
+---
+
+# Parallelogram
+
+&gt; The linter for LLM fine-tuning data. A local CLI, Python API and MCP server that validates and mechanically repairs fine-tuning JSONL before training. If `parallelogram check` exits 0 with all rules on, the training run won't fail because of the data. Free and open source (Apache-2.0).
+
+It runs on the user's machine: no telemetry, no network calls, no uploads. Python 3.10+, runtime dependencies typer and rich.
+
+```bash
+pip install parallelogram
+```
+
+## Use it as an MCP server
+
+```bash
+claude mcp add parallelogram -- parallelogram mcp    # Claude Code
+codex mcp add parallelogram -- parallelogram mcp     # Codex
+```
+
+Cursor, Windsurf, Cline and other MCP clients: a stdio server with command `parallelogram` and args `["mcp"]`.
+
+- `check_dataset` {path, format?, eval_path?, disable?, limit?}: validate without changing files. Counts are exact; at most `limit` issues are listed (default 50), errors first. Returns `exit_code`.
+- `fix_dataset` {path, output, format?, eval_path?, disable?, dry_run?, limit?}: write a repaired copy to `output`, never over the input or eval file. Lists only dropped, unparseable and fixed records. Returns `exit_code`.
+- `list_rules` {}: every rule with its severity, whether it is fixable, and what the fix does.
+
+## Use it from the shell
+
+```bash
+parallelogram check train.jsonl --json --limit 50
+parallelogram check train.jsonl --eval eval.jsonl --json --limit 50
+parallelogram check train.jsonl --fix --output clean.jsonl
+parallelogram rules --json
+parallelogram report train.jsonl --baseline last.json
+```
+
+`check` exits 0 with no errors or warnings, 1 with warnings only, 2 with errors, 3 on an operational failure such as an invalid `--eval` file. With `--fix`: 0 every record emitted, 1 some dropped or unparseable, 2 nothing emitted. `report --baseline` exits 3 when quality regressed.
+
+## Use it from Python
+
+```python
+from parallelogram import check, fix
+
+result = check("train.jsonl", eval_path="eval.jsonl", limit=50)
+result.exit_code, result.to_dict()   # to_dict() equals the CLI's --json output
+fix("train.jsonl", output="clean.jsonl")
+```
+
+## Formats
+
+Auto-detected per line: OpenAI chat (`messages`), ShareGPT (`conversations`), prompt/completion, Alpaca (`instruction`, `input`, `output`, plus `system` and `history`) and preference/DPO pairs (`prompt`, `chosen`, `rejected`). `--fix --output` writes every record back in its own format.
+
+## Checks
+
+| Rule | Severity | --fix |
+| --- | --- | --- |
+| schema | error | Malformed records are left out |
+| roles | error | Records with an invalid role order are dropped |
+| empty-content | error | Empty turns are removed |
+| context-window | error | The longest user turns are truncated to fit |
+| duplicates | error | The first copy is kept |
+| encoding | warning | BOMs and mojibake are repaired |
+| preference | error | Pairs with identical chosen and rejected answers are dropped |
+| secrets | error | API keys, tokens and private keys are redacted |
+| pii | warning | Emails, phone numbers and card numbers are replaced with placeholders |
+| eval-overlap | error | Train records that repeat the eval set are dropped (only with `--eval`) |
+
+Without `--tokenizer`, token counts are estimates and an estimated overflow is a warning, not an error.
+
+## For agents
+
+- Run `check` before fine-tuning and after every dataset edit.
+- Judge the result by `exit_code`, not `summary.clean`, which is also false when the only finding is an informational note.
+- Fix into a separate file, then check that file.
+- Never overwrite the input or the eval set.
+
+## Links
+
+- Source: https://github.com/Thatayotlhe04/Parallelogram
+- PyPI: https://pypi.org/project/parallelogram/
+- Agent guide: https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/docs/agents.md
+- JSON contract: https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/docs/json-output.md
+- Changelog: https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/CHANGELOG.md
+<!-- agent-md:end --></code></pre>
+  </section>
+
+  <div class="mode" role="group" aria-label="Show this page for">
+    <button type="button" data-mode="human" aria-pressed="true">Human</button>
+    <button type="button" data-mode="agent" aria-pressed="false">Agent</button>
+  </div>
+
   <p class="sr-only" id="copy-status" role="status" aria-live="polite" aria-atomic="true"></p>
 </body>
 </html>

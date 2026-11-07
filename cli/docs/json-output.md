@@ -29,7 +29,12 @@ file is valid. The eval format is auto-detected independently of the train forma
 | `summary.errors` | Number of error issues, not distinct records. |
 | `summary.warnings` | Number of warning issues. |
 | `summary.clean` | Boolean, true only when there are no issues at any severity, including info. Consequently an informational tokenizer note can make this false while the command exits 0. |
-| `issues` | Array of issue objects, including informational notes. |
+| `issues_truncated` | Boolean, true when `--limit N` omitted issues; false without a limit. |
+| `by_rule` | Object keyed by rule ids that emitted issues, including info-only rules. Counts include omitted issues. |
+| `by_rule.<id>.errors` | Exact error issue count for this rule. |
+| `by_rule.<id>.warnings` | Exact warning issue count for this rule. |
+| `by_rule.<id>.info` | Exact informational issue count for this rule. |
+| `issues` | Array of at most `--limit N` issue objects (all without a limit). Sorted errors, warnings, info, then ascending line; null lines sort last within a severity and ties retain validation order. |
 | `issues[].rule` | String rule id. Current ids: `schema`, `roles`, `empty-content`, `context-window`, `duplicates`, `encoding`, `secrets`, `pii`, `preference`, `eval-overlap`. |
 | `issues[].severity` | String: `error`, `warning`, or `info`. |
 | `issues[].line` | Integer line number, or null for dataset-wide notes. |
@@ -37,7 +42,16 @@ file is valid. The eval format is auto-detected independently of the train forma
 | `issues[].detail` | String additional explanation, or null; wording is not stable. |
 | `issues[].fixable` | Boolean, whether a mechanical fix can be attempted; not a guarantee the record will survive revalidation. |
 
-Exit: 2 with any errors, otherwise 1 with warnings, otherwise 0.
+Exit: 2 with any errors, otherwise 1 with warnings, otherwise 0. `--limit` is
+a nonnegative integer, including zero for counts only. It never changes counts,
+validation coverage, output records, or exit codes. It applies to check JSON, not
+fix outcomes; combining it with `--fix` is rejected.
+
+The Python `check(...).to_dict()` returns this same object. Check/fix operational
+read/write failures raise `ParallelogramError` in Python and exit 3 in the CLI;
+invalid options raise `ValueError` / exit 2. CLI path-argument validation still
+exits 2 for missing inputs. Failed operations do not emit success JSON. See the
+[agent guide](agents.md) for the API and MCP transport.
 
 ## `check --fix --json`
 
