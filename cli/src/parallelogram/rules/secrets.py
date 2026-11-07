@@ -42,7 +42,9 @@ _PLACEHOLDER_WORDS = ("your", "example", "xxxx", "dummy", "fake", "redacted", "p
 def looks_placeholder(value: str) -> bool:
     """Documentation and tutorial data is full of fake keys; skip them."""
     low = value.lower()
-    if any(word in low for word in _PLACEHOLDER_WORDS):
+    if value == "AKIAIOSFODNN7EXAMPLE" or any(
+        part in _PLACEHOLDER_WORDS for part in re.split(r"[-_]", low)
+    ):
         return True
     body = re.sub(r"^[A-Za-z]+[-_]", "", value)
     return len(set(body)) < 8

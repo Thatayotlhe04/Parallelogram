@@ -50,3 +50,12 @@ def test_secret_role_never_reaches_action_summary(tmp_path):
                             capture_output=True, text=True)
     assert result.returncode == 2
     assert KEY not in result.stdout + result.stderr + summary.read_text()
+
+
+@pytest.mark.parametrize('word', ['your', 'example', 'xxxx', 'dummy', 'fake', 'redacted', 'placeholder', 'sample', 'test1234'])
+def test_placeholder_substrings_do_not_hide_credentials(word):
+    from parallelogram.rules.secrets import find_secrets, redact
+
+    key = 'sk-proj-Ab3dEf9hIjK2' + word + 'mNoPqR5sTuVwXyZ01234'
+    assert len(find_secrets(key)) == 1
+    assert redact(key) == '[REDACTED_SECRET]'
