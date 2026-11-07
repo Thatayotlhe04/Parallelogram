@@ -338,7 +338,7 @@ Deploy by dropping `landing/` on Vercel, Netlify, Cloudflare Pages, or GitHub Pa
 
 ## Status
 
-**CLI v1.5.0, stable** — local pre-training validation with nine default rules and optional eval-overlap detection, mechanical `--fix`, model-specific tokenizers, chat/ShareGPT/prompt-completion/Alpaca/preference auto-detection, versioned JSON output, a Python API and an MCP server for coding agents, and a composite GitHub Action.
+**CLI v1.5.1, stable** — local pre-training validation with nine default rules and optional eval-overlap detection, mechanical `--fix`, model-specific tokenizers, chat/ShareGPT/prompt-completion/Alpaca/preference auto-detection, versioned JSON output, a Python API and an MCP server for coding agents, and a composite GitHub Action.
 
 **Landing page** — [parallelogram.dev](https://parallelogram.dev): checks, the check/fix/gate workflow, changelog and FAQ, with privacy policy and terms of use. No cookies.
 

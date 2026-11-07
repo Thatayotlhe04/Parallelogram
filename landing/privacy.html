@@ -44,7 +44,7 @@
     <div class="legal-container">
       <span class="kicker">/ legal</span>
       <h1>Privacy Policy</h1>
-      <p class="legal-effective">Effective November 6, 2026 · Replaces all prior versions</p>
+      <p class="legal-effective">Effective November 7, 2026 · Replaces all prior versions</p>
 
       <p>
         This Privacy Policy describes how <strong>Parallelogram</strong> ("we", "us", "our") handles information
@@ -79,6 +79,9 @@
         The <code>parallelogram</code> CLI is a fully offline, local tool. When you run it, it reads the
         files you point it at on your own machine and writes output to your own machine. It performs no
         outbound network activity of any kind unless you explicitly pass the <code>--tokenizer</code> flag.
+        The same is true of its Python API and of <code>parallelogram mcp</code>, the tool server that coding
+        agents run: they read and write only the paths they are given and talk to the agent over standard
+        input and output, never over the network.
       </p>
       <p>
         Specifically, the CLI does <strong>not</strong>:
@@ -157,7 +160,13 @@
       </p>
 
       <h3>3.5 Cookies and local storage</h3>
-      <p>The website uses no cookies, no local storage, and no session storage.</p>
+      <p>
+        The website sets no cookies and uses no session storage. It keeps one entry in your browser's local
+        storage, <code>pg-mode</code>, holding the word <code>human</code> or <code>agent</code> so the page
+        remembers which view you picked with the Human / Agent switch. It is written only when you use that
+        switch, never leaves your browser, is not sent to us or anyone else, and you can clear it at any time
+        with your browser's site data settings.
+      </p>
 
       <h2>4. Email correspondence</h2>
       <p>

@@ -32,7 +32,7 @@ fixed = fix("train.jsonl", output="clean.jsonl")
 The API and CLI share their check/fix implementation. JSON retains
 `schema_version: 1`, with exact `by_rule` counts and `issues_truncated`; limiting
 issues never limits validation. Fixes require a separate output path and refuse
-input/eval aliases. [Agent guide](docs/agents.md): MCP tools, Claude Code/Codex/Cursor
+input/eval aliases. [Agent guide](https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/docs/agents.md): MCP tools, Claude Code/Codex/Cursor
 configuration, Python errors, and a six-line AGENTS.md/CLAUDE.md snippet.
 
 ## Install
@@ -269,7 +269,7 @@ appended to the job summary even when validation fails.
 From 1.0 until 2.0, command names and flags, rule ids, exit codes 0/1/2/3,
 and JSON fields at `schema_version: 1` are stable. Removing or renaming any of
 these requires a major release. New rules and formats may be added in minor
-releases. See the [JSON output contract](docs/json-output.md) for every field and its meaning.
+releases. See the [JSON output contract](https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/docs/json-output.md) for every field and its meaning.
 Reports saved by 0.4.x remain usable as baselines.
 
 ## `--disable` and the exit-0 guarantee
@@ -337,7 +337,7 @@ default install.
 
 ## Status
 
-v1.5.0 — stable CLI and Python API, agent-sized JSON output, rule discovery and a local MCP server. No telemetry, no network, no upload boundary.
+v1.5.1 — stable CLI and Python API, agent-sized JSON output, rule discovery and a local MCP server. No telemetry, no network, no upload boundary.
 
 ## Roadmap
 

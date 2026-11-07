@@ -15,6 +15,7 @@ import json
 from typing import Any, Iterator
 
 from . import ParseResult
+from .jsonline import PARSE_ERRORS, describe
 
 
 # ShareGPT `from` → canonical role. Unknown values are passed through untouched.
@@ -48,6 +49,9 @@ def is_sharegpt_record(record: Any) -> bool:
     return isinstance(turns, list)
 
 
+# Keys normalize() turns into messages; everything else is carried through.
+_OWN_KEYS = {"conversations", "conversation", "system", "messages", "rejected"}
+
 def normalize(record: Any) -> Any:
     """Map a ShareGPT record to internal OpenAI-chat shape.
 
@@ -76,7 +80,10 @@ def normalize(record: Any) -> Any:
         role = _FROM_TO_ROLE.get(frm, frm) if isinstance(frm, str) else frm
         messages.append({"role": role, "content": turn.get("value")})
 
-    return {"messages": messages}
+    # Keep record-level fields (ids, sources, metadata) so rules can scan them
+    # for leaked keys and --fix writes them back instead of dropping them.
+    extras = {k: v for k, v in record.items() if k not in _OWN_KEYS}
+    return {**extras, "messages": messages}
 
 
 _normalize = normalize
@@ -97,12 +104,12 @@ def iter_jsonl(path: str) -> Iterator[ParseResult]:
                     record=normalize(record),
                     source_format="sharegpt",
                 )
-            except json.JSONDecodeError as e:
+            except PARSE_ERRORS as e:
                 yield ParseResult(
                     line_no=line_no,
                     raw=raw,
                     record=None,
-                    parse_error=f"{e.msg} at column {e.colno}",
+                    parse_error=describe(e),
                     source_format="sharegpt",
                 )
 
@@ -124,4 +131,5 @@ def to_sharegpt(record: Any) -> Any:
         for msg in record["messages"]
         if isinstance(msg, dict)
     ]
-    return {"conversations": conversations}
+    extras = {k: v for k, v in record.items() if k not in ("messages", "rejected")}
+    return {"conversations": conversations, **extras}

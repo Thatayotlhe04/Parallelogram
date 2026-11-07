@@ -3,6 +3,54 @@
 All notable changes to the `parallelogram` CLI. Versions correspond to
 [PyPI releases](https://pypi.org/project/parallelogram/) and `cli-v*` git tags.
 
+## 1.5.1 — 2026-11-07
+
+Fixes from an independent leak audit of 1.5.0. Every fix has a regression
+test. Upgrade if you run Parallelogram in CI or let an agent call it.
+
+### Security
+- `secrets` scans every string in a record, dict keys included, not only
+  message text: ids, metadata and other extra fields, message names and
+  tool-call arguments, in every format. Before, a key in a record's `id` passed
+  `check` and `check --output` copied it out unchanged. `pii` checks the text a
+  model trains on, now including the text parts of multimodal content; ids and
+  metadata are left alone, because order numbers, SKUs and git remotes look
+  like phone numbers and emails.
+- One line with an integer over 4,300 digits, or nested thousands of levels
+  deep, crashed `report` with exit 1, and the GitHub Action read exit 1 as
+  "warnings only" and passed. Such lines are now invalid JSON lines like any
+  other. Any unexpected crash exits 3, and the Action fails when the CLI exits
+  1 without writing a report.
+- `--fix` applies one kind of repair per pass in a fixed order: encoding,
+  then secrets and PII, then empty turns and truncation. Truncating before
+  redacting could leave most of a key in the output, too short to match again;
+  repairing encoding first joins a key split by a stray BOM before it's
+  redacted.
+- An email address or phone number used as a role value is no longer printed
+  in diagnostics, `report` or the Action summary. Email masks no longer show the
+  domain (`j***@***.com`).
+- MCP `fix_dataset` writes only inside the server's root (its working
+  directory, or `parallelogram mcp --root DIR`), refuses symlinked outputs, and
+  replaces an existing file only with `overwrite: true`. Relative paths resolve
+  against that root. `path` and `eval_path` must be regular files outside
+  `/proc`, `/sys` and `/dev`, so a pipe or `/dev/stdin` can't block the
+  server, and request lines over 1,000,000 characters are rejected.
+- Values in the Markdown summary (paths, roles, formats, tokenizer names) are
+  fenced so they can't inject links or images into a job summary.
+- New secret kinds: PGP private key blocks, AWS secret access keys next to
+  their name (including the `"SecretAccessKey": "..."` JSON form), Slack
+  webhooks and `xoxe-` tokens, Google OAuth client secrets, Hugging Face
+  `api_org_` tokens, and keys that directly follow an underscore.
+
+### Changed
+- `--fix --output` keeps extra fields on ShareGPT and prompt/completion
+  records (such as `id`) instead of dropping them, as it already did for chat,
+  Alpaca and preference records.
+- The publish workflow runs tests and the build without PyPI credentials;
+  only a separate publish job can mint a token, and its actions are pinned to
+  commit SHAs. The GitHub Action pins `actions/setup-python` to a commit SHA,
+  since it runs inside your workflows.
+
 ## 1.5.0 — 2026-11-07
 
 Parallelogram for coding agents. Claude Code, Codex, Cursor or your own
@@ -72,7 +120,7 @@ are shared.
   misdetected.
 - Docs: format lists and exit codes now match the CLI.
 
-## 1.1.0 — 2026-11-06
+## 1.1.0 — 2026-11-07
 
 The biggest release since the first one: two new dataset formats, three new
 checks that run by default, and train/eval leakage detection.

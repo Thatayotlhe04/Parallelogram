@@ -85,10 +85,24 @@ writes only JSON-RPC responses on stdout; diagnostics go to stderr. Relative
 paths are relative to the server's working directory. Use absolute dataset paths
 when the client's working directory is uncertain.
 
+Boundaries, so an agent can't be talked into damage:
+
+- `fix_dataset` writes only inside the server's root: its working directory, or
+  the directory given with `parallelogram mcp --root DIR`. Relative paths
+  resolve against the root. Outputs outside it, including through `..` and
+  symlinks, are refused.
+- An existing output file is never replaced unless the call sets
+  `overwrite: true`. The input and eval files can't be overwritten at all.
+- `path` and `eval_path` must be regular files outside `/proc`, `/sys` and
+  `/dev`; pipes and devices such as `/dev/stdin` are refused rather than
+  blocking the server.
+- A request line over 1,000,000 characters is rejected with `-32600`, and the
+  server keeps serving.
+
 | Tool | Arguments | Result |
 |---|---|---|
 | `check_dataset` | Required `path`; optional `format`, `eval_path`, `disable` (array of ids), `limit` (nonnegative integer, default 50). | Check JSON with exact counts and bounded issues, plus `exit_code`. |
-| `fix_dataset` | Required `path`, `output`; optional `format`, `eval_path`, `disable`, `dry_run` (default false), `limit` (nonnegative integer, default 50). | Fix JSON with exact summary and fixes by rule, plus `exit_code`. `outcomes` lists only dropped, unparseable and fixed records, in that order, at most `limit`, with `outcomes_truncated`. |
+| `fix_dataset` | Required `path`, `output`; optional `format`, `eval_path`, `disable`, `dry_run` (default false), `overwrite` (default false), `limit` (nonnegative integer, default 50). | Fix JSON with exact summary and fixes by rule, plus `exit_code`. `outcomes` lists only dropped, unparseable and fixed records, in that order, at most `limit`, with `outcomes_truncated`. |
 | `list_rules` | Empty object. | `{"rules": [...]}` containing the API rule list. |
 
 Formats are `auto` (default), `openai-chat`, `sharegpt`, `prompt-completion`,

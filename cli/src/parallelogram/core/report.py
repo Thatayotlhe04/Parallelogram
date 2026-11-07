@@ -25,13 +25,20 @@ class Issue:
 
 
     def __post_init__(self) -> None:
-        # Schema/role diagnostics may quote malformed values containing keys.
-        # Scrub centrally, including when the secrets rule itself is disabled.
-        from ..rules.secrets import redact
-
-        self.message = redact(self.message)
+        # Schema/role diagnostics may quote malformed values (a key or an email
+        # address used as a role). Scrub centrally, even with the secrets and
+        # pii rules disabled. Their own messages are already masked.
+        self.message = scrub(self.message)
         if self.detail is not None:
-            self.detail = redact(self.detail)
+            self.detail = scrub(self.detail)
+
+
+def scrub(text: str) -> str:
+    """Redact secrets, then personal data, from any text shown to a user."""
+    from ..rules.pii import redact as redact_pii
+    from ..rules.secrets import redact as redact_secrets
+
+    return redact_pii(redact_secrets(text))
 
 
 @dataclass

@@ -32,7 +32,7 @@ def test_exit_mapping_and_literal_arguments(tmp_path, code, fail_on):
         f"#!{sys.executable}\n"
         "import json, os, sys\n"
         "with open(os.environ['CAPTURE'], 'w') as f: json.dump(sys.argv[1:], f)\n"
-        "print('# Dataset report')\n"
+        "print('## parallelogram report — `x`')\n"
         "sys.exit(int(os.environ['REPORT_EXIT']))\n"
     )
     stub.chmod(0o755)
@@ -53,8 +53,20 @@ def test_exit_mapping_and_literal_arguments(tmp_path, code, fail_on):
         "report", "--markdown", "--format", hostile, "--max-seq-len", hostile,
         "--tokenizer", hostile, "--baseline", hostile, "--eval", hostile, "--", hostile,
     ]
-    assert summary.read_text() == "Existing summary\n# Dataset report\n"
+    assert summary.read_text() == "Existing summary\n## parallelogram report — `x`\n"
     assert not (tmp_path / "INJECTED").exists()
+
+
+def test_exit_1_without_a_report_fails(tmp_path):
+    """A crash that exits 1 must not pass as 'warnings only' (audit finding)."""
+    stub = tmp_path / "parallelogram"
+    stub.write_text(f"#!{sys.executable}\nimport sys\nsys.stderr.write('Traceback ...')\nsys.exit(1)\n")
+    stub.chmod(0o755)
+    env = environment(tmp_path)
+    env["PATH"] = str(tmp_path) + os.pathsep + env["PATH"]
+    result = subprocess.run(["bash", str(SCRIPT)], env=env, cwd=tmp_path, capture_output=True, text=True, check=False)
+    assert result.returncode == 3
+    assert "without writing a report" in result.stderr
 
 
 @pytest.mark.parametrize("kind,fail_on,expected", [

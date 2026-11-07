@@ -21,9 +21,16 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
-from .report import Issue, Severity
+from .report import Issue, Severity, scrub
 from .rules import Rule
 
+
+# Order of record repairs, one kind per pass. Encoding first: stripping a BOM
+# or repairing mojibake can join the halves of a key so the secrets pattern
+# sees all of it. Then redaction, then anything that removes or cuts text,
+# which could otherwise leave most of a key behind, too short to match.
+# alpaca._split_user recognizes repaired text in this same order.
+_FIX_ORDER = {"encoding": 0, "secrets": 1, "pii": 2, "empty-content": 3, "context-window": 4}
 
 class Disposition(str, Enum):
     UNCHANGED = "unchanged"   # was already clean
@@ -141,7 +148,14 @@ class Fixer:
             # Text repairs can expose another rule's match (e.g. a BOM inside
             # an email). Recheck until clean, with a bound for broken fixers.
             for _ in range(len(self.rules) + 1):
-                for issue in pending:
+                if not pending:
+                    break
+                # One kind of repair per pass, then recheck. Redaction runs
+                # before anything that cuts text: truncating first can leave
+                # most of a key behind, too short to match any more.
+                first = min(_FIX_ORDER.get(i.rule_id, len(_FIX_ORDER)) for i in pending)
+                for issue in [i for i in pending
+                              if _FIX_ORDER.get(i.rule_id, len(_FIX_ORDER)) == first]:
                     rule = self._rules_by_id.get(issue.rule_id)
                     if rule is None or not rule.fixable:
                         continue
@@ -150,10 +164,10 @@ class Fixer:
                     except Exception as exc:  # noqa: BLE001 — defensive
                         # Don't swallow: a crashing fix means we drop this record,
                         # but the user needs to know the fixer itself misbehaved.
-                        fr.fixer_errors.append(
+                        fr.fixer_errors.append(scrub(
                             f"{rule.id}: fix_record raised on line {line_no}: "
                             f"{type(exc).__name__}: {exc}"
-                        )
+                        ))
                         failed = True
                         break
                     if new is None:
@@ -212,10 +226,10 @@ class Fixer:
                 # dataset pass, leaving stage2 == the pre-pass records. The
                 # re-validation in stage 3 still catches anything left broken,
                 # but the failure itself must not be invisible.
-                fr.fixer_errors.append(
+                fr.fixer_errors.append(scrub(
                     f"{rule.id}: fix_dataset raised: "
                     f"{type(exc).__name__}: {exc}"
-                )
+                ))
                 continue
 
         for ln, rid in dropped_by.items():

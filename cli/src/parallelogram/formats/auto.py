@@ -26,6 +26,7 @@ from . import alpaca, preference
 from .prompt_completion import (
     is_prompt_completion_record, normalize as normalize_prompt_completion, source_metadata,
 )
+from .jsonline import PARSE_ERRORS, describe
 
 
 def iter_jsonl(path: str) -> Iterator[ParseResult]:
@@ -37,12 +38,12 @@ def iter_jsonl(path: str) -> Iterator[ParseResult]:
                 continue
             try:
                 record = json.loads(stripped)
-            except json.JSONDecodeError as e:
+            except PARSE_ERRORS as e:
                 yield ParseResult(
                     line_no=line_no,
                     raw=raw,
                     record=None,
-                    parse_error=f"{e.msg} at column {e.colno}",
+                    parse_error=describe(e),
                     source_format="auto",
                 )
                 continue
