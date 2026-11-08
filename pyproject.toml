@@ -22,4 +22,4 @@ path = "cli/src/parallelogram/__init__.py"
 packages = ["cli/src/parallelogram"]
 
 [tool.hatch.build.targets.sdist]
-include = ["cli/src/parallelogram", "cli/README.md", "pyproject.toml", "LICENSE"]
+include = ["cli/src/parallelogram", "cli/README.md", "pyproject.toml", "cli/LICENSE"]

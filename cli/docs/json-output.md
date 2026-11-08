@@ -143,3 +143,16 @@ Exit: the dataset status above, or 3 if baseline rates regress. Increasing any
 of the four non-clean rates or decreasing `clean_fraction` by more than 1e-9 is a
 regression. An unreadable/invalid JSON baseline exits 2; a baseline without a
 `rates` object is reported by the regression gate and exits 3.
+
+
+## Multiple input files (1.6)
+
+`parallelogram check first.jsonl second.jsonl --json` returns an ordered array
+of the existing schema-version-1 per-file objects. A single input still returns
+one object. Each file is validated independently and the highest exit code is
+returned. Multi-file failures that cannot produce a validation report instead
+have `schema_version: 1`, `file`, `exit_code` (2 invalid options, 3 operational
+failure), and `error`; remaining inputs are still processed. `--output` is
+rejected with multiple inputs. The Python API and MCP remain single-file APIs.
+The additive `tool-calls` rule appears in `by_rule` and `issues` like other rules;
+its messages include zero-based message/call indices without argument values.
