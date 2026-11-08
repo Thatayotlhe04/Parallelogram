@@ -51,6 +51,9 @@ answer.
 GitHub or Slack token, Google API key, private key header, Slack webhook). Most are probably made up by
 the model that wrote the sample. They were not tested against any service.
 
+Row lists for the reports sent upstream are in [public-datasets/](public-datasets/),
+one file per dataset, 0-based row indices as the dataset viewer numbers them.
+
 ## Warnings
 
 Warnings make `check` exit 1 and never block on their own.
