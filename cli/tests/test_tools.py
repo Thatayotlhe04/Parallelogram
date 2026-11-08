@@ -63,7 +63,9 @@ def test_clean_roundtrip(tmp_path, factory, ending):
     (lambda r: r["messages"].pop(2), "never answered"),
     (lambda r: r["messages"].insert(4, deepcopy(r["messages"][2])), "already answered"),
     (lambda r: r["messages"].pop(), "must end"),
-    (lambda r: r["messages"].__setitem__(slice(2, None), []), "never answered"),
+    (lambda r: r["messages"].__setitem__(slice(2, None), [{"role": "user", "content": "And?"},
+                                                         {"role": "assistant", "content": "Done."}]),
+     "never answered before the next"),
 ])
 def test_roles_errors(tmp_path, change, fragment):
     record = conversation()
@@ -264,3 +266,34 @@ def test_sharegpt_metadata_does_not_restore_secret_definitions(tmp_path):
     assert fix(write(tmp_path, record), output=out).exit_code == 0
     assert secret not in out.read_text()
     assert check(out).exit_code == 0
+def ends_on_call(kind):
+    record = conversation()
+    if kind == "tool_calls":
+        del record["messages"][2:]
+    elif kind == "legacy":
+        record = {"functions": [{"name": "lookup", "parameters": {"type": "object"}}],
+                  "messages": [{"role": "user", "content": "Find A."},
+                               {"role": "assistant", "function_call": {"name": "lookup", "arguments": '{"place":"A"}'}}]}
+    else:
+        record = sharegpt()
+        del record["conversations"][2:]
+    return record
+
+
+@pytest.mark.parametrize("kind", ["tool_calls", "legacy", "sharegpt"])
+def test_conversation_may_end_on_the_call(tmp_path, kind):
+    """OpenAI's own function-calling examples end on the assistant's call: that call is the target."""
+    path = write(tmp_path, ends_on_call(kind))
+    result = check(path)
+    assert result.exit_code == 0, result.to_dict()["issues"]
+    out = tmp_path / "out.jsonl"
+    cli = CliRunner().invoke(app, ["check", str(path), "--fix", "--output", str(out)])
+    assert cli.exit_code == 0, cli.output
+    assert json.loads(out.read_text()) == json.loads(path.read_text())
+
+
+def test_unanswered_call_before_the_final_turn_is_still_an_error(tmp_path):
+    record = conversation()
+    record["messages"][2:] = [{"role": "tool", "tool_call_id": "a", "content": "A is cold."},
+                              {"role": "assistant", "content": "Only A answered."}]
+    assert any("never answered" in i["message"] for i in findings(tmp_path, record, "roles"))

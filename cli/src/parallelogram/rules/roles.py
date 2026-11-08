@@ -82,9 +82,14 @@ class RolesRule(Rule):
                 if isinstance(fn.get("name"), str):
                     legacy = (fn["name"], i)
                 expected = "assistant"
+        # A conversation may end on the call itself: that is how function-calling
+        # fine-tuning data teaches the model to emit a call (OpenAI's own examples
+        # end there). Only a call followed by something other than its answer is broken.
+        final = len(messages) - 1
         for call_index in pending.values():
-            yield issue(call_index, "tool call never answered")
-        if legacy is not None:
+            if call_index != final:
+                yield issue(call_index, "tool call never answered")
+        if legacy is not None and legacy[1] != final:
             yield issue(legacy[1], "function call never answered")
         last = messages[-1]
         if isinstance(last, dict) and last.get("role") != "assistant":
