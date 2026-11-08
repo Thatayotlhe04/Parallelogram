@@ -5,7 +5,7 @@ canonical: https://parallelogram.dev/
 markdown_url: https://parallelogram.dev/index.md
 llms_url: https://parallelogram.dev/llms.txt
 agent_guide: https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/docs/agents.md
-version: 1.6.0
+version: 1.6.1
 updated: 2026-11-08
 integrations: https://parallelogram.dev/integrations.html
 ---

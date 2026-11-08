@@ -7,7 +7,7 @@ requires-python = ">=3.10"
 license = { text = "Apache-2.0" }
 authors = [{ name = "Thatayotlhe Tsenang", email = "tsenangthatayotlhe04@gmail.com" }]
 maintainers = [{ name = "Thatayotlhe Tsenang", email = "tsenangthatayotlhe04@gmail.com" }]
-keywords = ["llm", "fine-tuning", "dataset", "validation", "linter"]
+keywords = ["llm", "fine-tuning", "dataset", "validation", "linter", "jsonl", "sft", "dpo", "tool-calling", "data-quality", "mcp", "mcp-server", "pre-commit", "trl", "axolotl", "unsloth", "llama-factory"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
