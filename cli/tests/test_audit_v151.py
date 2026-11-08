@@ -59,7 +59,7 @@ def test_secret_outside_content_is_found_and_redacted(tmp_path, record):
     assert GH not in out.read_text()
 
 
-def test_pii_is_checked_in_training_text_not_ids_or_metadata(tmp_path):
+def test_pii_in_training_text_and_contact_fields(tmp_path):
     """Second audit pass: PII in every field flagged SKUs, UUIDs and git
     remotes and rewrote them. PII is checked where a model learns it."""
     records = [
@@ -73,8 +73,24 @@ def test_pii_is_checked_in_training_text_not_ids_or_metadata(tmp_path):
     out = tmp_path / "out.jsonl"
     fix(src, output=out)
     first = json.loads(out.read_text().splitlines()[0])
-    assert first["instruction"] == "Write to [REDACTED_EMAIL]" and first["contact"] == EMAIL
+    assert first["instruction"] == "Write to [REDACTED_EMAIL]" and first["contact"] == "[REDACTED_EMAIL]"
     assert "415 867 5309" not in out.read_text()
+
+
+def test_pii_in_fields_counts_only_where_the_field_says_so(tmp_path):
+    """Metadata is checked for what its key names: an email anywhere, a phone
+    under phone/contact keys, a card under card keys. SKUs stay untouched."""
+    record = chat("hi", "ok", user={"email": EMAIL, "phone": "+267 71 234 567", "sku": "220-611-5741",
+                                    "card": "4539 1488 0343 6467", "ref": "4539148803436467",
+                                    "repo": "git@github.com:org/x.git"})
+    src = write(tmp_path / "in.jsonl", record)
+    kinds = sorted(i["message"].split(" contains ")[0] for i in check(src).to_dict()["issues"] if i["rule"] == "pii")
+    assert kinds == ["Field 'user.card'", "Field 'user.email'", "Field 'user.phone'"]
+    out = tmp_path / "out.jsonl"
+    fix(src, output=out)
+    user = json.loads(out.read_text())["user"]
+    assert user == {"email": "[REDACTED_EMAIL]", "phone": "[REDACTED_PHONE]", "sku": "220-611-5741",
+                    "card": "[REDACTED_CARD]", "ref": "4539148803436467", "repo": "git@github.com:org/x.git"}
 
 
 def test_ordinary_structured_fields_stay_clean(tmp_path):

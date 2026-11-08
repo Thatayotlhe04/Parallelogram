@@ -17,7 +17,7 @@ import re
 from collections.abc import Iterable
 from typing import Any
 
-from ..core.fields import map_record_text, text_targets
+from ..core.fields import field_strings, map_record_fields, map_record_text, text_targets
 from ..core.report import Issue, Severity
 from ..core.rules import Rule, registry
 
@@ -98,6 +98,31 @@ def redact(text: str) -> str:
     return out
 
 
+# Outside training text a match only counts where the field says what it holds:
+# ids, SKUs and order numbers look like phone and card numbers.
+_PHONE_KEY = re.compile(r"phone|mobile|cell|tel(?:ephone)?\b|fax|whatsapp|contact|msisdn", re.I)
+_CARD_KEY = re.compile(r"card|\bcc|ccn|\bpan\b|credit", re.I)
+_GIT_REMOTE = re.compile(r"^[\w.-]+@[\w.-]+:[\w./~-]+$")  # git@github.com:org/repo.git
+
+
+def find_pii_in_field(key: str, text: str) -> list[tuple[str, re.Match]]:
+    if _GIT_REMOTE.match(text.strip()):
+        return []
+    allowed = {"email address"}
+    if _PHONE_KEY.search(key):
+        allowed.add("phone number")
+    if _CARD_KEY.search(key):
+        allowed.add("payment card number")
+    return [(kind, m) for kind, m in find_pii(text) if kind in allowed]
+
+
+def redact_field(key: str, text: str) -> str:
+    out = text
+    for kind, m in sorted(find_pii_in_field(key, text), key=lambda km: km[1].start(), reverse=True):
+        out = out[:m.start()] + _PLACEHOLDER[kind] + out[m.end():]
+    return out
+
+
 @registry.register
 class PiiRule(Rule):
     id = "pii"
@@ -107,9 +132,12 @@ class PiiRule(Rule):
     fixable = True
 
     def check_record(self, record: Any, line_no: int) -> Iterable[Issue]:
-        # Training text only: see core/fields.py for why ids and metadata are skipped.
-        for label, text in text_targets(record):
-            for kind, m in find_pii(text):
+        # Every kind in training text; in other fields only what the field
+        # name says it holds (see core/fields.py).
+        targets = [(label, find_pii(text)) for label, text in text_targets(record)]
+        targets += [(label, find_pii_in_field(key, text)) for label, key, text in field_strings(record)]
+        for label, matches in targets:
+            for kind, m in matches:
                 yield Issue(
                     rule_id=self.id,
                     severity=Severity.WARNING,
@@ -121,4 +149,5 @@ class PiiRule(Rule):
                 )
 
     def fix_record(self, record: Any, issue: Issue) -> Any | None:
-        return map_record_text(record, redact)
+        record = map_record_text(record, redact)
+        return map_record_fields(record, redact_field)
