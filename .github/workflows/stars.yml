@@ -15,7 +15,7 @@ jobs:
   update:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Write the current star count
         env:
@@ -24,7 +24,7 @@ jobs:
         run: |
           n=$(gh api "repos/$REPO" --jq .stargazers_count)
           [[ "$n" =~ ^[0-9]+$ ]] || { echo "unexpected count: $n"; exit 1; }
-          for f in landing/index.html landing/privacy.html landing/terms.html; do
+          for f in landing/index.html landing/integrations.html landing/privacy.html landing/terms.html; do
             sed -i -E "s|data-stars=\"[0-9]+\" title=\"GitHub stars\">[^<]*<|data-stars=\"$n\" title=\"GitHub stars\">$n<|" "$f"
           done
           if git diff --quiet; then

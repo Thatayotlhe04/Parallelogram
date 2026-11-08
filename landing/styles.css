@@ -49,8 +49,54 @@ code, .mono { font-family: var(--mono); }
 .nav-inner { height: 100%; max-width: 1440px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; gap: 40px; }
 .brand { display: inline-flex; align-items: center; gap: 8px; font: 600 16px/1 var(--sans); letter-spacing: -.01em; }
 .brand-mark { width: 18px; height: 18px; }
-.nav-links { display: flex; gap: 32px; font-size: 14px; color: #d4d4d4; }
-.nav-links a:hover, .nav-github:hover { color: var(--text); }
+.nav-links { display: flex; align-self: stretch; align-items: stretch; gap: 28px; font-size: 14px; color: #d4d4d4; }
+.nav-links > a, .nav-item { display: flex; align-items: center; }
+.nav-links > a:hover, .nav-links > a[aria-current="page"], .nav-github:hover { color: var(--text); }
+.nav-links > a[aria-current="page"] { box-shadow: inset 0 -1px 0 var(--text); }
+
+/* Hover menus. The trigger fills the nav's height and the menu has a bridge,
+   so the pointer never crosses a gap; opening waits 60ms and closing 140ms,
+   which stops menus flashing as the pointer passes over them. */
+.nav-item { position: relative; }
+.nav-trigger { display: inline-flex; align-items: center; gap: 5px; height: 100%; padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; }
+.nav-trigger .chev { width: 12px; height: 12px; opacity: .6; transition: transform .2s ease, opacity .2s ease; }
+.menu {
+  position: absolute; top: 100%; left: -14px; z-index: 60; min-width: 296px; padding: 6px;
+  background: #0d0d0d; border: 1px solid var(--line-strong); border-radius: 8px;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, .55), 0 2px 6px rgba(0, 0, 0, .4);
+  opacity: 0; visibility: hidden; transform: translateY(-6px);
+  transition: opacity .16s ease .14s, transform .16s ease .14s, visibility 0s linear .3s;
+}
+.menu::before { content: ""; position: absolute; left: 0; right: 0; top: -10px; height: 10px; }
+.menu a { display: grid; gap: 2px; padding: 9px 12px; border-radius: 6px; transition: background .12s ease; }
+.menu a strong { font: 500 14px/1.35 var(--sans); color: var(--text); }
+.menu a span { font-size: 13px; line-height: 1.4; color: var(--dim); transition: color .12s ease; }
+.menu a:hover, .menu a:focus-visible { background: #1a1a1a; }
+.menu a:hover span, .menu a:focus-visible span { color: var(--muted); }
+.menu a:focus-visible { outline-offset: -2px; }
+.nav-item.open .menu { opacity: 1; visibility: visible; transform: none; transition: opacity .16s ease .06s, transform .2s cubic-bezier(.2, .7, .2, 1) .06s, visibility 0s linear .06s; }
+.nav-item.open .nav-trigger, .nav-trigger:hover { color: var(--text); }
+.nav-item.open .chev { transform: rotate(180deg); opacity: 1; }
+@media (hover: hover) {
+  .has-menu:hover .menu { opacity: 1; visibility: visible; transform: none; transition: opacity .16s ease .06s, transform .2s cubic-bezier(.2, .7, .2, 1) .06s, visibility 0s linear .06s; }
+  .has-menu:hover .nav-trigger { color: var(--text); }
+  .has-menu:hover .chev { transform: rotate(180deg); opacity: 1; }
+}
+
+/* Mobile menu: a details element, so it opens without JavaScript. */
+.mnav { display: none; }
+.mnav summary { display: grid; place-content: center; gap: 5px; width: 36px; height: 36px; margin-right: -8px; list-style: none; cursor: pointer; border-radius: 4px; }
+.mnav summary::-webkit-details-marker { display: none; }
+.mnav summary span { display: block; width: 18px; height: 1.5px; background: var(--text); transition: transform .2s ease; }
+.mnav[open] summary span:first-child { transform: translateY(3.25px) rotate(45deg); }
+.mnav[open] summary span:last-child { transform: translateY(-3.25px) rotate(-45deg); }
+.mnav-panel { position: fixed; top: 52px; left: 0; right: 0; bottom: 0; z-index: 49; overflow-y: auto; padding: 8px 24px 40px; background: var(--nav); border-top: 1px solid var(--line-strong); animation: mnav-in .18s ease; }
+.mnav-group { padding: 18px 0; border-bottom: 1px solid var(--line); }
+.mnav-group p { margin-bottom: 6px; font: 500 12px/1 var(--mono); letter-spacing: .04em; text-transform: uppercase; color: var(--dim); }
+.mnav-group a { display: block; padding: 8px 0; font-size: 17px; color: #e5e5e5; }
+.mnav-group a:hover { color: var(--text); }
+body:has(.mnav[open]) { overflow: hidden; }
+@keyframes mnav-in { from { opacity: 0; transform: translateY(-4px); } }
 .nav-actions { margin-left: auto; display: flex; align-items: center; gap: 16px; }
 .nav-github { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: #d4d4d4; }
 .nav-github svg { width: 16px; height: 16px; }
@@ -285,9 +331,39 @@ h3 { font: 500 16px/1.4 var(--sans); }
 .legal code { font-size: .88em; color: #e5e5e5; }
 .legal-back { padding-top: 28px; }
 
+/* ── Integrations page ─────────────────────────────── */
+.int-hero { padding: 96px 48px 72px; }
+.int-jump { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 32px; }
+.int-jump a { padding: 6px 14px; border: 1px solid var(--line-strong); border-radius: 999px; font-size: 14px; color: var(--muted); background: #000; transition: color .15s, border-color .15s; }
+.int-jump a:hover { color: var(--text); border-color: #525252; }
+.int-section { padding: 72px 48px; }
+.int-section-head { max-width: 640px; }
+.int-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; margin-top: 40px; background: var(--line); border: 1px solid var(--line); }
+.int-card { display: grid; grid-row: span 4; grid-template-rows: subgrid; grid-template-columns: minmax(0, 1fr); row-gap: 12px; align-content: start; min-width: 0; padding: 24px; background: var(--bg); transition: background .15s ease; }
+.int-card:hover { background: #0e0e0e; }
+.int-card > p { color: var(--muted); font-size: 14px; line-height: 1.55; }
+.int-card p code { font-size: 12.5px; color: #d4d4d4; }
+.int-head { display: flex; align-items: center; gap: 10px; }
+.int-head h3 a:hover { color: var(--accent); }
+.int-icon { flex: none; width: 20px; height: 20px; fill: currentColor; color: var(--text); }
+.int-card > .int-note:empty { display: block; }
+.int-mono { display: grid; place-items: center; border: 1px solid var(--line-strong); border-radius: 4px; font: 500 11px/1 var(--mono); color: var(--muted); }
+.int-code { position: relative; align-self: start; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; }
+.int-code-bar { display: flex; align-items: center; justify-content: space-between; height: 32px; padding: 0 4px 0 12px; border-bottom: 1px solid var(--line); font: 500 11px/1 var(--mono); letter-spacing: .04em; color: var(--dim); }
+.int-code pre { margin: 0; padding: 12px 14px; overflow-x: auto; font: 400 13px/1.6 var(--mono); color: #e5e5e5; white-space: pre; scrollbar-width: thin; scrollbar-color: #333 transparent; }
+.copy-code { display: grid; place-items: center; min-width: 26px; height: 26px; padding: 0 6px; border: 0; border-radius: 4px; background: none; color: var(--muted); cursor: pointer; transition: background .12s ease; }
+.copy-code:hover { background: var(--panel-2); }
+.copy-code:hover .copy-icon { opacity: 1; }
+.copy-code.copied .copy-label { color: var(--ok); }
+.int-note { font-size: 13px; color: var(--dim); }
+.int-note code { font-size: 12px; }
+
 /* ── Responsive ────────────────────────────────────── */
 @media (max-width: 960px) {
   .nav-links { display: none; }
+  .mnav { display: block; }
+  .nav-inner { gap: 16px; }
+  .int-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .split { grid-template-columns: 1fr; }
   .split-head { border-right: 0; border-bottom: 1px solid var(--line); padding: 48px 24px; }
   .faq .split-head { border-bottom: 0; padding-bottom: 8px; }
@@ -299,6 +375,13 @@ h3 { font: 500 16px/1.4 var(--sans); }
 }
 @media (max-width: 640px) {
   h1 { font-size: 38px; }
+  .nav-inner { padding: 0 20px; }
+  .nav-actions { gap: 12px; }
+  .nav-github > span:not(.stars) { display: none; }
+  .int-hero { padding: 64px 20px 48px; }
+  .int-section { padding: 56px 20px; }
+  .int-grid { grid-template-columns: minmax(0, 1fr); margin-top: 28px; }
+  .int-card { padding: 20px; }
   h2, .closing h2 { font-size: 28px; }
   .hero { padding: 64px 20px 56px; }
   .cta { flex-direction: column; align-items: stretch; width: 100%; }
@@ -328,6 +411,7 @@ h3 { font: 500 16px/1.4 var(--sans); }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   * { transition: none !important; }
+  .mnav-panel { animation: none; }
   .eater .frame-open { animation: none !important; visibility: visible; }
   .eater .frame-closed { animation: none !important; visibility: hidden; }
   .d-dash { animation: none; }
