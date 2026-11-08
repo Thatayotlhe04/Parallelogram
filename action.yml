@@ -1,5 +1,9 @@
 name: Parallelogram dataset validation
 description: Validate fine-tuning data locally and append a health report to the job summary.
+author: Thatayotlhe Tsenang
+branding:
+  icon: check-square
+  color: gray-dark
 inputs:
   path:
     description: Path to the JSONL dataset.
