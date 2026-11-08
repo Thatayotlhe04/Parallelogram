@@ -1,19 +1,18 @@
 """Tool exchanges must validate, survive safe repairs, and stay private."""
 from __future__ import annotations
 
-from copy import deepcopy
 import json
+from copy import deepcopy
 from pathlib import Path
 
 import pytest
-from typer.testing import CliRunner
-
 from parallelogram import check, fix, rules
 from parallelogram.cli import app
-from parallelogram.formats.sharegpt import normalize, to_sharegpt, source_metadata
+from parallelogram.formats.sharegpt import normalize, source_metadata, to_sharegpt
 from parallelogram.rules.context_window import ContextWindowRule
 from parallelogram.rules.duplicates import record_hash
 from test_mcp import session, tool, unpack
+from typer.testing import CliRunner
 
 
 def conversation():
@@ -193,3 +192,75 @@ def test_json_api_mcp(tmp_path):
 @pytest.mark.parametrize("name", ["tools_clean.jsonl", "sharegpt_tools_clean.jsonl"])
 def test_examples(name):
     assert check(Path(__file__).parents[1] / "examples" / name).exit_code == 0
+
+
+def test_followup_user_and_multiple_tool_rounds(tmp_path):
+    record = conversation()
+    record["messages"].insert(4, {"role": "user", "content": "Now summarize."})
+    assert check(write(tmp_path, record)).exit_code == 0
+    record = conversation()
+    call = deepcopy(record["messages"][1])
+    call["tool_calls"] = [call["tool_calls"][0]]
+    call["tool_calls"][0]["id"] = "c"
+    record["messages"][4:4] = [call, {"role": "tool", "tool_call_id": "c", "content": "Confirmed."}]
+    assert check(write(tmp_path, record)).exit_code == 0
+
+
+@pytest.mark.parametrize("factory", [conversation, sharegpt])
+def test_secrets_in_arguments_are_redacted_without_losing_tools(tmp_path, factory):
+    record = factory()
+    secret = "sk-" + "AbCdEf0123456789" * 3
+    if "messages" in record:
+        record["messages"][1]["tool_calls"][0]["function"]["arguments"] = json.dumps({"token": secret})
+    else:
+        record["conversations"][1]["value"] = json.dumps({"name": "lookup", "arguments": {"token": secret}})
+    path = write(tmp_path, record)
+    assert findings(tmp_path, record, "secrets")
+    out = tmp_path / "out.jsonl"
+    result = fix(path, output=out)
+    assert result.exit_code == 0
+    assert secret not in out.read_text()
+    assert check(out).exit_code == 0
+    assert len(json.loads(out.read_text()).get("messages", json.loads(out.read_text()).get("conversations"))) == len(record.get("messages", record.get("conversations")))
+
+
+def test_strict_json_arguments_and_sharegpt_value_type(tmp_path):
+    record = conversation()
+    record["messages"][1]["tool_calls"][0]["function"]["arguments"] = '{"number":NaN}'
+    assert findings(tmp_path, record, "tool-calls")
+    record = sharegpt()
+    record["conversations"][1]["value"] = {"name": "lookup", "arguments": {}}
+    assert findings(tmp_path, record, "tool-calls")
+
+
+def test_real_tokenizer_still_discloses_tool_template_estimate():
+    from parallelogram.core.tokenization import TokenCounter
+    rule = ContextWindowRule()
+    rule._counter = TokenCounter(encode_len=len, method="test", exact=True)
+    issues = list(rule.check_record(conversation(), 1))
+    assert any("tool serialization is approximate" in issue.message for issue in issues)
+    assert all(issue.severity.value == "info" for issue in issues)
+
+
+def test_sharegpt_unchanged_tool_strings_survive_other_repairs(tmp_path):
+    record = sharegpt()
+    record["tools"] = ' [ { "name" : "lookup", "parameters" : {} } ] '
+    record["conversations"][1]["value"] = ' { "name" : "lookup", "arguments" : { "x" : 1 } } '
+    record["conversations"][3]["value"] = "\ufeffAnswer"
+    path = write(tmp_path, record)
+    out = tmp_path / "out.jsonl"
+    assert fix(path, output=out).exit_code == 0
+    fixed = json.loads(out.read_text())
+    assert fixed["tools"] == record["tools"]
+    assert fixed["conversations"][1] == record["conversations"][1]
+    assert fixed["conversations"][3]["value"] == "Answer"
+
+
+def test_sharegpt_metadata_does_not_restore_secret_definitions(tmp_path):
+    record = sharegpt()
+    secret = "sk-" + "AbCdEf0123456789" * 3
+    record["tools"] = json.dumps([{"name": "lookup", "description": secret, "parameters": {}}])
+    out = tmp_path / "out.jsonl"
+    assert fix(write(tmp_path, record), output=out).exit_code == 0
+    assert secret not in out.read_text()
+    assert check(out).exit_code == 0

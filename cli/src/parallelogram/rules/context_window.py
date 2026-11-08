@@ -44,10 +44,12 @@ class ContextWindowRule(Rule):
         self.max_seq_len: int = int(self.config.get("max_seq_len", 4096))
         self._counter: Optional[TokenCounter] = None
         self._note_emitted = False
+        self._tools_note_emitted = False
 
     def reset(self) -> None:
         # Re-emit the one-time "counts are approximate" note on each run.
         self._note_emitted = False
+        self._tools_note_emitted = False
 
     def _ensure_counter(self) -> None:
         if self._counter is None:
@@ -118,6 +120,16 @@ class ContextWindowRule(Rule):
                 message="Context-window counts are approximate",
                 detail=self._counter.note,
             )
+
+        has_tools = isinstance(record, dict) and (
+            "tools" in record or "functions" in record or any(
+                isinstance(msg, dict) and ("tool_calls" in msg or "function_call" in msg)
+                for _, _, msg in message_slots(record)))
+        if has_tools and self._counter.exact and not self._tools_note_emitted:
+            self._tools_note_emitted = True
+            yield Issue(rule_id=self.id, severity=Severity.INFO, line_no=None,
+                        message="Context-window tool serialization is approximate",
+                        detail="Counts include JSON tool definitions and calls; the trainer's chat template may differ.")
 
         total = self._longest_total(record)
         if total is None or total <= self.max_seq_len:

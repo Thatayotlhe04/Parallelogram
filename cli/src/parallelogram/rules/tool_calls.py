@@ -2,7 +2,8 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Iterable
+from collections.abc import Iterable
+from typing import Any
 
 from ..core.conversation import message_slots, where
 from ..core.report import Issue, Severity
@@ -12,6 +13,10 @@ from ..core.rules import Rule, registry
 def calls_tools(msg: dict) -> bool:
     """Only assistant calls can replace prose content."""
     return msg.get("role") == "assistant" and bool(msg.get("tool_calls") or msg.get("function_call"))
+
+
+def _reject_constant(value: str) -> None:
+    raise ValueError("Non-JSON numeric constant")
 
 
 @registry.register
@@ -98,7 +103,7 @@ class ToolCallsRule(Rule):
                     yield issue(prefix + "function name is not declared in tools", i, label)
                 args = fn.get("arguments")
                 try:
-                    parsed = json.loads(args) if isinstance(args, str) else None
+                    parsed = json.loads(args, parse_constant=_reject_constant) if isinstance(args, str) else None
                 except (ValueError, RecursionError):
                     parsed = None
                 if not isinstance(parsed, dict):

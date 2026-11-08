@@ -1,11 +1,12 @@
 """Validate training turns, including complete parallel tool-call exchanges."""
 from __future__ import annotations
 
-from typing import Any, Iterable
+from collections.abc import Iterable
+from typing import Any
 
-from ..core.rules import Rule, registry
-from ..core.report import Issue, Severity
 from ..core.conversation import conversations, where
+from ..core.report import Issue, Severity
+from ..core.rules import Rule, registry
 
 
 @registry.register
@@ -48,12 +49,15 @@ class RolesRule(Rule):
                 else:
                     del pending[call_id]
                     answered.add(call_id)
+                    if not pending:
+                        expected = "assistant or user"
                 continue
             if role == "function":
                 if legacy is None or msg.get("name") != legacy[0]:
                     yield issue(i, "function message has no matching earlier function call")
                 else:
                     legacy = None
+                    expected = "assistant or user"
                 continue
             for call_index in pending.values():
                 yield issue(call_index, "tool call never answered before the next assistant or user turn")
@@ -61,8 +65,11 @@ class RolesRule(Rule):
             if legacy is not None:
                 yield issue(legacy[1], "function call never answered")
                 legacy = None
-            if role != expected:
-                yield issue(i, f"Role alternation broken: expected {expected!r}, got {role!r}")
+            if role != expected and not (expected == "assistant or user" and role in ("assistant", "user")):
+                if i == 0 or (i == 1 and isinstance(messages[0], dict) and messages[0].get("role") == "system"):
+                    yield issue(i, f"First non-system role must be 'user', got {role!r}")
+                else:
+                    yield issue(i, f"Role alternation broken: expected {expected!r}, got {role!r}")
             expected = "assistant" if role == "user" else "user"
             calls = msg.get("tool_calls")
             if role == "assistant" and isinstance(calls, list) and calls:
