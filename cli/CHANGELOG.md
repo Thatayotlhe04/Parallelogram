@@ -29,8 +29,8 @@ Fixes from running 1.6 over popular public datasets:
 - Hermes-format tool calls written in the text
   (`<tool_call>{...}</tool_call>`, NousResearch/hermes-function-calling-v1)
   are matched by the `tool` turns after them; 1,100 of 1,893 rows were
-  failing `roles`. The 173 that end on tool replies the assistant never
-  requested still fail.
+  failing `roles`. The 173 with broken exchanges still fail: 163 end on tool
+  replies with no final answer, 10 have a tool reply with no call.
 - Issues in a preference row's own `messages` column name it `messages`, not
   an internal key.
 
