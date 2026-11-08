@@ -1,0 +1,45 @@
+name: Move the v1 Action tag
+
+# `uses: Thatayotlhe04/Parallelogram@v1` installs the CLI from the commit the
+# v1 tag points at, so v1 has to follow every 1.x release. This moves it after
+# a release publishes successfully, or on demand for a given release tag.
+
+on:
+  workflow_run:
+    workflows: ["Publish CLI to PyPI"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to point v1 at, e.g. cli-v1.6.0
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  move:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       startsWith(github.event.workflow_run.head_branch, 'cli-v1.'))
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Point v1 at the release
+        env:
+          TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.event.workflow_run.head_branch }}
+        run: |
+          if [[ ! "$TAG" =~ ^cli-v1\.[0-9]+\.[0-9]+$ ]]; then
+            echo "not a 1.x release tag: $TAG" >&2
+            exit 1
+          fi
+          git fetch --tags --force origin
+          sha="$(git rev-parse "refs/tags/$TAG^{commit}")"
+          git tag -f v1 "$sha"
+          git push -f origin refs/tags/v1
+          echo "v1 -> $TAG ($sha)"
