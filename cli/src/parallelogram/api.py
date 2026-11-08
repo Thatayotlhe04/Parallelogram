@@ -7,7 +7,7 @@ from pathlib import Path
 from collections.abc import Iterable
 
 from .core.fixer import Fixer, FixReport
-from .core.io import atomic_write_jsonl
+from .core.io import atomic_write_jsonl, atomic_write_bytes
 from .core.report import Report
 from .core.runner import Runner
 from .core.rules import Rule, registry
@@ -22,6 +22,7 @@ from .output.json_output import report_to_dict
 from .rules import (  # noqa: F401
     schema,
     roles,
+    tool_calls,
     empty_content,
     context_window,
     duplicates,
@@ -34,7 +35,7 @@ from .rules import (  # noqa: F401
 from .rules.eval_overlap import EvalInputError
 
 _WRITERS = {
-    "sharegpt": lambda rec, meta: to_sharegpt(rec),
+    "sharegpt": to_sharegpt,
     "prompt-completion": to_prompt_completion,
     "alpaca": to_alpaca,
     "preference": to_preference,
@@ -203,10 +204,20 @@ def fix(path: str | Path, *, output: str | Path | None = None,
                 writer = _WRITERS.get(runner.source_formats.get(line_no, format))
                 return writer(record, runner.source_metadata.get(line_no)) if writer else record
 
-            atomic_write_jsonl(Path(output), [
-                json.dumps(to_disk(line_no, record), ensure_ascii=False)
-                for line_no, record in fr.clean_records
-            ])
+            if fr.unchanged == fr.total_records and not fr.fixer_errors:
+                # A no-op fix preserves whitespace, CRLF and the final newline too.
+                atomic_write_bytes(Path(output), Path(path).read_bytes())
+            else:
+                originals = dict(parsed)
+                raw_lines = Path(path).read_bytes().splitlines(keepends=True)
+                lines = []
+                for line_no, record in fr.clean_records:
+                    if record == originals.get(line_no):
+                        raw = raw_lines[line_no - 1]
+                        lines.append(raw if raw.endswith(b"\n") else raw + b"\n")
+                    else:
+                        lines.append((json.dumps(to_disk(line_no, record), ensure_ascii=False) + "\n").encode("utf-8"))
+                atomic_write_bytes(Path(output), b"".join(lines))
         return FixResult(fr, str(path), sorted(disabled), dry_run)
     except (OSError, UnicodeError) as exc:
         raise ParallelogramError(f"Could not fix {path}: {exc}") from exc

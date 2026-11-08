@@ -32,16 +32,42 @@
 
   <header class="nav">
     <div class="nav-inner">
-      <a class="brand" href="index.html" aria-label="Parallelogram home">
+      <a class="brand" href="/" aria-label="Parallelogram home">
         <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M8 5 L29 5 L24 27 L3 27 Z" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/></svg>
         <span>parallelogram</span>
       </a>
       <nav class="nav-links" aria-label="Primary">
-        <a href="#checks">Checks</a>
-        <a href="#how">How it works</a>
-        <a href="#changelog">Changelog</a>
-        <a href="#faq">FAQ</a>
-        <a href="https://github.com/Thatayotlhe04/Parallelogram#readme">Docs</a>
+        <div class="nav-item has-menu">
+          <button class="nav-trigger" type="button" aria-expanded="false" aria-controls="menu-product">Product<svg class="chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <div class="menu" id="menu-product">
+            <a href="/#checks"><strong>Checks</strong><span>What each rule catches, and why</span></a>
+            <a href="/#how"><strong>How it works</strong><span>Check, fix, then gate the run</span></a>
+            <a href="/#changelog"><strong>Changelog</strong><span>What shipped, release by release</span></a>
+            <a href="/#faq"><strong>FAQ</strong><span>Formats, tokenizers and limits</span></a>
+          </div>
+        </div>
+        <div class="nav-item has-menu">
+          <button class="nav-trigger" type="button" aria-expanded="false" aria-controls="menu-docs">Docs<svg class="chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <div class="menu" id="menu-docs">
+            <a href="https://github.com/Thatayotlhe04/Parallelogram#quickstart"><strong>Quickstart</strong><span>Install and run your first check</span></a>
+            <a href="https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/docs/agents.md"><strong>Agents and MCP</strong><span>Python API, MCP tools, agent setup</span></a>
+            <a href="https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/docs/integrations.md"><strong>Integrations guide</strong><span>Agents, CI, pre-commit, trainers</span></a>
+            <a href="https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/docs/json-output.md"><strong>JSON output</strong><span>The versioned --json contract</span></a>
+            <a href="https://github.com/Thatayotlhe04/Parallelogram#github-action"><strong>GitHub Action</strong><span>Fail a pull request on bad data</span></a>
+          </div>
+        </div>
+        <a class="nav-link" href="/integrations.html">Integrations</a>
+        <div class="nav-item has-menu">
+          <button class="nav-trigger" type="button" aria-expanded="false" aria-controls="menu-more">More<svg class="chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <div class="menu" id="menu-more">
+            <a href="https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/CHANGELOG.md"><strong>Full changelog</strong><span>Every release, in detail</span></a>
+            <a href="https://pypi.org/project/parallelogram/"><strong>PyPI</strong><span>The parallelogram package</span></a>
+            <a href="https://github.com/Thatayotlhe04/Parallelogram/security/advisories/new"><strong>Report a vulnerability</strong><span>Privately, through GitHub</span></a>
+            <a href="/llms.txt"><strong>llms.txt</strong><span>This site, for language models</span></a>
+            <a href="/privacy.html"><strong>Privacy</strong><span>What the site and the CLI collect: nothing</span></a>
+            <a href="/terms.html"><strong>Terms</strong><span>Apache-2.0 and the site terms</span></a>
+          </div>
+        </div>
       </nav>
       <div class="nav-actions">
         <a class="nav-github" href="https://github.com/Thatayotlhe04/Parallelogram" aria-label="Parallelogram on GitHub">
@@ -49,8 +75,12 @@
           <span>GitHub</span>
           <span class="stars" data-stars="5" title="GitHub stars">5</span>
         </a>
-        <a class="btn btn-primary btn-sm" href="#install">Install</a>
+        <a class="btn btn-primary btn-sm" href="/#install">Install</a>
       </div>
+      <details class="mnav">
+        <summary aria-label="Menu"><span></span><span></span></summary>
+        <nav class="mnav-panel" aria-label="Menu"><div class="mnav-group"><p>Product</p><a href="/#checks">Checks</a><a href="/#how">How it works</a><a href="/#changelog">Changelog</a><a href="/#faq">FAQ</a></div><div class="mnav-group"><p>Docs</p><a href="https://github.com/Thatayotlhe04/Parallelogram#quickstart">Quickstart</a><a href="https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/docs/agents.md">Agents and MCP</a><a href="https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/docs/integrations.md">Integrations guide</a><a href="https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/docs/json-output.md">JSON output</a><a href="https://github.com/Thatayotlhe04/Parallelogram#github-action">GitHub Action</a></div><div class="mnav-group"><a href="/integrations.html">Integrations</a></div><div class="mnav-group"><p>More</p><a href="https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/CHANGELOG.md">Full changelog</a><a href="https://pypi.org/project/parallelogram/">PyPI</a><a href="https://github.com/Thatayotlhe04/Parallelogram/security/advisories/new">Report a vulnerability</a><a href="/llms.txt">llms.txt</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a></div></nav>
+      </details>
     </div>
   </header>
 
@@ -131,7 +161,7 @@
       <h2 id="run-title">Catch It Before The GPU Does</h2>
       <p class="sub">One command between your dataset and your trainer: on your machine, in CI, or called by your coding agent.</p>
       <figure class="terminal" id="pane-cli" role="tabpanel" aria-labelledby="tab-cli">
-        <figcaption><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span>train.jsonl</span><span class="mono dim">parallelogram 1.5.1</span></figcaption>
+        <figcaption><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span>train.jsonl</span><span class="mono dim">parallelogram 1.6.0</span></figcaption>
 <pre><code><span class="t-cmd">$ parallelogram check train.jsonl --eval eval.jsonl</span>
 <span class="t-err">✗ train.jsonl:2 [secrets] Message 0 contains a likely OpenAI API key: sk-pro…</span>
 <span class="t-err">✗ train.jsonl:3 [preference] Chosen and rejected answers are identical</span>
@@ -191,11 +221,16 @@
     <!-- Checks -->
     <section id="checks" class="split" aria-labelledby="checks-title">
       <div class="split-head grid-bg">
-        <h2 id="checks-title">Ten Checks Your Trainer Won't Run</h2>
+        <h2 id="checks-title">Eleven Checks Your Trainer Won't Run</h2>
         <p class="sub">Each one crashes the run, quietly trains the wrong thing, or leaks something it shouldn't.</p>
         <a class="textlink" href="https://github.com/Thatayotlhe04/Parallelogram#rules">All rules <span aria-hidden="true">→</span></a>
       </div>
       <ul class="cells">
+        <li class="cell cell-wide">
+          <h3>Tool Calls <span class="new">New in 1.6</span></h3>
+          <p>Calls to tools the record never declares, call ids with no matching reply, arguments that aren't a JSON object. Covers OpenAI <code>tool_calls</code>, legacy <code>function_call</code> and ShareGPT <code>function_call</code>/<code>observation</code> turns. Argument values are never printed.</p>
+          <div class="chips"><span class="chip">tool-calls</span><i class="chip-link" aria-hidden="true"></i><span class="chip chip-err">error</span></div>
+        </li>
         <li class="cell">
           <h3>Secrets <span class="new">New in 1.1</span></h3>
           <p>API keys, tokens and private keys a model could repeat. Redacted by --fix, never printed in full.</p>
@@ -339,7 +374,8 @@
         <a class="textlink" href="https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/CHANGELOG.md">Full changelog <span aria-hidden="true">→</span></a>
       </div>
       <ol class="log">
-        <li><time datetime="2026-11-07">Nov 7, 2026</time><span class="chip chip-accent">1.5.1</span><p>Every field scanned for keys and personal data, and a CI gate that can't be crashed open</p></li>
+        <li><time datetime="2026-11-08">Nov 8, 2026</time><span class="chip chip-accent">1.6.0</span><p>Tool-calling datasets, <code>parallelogram integrate</code> for eight agents, and a pre-commit hook</p></li>
+        <li><time datetime="2026-11-07">Nov 7, 2026</time><span class="chip">1.5.1</span><p>Every field scanned for keys and personal data, and a CI gate that can't be crashed open</p></li>
         <li><time datetime="2026-11-07">Nov 7, 2026</time><span class="chip">1.5.0</span><p>For coding agents: an MCP server, a Python API and <code>--json --limit</code></p></li>
         <li><time datetime="2026-11-07">Nov 7, 2026</time><span class="chip">1.1.1</span><p>Fixes from an independent review, including secrets quoted in diagnostics</p></li>
         <li><time datetime="2026-11-07">Nov 7, 2026</time><span class="chip">1.1.0</span><p>Alpaca and DPO formats, secrets and PII checks, train/eval leakage with <code>--eval</code></p></li>
@@ -406,19 +442,20 @@
   <footer class="footer">
     <div class="footer-inner">
       <div class="footer-brand">
-        <a class="brand" href="index.html">
+        <a class="brand" href="/">
           <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M8 5 L29 5 L24 27 L3 27 Z" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/></svg>
           <span>parallelogram</span>
         </a>
         <p>The linter for fine-tuning data.</p>
-        <p class="mono dim">v1.5.1 · Apache-2.0 · runs offline</p>
+        <p class="mono dim">v1.6.0 · Apache-2.0 · runs offline</p>
       </div>
       <div class="footer-col">
         <h3>Product</h3>
-        <a href="index.html#checks">Checks</a>
-        <a href="index.html#how">How it works</a>
-        <a href="index.html#changelog">Changelog</a>
-        <a href="index.html#faq">FAQ</a>
+        <a href="/#checks">Checks</a>
+        <a href="/#how">How it works</a>
+        <a href="/integrations.html">Integrations</a>
+        <a href="/#changelog">Changelog</a>
+        <a href="/#faq">FAQ</a>
       </div>
       <div class="footer-col">
         <h3>Resources</h3>
@@ -426,12 +463,13 @@
         <a href="https://github.com/Thatayotlhe04/Parallelogram">GitHub</a>
         <a href="https://pypi.org/project/parallelogram/">PyPI</a>
         <a href="https://github.com/Thatayotlhe04/Parallelogram#github-action">GitHub Action</a>
+        <a href="/llms.txt">llms.txt</a>
       </div>
       <div class="footer-col">
         <h3>Legal</h3>
-        <a href="privacy.html">Privacy</a>
-        <a href="terms.html">Terms</a>
-        <a href=".well-known/security.txt">Security</a>
+        <a href="/privacy.html">Privacy</a>
+        <a href="/terms.html">Terms</a>
+        <a href="/.well-known/security.txt">Security</a>
       </div>
     </div>
     <div class="footer-bar"><span>© 2026 parallelogram.dev</span><span class="mono dim">If it exits 0, your run won't fail because of data.</span></div>
@@ -450,8 +488,9 @@ canonical: https://parallelogram.dev/
 markdown_url: https://parallelogram.dev/index.md
 llms_url: https://parallelogram.dev/llms.txt
 agent_guide: https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/docs/agents.md
-version: 1.5.1
-updated: 2026-11-07
+version: 1.6.0
+updated: 2026-11-08
+integrations: https://parallelogram.dev/integrations.html
 ---
 
 # Parallelogram
@@ -467,11 +506,13 @@ pip install parallelogram
 ## Use it as an MCP server
 
 ```bash
-claude mcp add parallelogram -- parallelogram mcp    # Claude Code
-codex mcp add parallelogram -- parallelogram mcp     # Codex
+parallelogram integrate claude-code    # writes .mcp.json; also cursor, vscode, gemini
+parallelogram integrate codex          # prints setup; also windsurf, cline, zed
+parallelogram integrate --list
+codex mcp add parallelogram -- parallelogram mcp
 ```
 
-Cursor, Windsurf, Cline and other MCP clients: a stdio server with command `parallelogram` and args `["mcp"]`.
+`integrate` writes project-scoped config only, merges into existing JSON, never touches user-level config, and refuses invalid JSON (exit 2). Add `--agents-md` to put the run instructions in AGENTS.md (CLAUDE.md for Claude Code), `--dry-run` to preview. Any other MCP client: a stdio server with command `parallelogram` and args `["mcp"]`.
 
 - `check_dataset` {path, format?, eval_path?, disable?, limit?}: validate without changing files. Counts are exact; at most `limit` issues are listed (default 50), errors first. Returns `exit_code`.
 - `fix_dataset` {path, output, format?, eval_path?, disable?, dry_run?, overwrite?, limit?}: write a repaired copy to `output`, which must be inside the server's root (its working directory, or `--root`; relative paths resolve against it) and must not already exist unless `overwrite` is true. Never writes over the input or eval file. Lists only dropped, unparseable and fixed records. Returns `exit_code`.
@@ -485,7 +526,10 @@ parallelogram check train.jsonl --eval eval.jsonl --json --limit 50
 parallelogram check train.jsonl --fix --output clean.jsonl
 parallelogram rules --json
 parallelogram report train.jsonl --baseline last.json
+parallelogram check a.jsonl b.jsonl --json       # several files: a JSON array, highest exit code
 ```
+
+pre-commit: `repo: https://github.com/Thatayotlhe04/Parallelogram`, `rev: cli-v1.6.0`, hook id `parallelogram`. GitHub Actions: `uses: Thatayotlhe04/Parallelogram@v1` with `path:`.
 
 `check` exits 0 with no errors or warnings, 1 with warnings only, 2 with errors, 3 on an operational failure such as an invalid `--eval` file. With `--fix`: 0 every record emitted, 1 some dropped or unparseable, 2 nothing emitted. `report --baseline` exits 3 when quality regressed.
 
@@ -503,12 +547,15 @@ fix("train.jsonl", output="clean.jsonl")
 
 Auto-detected per line: OpenAI chat (`messages`), ShareGPT (`conversations`), prompt/completion, Alpaca (`instruction`, `input`, `output`, plus `system` and `history`) and preference/DPO pairs (`prompt`, `chosen`, `rejected`). `--fix --output` writes every record back in its own format.
 
+Tool calling, in both shapes trainers use: OpenAI's (`tools`, `tool_calls` with ids and JSON-string arguments, `tool` replies with `tool_call_id`, legacy `functions`/`function_call`) and Hugging Face's for TRL, Axolotl and Unsloth (id-less calls, object arguments, replies answered in order, `tools` as a list or JSON string). ShareGPT `function_call`/`observation` turns as LLaMA-Factory writes them. A conversation may end on the assistant's call.
+
 ## Checks
 
 | Rule | Severity | --fix |
 | --- | --- | --- |
 | schema | error | Malformed records are left out |
-| roles | error | Records with an invalid role order are dropped |
+| roles | error | Records with an invalid role order, or tool calls and replies that don't pair up, are dropped |
+| tool-calls | error | Records with malformed tool definitions or calls, undeclared functions, or non-object arguments are dropped; argument values are never printed |
 | empty-content | error | Empty turns are removed |
 | context-window | error | The longest user turns are truncated to fit |
 | duplicates | error | The first copy is kept |

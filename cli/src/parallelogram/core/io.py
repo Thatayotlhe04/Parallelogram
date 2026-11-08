@@ -38,3 +38,20 @@ def atomic_write_jsonl(path: Path, lines: list[str]) -> None:
         except OSError:
             pass
         raise
+
+
+def atomic_write_bytes(path: Path, data: bytes) -> None:
+    """Preserve source bytes when a fix leaves a dataset unchanged."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp_path = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=str(path.parent))
+    try:
+        with os.fdopen(fd, "wb") as stream:
+            stream.write(data)
+        os.replace(tmp_path, path)
+    except Exception:
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            pass
+        raise

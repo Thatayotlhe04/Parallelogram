@@ -12,6 +12,7 @@ from typing import Any, Iterable
 from ..core.rules import Rule, registry
 from ..core.report import Issue, Severity
 from ..formats.openai_chat import VALID_ROLES
+from .tool_calls import calls_tools
 from ..formats import alpaca, preference, prompt_completion
 
 # Formats whose malformed records are explained in their own field names
@@ -128,6 +129,8 @@ class SchemaRule(Rule):
                     detail=f"Valid roles: {sorted(VALID_ROLES)}",
                 )
 
+            if calls_tools(msg) and msg.get("content") is None:
+                continue
             if "content" not in msg:
                 yield Issue(
                     rule_id=self.id,

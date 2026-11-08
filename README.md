@@ -6,6 +6,23 @@ The linter for fine-tuning data. **If `parallelogram check` exits 0 with all rul
 [![Python](https://img.shields.io/pypi/pyversions/parallelogram)](https://pypi.org/project/parallelogram/)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue)](cli/LICENSE)
 
+## Integrations and tool data (1.6)
+
+Validate tool calls in OpenAI's shape (call ids, JSON-string arguments) and the
+Hugging Face shape TRL, Axolotl and Unsloth use (object arguments, id-less calls
+answered in order), including parallel replies, plus LLaMA-Factory ShareGPT
+`function_call`/`observation` datasets. Tool arguments and definitions
+are checked, counted in context estimates, and preserved on fix output.
+
+```bash
+parallelogram integrate cursor --agents-md
+parallelogram integrate --list
+parallelogram check train.jsonl more-training.jsonl --json
+```
+
+[Integration guide](cli/docs/integrations.md): eight agent clients, project-scoped setup,
+pre-commit hook `parallelogram`, GitHub Action, and training-framework preflights.
+
 ## Agents and Python (1.5)
 
 ```bash
@@ -196,6 +213,7 @@ parallelogram check data.jsonl --fix --dry-run
 | `schema` | error | malformed records, missing fields, wrong types |
 | `roles` | error | bad role sequences — system out of place, no alternation, doesn't end on assistant |
 | `empty-content` | error | empty or whitespace-only message content |
+| `tool-calls` | error | malformed tool definitions, invalid arguments, undeclared functions, or duplicate call ids |
 | `context-window` | error / warning | records exceeding `--max-seq-len` (TRL truncates these silently) — error with an exact tokenizer, warning when the count is approximate |
 | `duplicates` | error | exact-content duplicate records (cause memorization → poor generalization) |
 | `encoding` | warning | BOM markers, mojibake patterns |
@@ -338,7 +356,7 @@ Deploy by dropping `landing/` on Vercel, Netlify, Cloudflare Pages, or GitHub Pa
 
 ## Status
 
-**CLI v1.5.1, stable** — local pre-training validation with nine default rules and optional eval-overlap detection, mechanical `--fix`, model-specific tokenizers, chat/ShareGPT/prompt-completion/Alpaca/preference auto-detection, versioned JSON output, a Python API and an MCP server for coding agents, and a composite GitHub Action.
+**CLI v1.6.0, stable** — local pre-training validation with ten default rules and optional eval-overlap detection, mechanical `--fix`, model-specific tokenizers, chat/ShareGPT/prompt-completion/Alpaca/preference auto-detection, versioned JSON output, a Python API and an MCP server for coding agents, and a composite GitHub Action.
 
 **Landing page** — [parallelogram.dev](https://parallelogram.dev): checks, the check/fix/gate workflow, changelog and FAQ, with privacy policy and terms of use. No cookies.
 

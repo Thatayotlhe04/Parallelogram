@@ -12,31 +12,62 @@
   <link rel="preload" href="fonts/Manrope-Variable.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="styles.css" />
+  <script src="main.js" defer></script>
 </head>
 <body>
 
   <a class="skip-link" href="#main">Skip to content</a>
   <header class="nav">
     <div class="nav-inner">
-      <a class="brand" href="index.html" aria-label="Parallelogram home">
+      <a class="brand" href="/" aria-label="Parallelogram home">
         <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M8 5 L29 5 L24 27 L3 27 Z" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/></svg>
         <span>parallelogram</span>
       </a>
       <nav class="nav-links" aria-label="Primary">
-        <a href="index.html#checks">Checks</a>
-        <a href="index.html#how">How it works</a>
-        <a href="index.html#changelog">Changelog</a>
-        <a href="index.html#faq">FAQ</a>
-        <a href="https://github.com/Thatayotlhe04/Parallelogram#readme">Docs</a>
+        <div class="nav-item has-menu">
+          <button class="nav-trigger" type="button" aria-expanded="false" aria-controls="menu-product">Product<svg class="chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <div class="menu" id="menu-product">
+            <a href="/#checks"><strong>Checks</strong><span>What each rule catches, and why</span></a>
+            <a href="/#how"><strong>How it works</strong><span>Check, fix, then gate the run</span></a>
+            <a href="/#changelog"><strong>Changelog</strong><span>What shipped, release by release</span></a>
+            <a href="/#faq"><strong>FAQ</strong><span>Formats, tokenizers and limits</span></a>
+          </div>
+        </div>
+        <div class="nav-item has-menu">
+          <button class="nav-trigger" type="button" aria-expanded="false" aria-controls="menu-docs">Docs<svg class="chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <div class="menu" id="menu-docs">
+            <a href="https://github.com/Thatayotlhe04/Parallelogram#quickstart"><strong>Quickstart</strong><span>Install and run your first check</span></a>
+            <a href="https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/docs/agents.md"><strong>Agents and MCP</strong><span>Python API, MCP tools, agent setup</span></a>
+            <a href="https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/docs/integrations.md"><strong>Integrations guide</strong><span>Agents, CI, pre-commit, trainers</span></a>
+            <a href="https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/docs/json-output.md"><strong>JSON output</strong><span>The versioned --json contract</span></a>
+            <a href="https://github.com/Thatayotlhe04/Parallelogram#github-action"><strong>GitHub Action</strong><span>Fail a pull request on bad data</span></a>
+          </div>
+        </div>
+        <a class="nav-link" href="/integrations.html">Integrations</a>
+        <div class="nav-item has-menu">
+          <button class="nav-trigger" type="button" aria-expanded="false" aria-controls="menu-more">More<svg class="chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <div class="menu" id="menu-more">
+            <a href="https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/CHANGELOG.md"><strong>Full changelog</strong><span>Every release, in detail</span></a>
+            <a href="https://pypi.org/project/parallelogram/"><strong>PyPI</strong><span>The parallelogram package</span></a>
+            <a href="https://github.com/Thatayotlhe04/Parallelogram/security/advisories/new"><strong>Report a vulnerability</strong><span>Privately, through GitHub</span></a>
+            <a href="/llms.txt"><strong>llms.txt</strong><span>This site, for language models</span></a>
+            <a href="/privacy.html"><strong>Privacy</strong><span>What the site and the CLI collect: nothing</span></a>
+            <a href="/terms.html"><strong>Terms</strong><span>Apache-2.0 and the site terms</span></a>
+          </div>
+        </div>
       </nav>
       <div class="nav-actions">
         <a class="nav-github" href="https://github.com/Thatayotlhe04/Parallelogram" aria-label="Parallelogram on GitHub">
-          <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" d="M8 1.8l1.9 3.9 4.3.6-3.1 3 .7 4.3L8 11.6l-3.8 2 .7-4.3-3.1-3 4.3-.6z"/></svg>
           <span>GitHub</span>
           <span class="stars" data-stars="5" title="GitHub stars">5</span>
         </a>
-        <a class="btn btn-primary btn-sm" href="index.html#install">Install</a>
+        <a class="btn btn-primary btn-sm" href="/#install">Install</a>
       </div>
+      <details class="mnav">
+        <summary aria-label="Menu"><span></span><span></span></summary>
+        <nav class="mnav-panel" aria-label="Menu"><div class="mnav-group"><p>Product</p><a href="/#checks">Checks</a><a href="/#how">How it works</a><a href="/#changelog">Changelog</a><a href="/#faq">FAQ</a></div><div class="mnav-group"><p>Docs</p><a href="https://github.com/Thatayotlhe04/Parallelogram#quickstart">Quickstart</a><a href="https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/docs/agents.md">Agents and MCP</a><a href="https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/docs/integrations.md">Integrations guide</a><a href="https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/docs/json-output.md">JSON output</a><a href="https://github.com/Thatayotlhe04/Parallelogram#github-action">GitHub Action</a></div><div class="mnav-group"><a href="/integrations.html">Integrations</a></div><div class="mnav-group"><p>More</p><a href="https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/CHANGELOG.md">Full changelog</a><a href="https://pypi.org/project/parallelogram/">PyPI</a><a href="https://github.com/Thatayotlhe04/Parallelogram/security/advisories/new">Report a vulnerability</a><a href="/llms.txt">llms.txt</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a></div></nav>
+      </details>
     </div>
   </header>
 
@@ -288,19 +319,20 @@
   <footer class="footer">
     <div class="footer-inner">
       <div class="footer-brand">
-        <a class="brand" href="index.html">
+        <a class="brand" href="/">
           <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M8 5 L29 5 L24 27 L3 27 Z" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/></svg>
           <span>parallelogram</span>
         </a>
         <p>The linter for fine-tuning data.</p>
-        <p class="mono dim">v1.0.0 · Apache-2.0 · runs offline</p>
+        <p class="mono dim">v1.6.0 · Apache-2.0 · runs offline</p>
       </div>
       <div class="footer-col">
         <h3>Product</h3>
-        <a href="index.html#checks">Checks</a>
-        <a href="index.html#how">How it works</a>
-        <a href="index.html#changelog">Changelog</a>
-        <a href="index.html#faq">FAQ</a>
+        <a href="/#checks">Checks</a>
+        <a href="/#how">How it works</a>
+        <a href="/integrations.html">Integrations</a>
+        <a href="/#changelog">Changelog</a>
+        <a href="/#faq">FAQ</a>
       </div>
       <div class="footer-col">
         <h3>Resources</h3>
@@ -308,12 +340,13 @@
         <a href="https://github.com/Thatayotlhe04/Parallelogram">GitHub</a>
         <a href="https://pypi.org/project/parallelogram/">PyPI</a>
         <a href="https://github.com/Thatayotlhe04/Parallelogram#github-action">GitHub Action</a>
+        <a href="/llms.txt">llms.txt</a>
       </div>
       <div class="footer-col">
         <h3>Legal</h3>
-        <a href="privacy.html">Privacy</a>
-        <a href="terms.html">Terms</a>
-        <a href=".well-known/security.txt">Security</a>
+        <a href="/privacy.html">Privacy</a>
+        <a href="/terms.html">Terms</a>
+        <a href="/.well-known/security.txt">Security</a>
       </div>
     </div>
     <div class="footer-bar"><span>© 2026 parallelogram.dev</span><span class="mono dim">If it exits 0, your run won't fail because of data.</span></div>

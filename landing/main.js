@@ -25,6 +25,54 @@
     });
   });
 
+  // ── Nav menus ─────────────────────────────────────────────────────
+  // CSS opens a menu on hover. This adds click and keyboard (a disclosure
+  // button), keeps aria-expanded truthful, and closes on Escape or outside.
+  const items = Array.from(document.querySelectorAll('.nav-item.has-menu'));
+  const hoverable = window.matchMedia('(hover: hover)');
+  function setOpen(item, open) {
+    item.classList.toggle('open', open);
+    item.querySelector('.nav-trigger').setAttribute('aria-expanded', String(open));
+  }
+  function closeAll(except) { items.forEach(i => { if (i !== except) setOpen(i, false); }); }
+  items.forEach(item => {
+    const trigger = item.querySelector('.nav-trigger');
+    trigger.addEventListener('click', () => {
+      const open = !item.classList.contains('open');
+      closeAll(item);
+      setOpen(item, open);
+    });
+    item.addEventListener('mouseenter', () => {
+      if (!hoverable.matches) return;
+      closeAll(item);
+      trigger.setAttribute('aria-expanded', 'true');
+    });
+    item.addEventListener('mouseleave', () => {
+      if (hoverable.matches) setOpen(item, false);
+    });
+    item.addEventListener('focusout', e => {
+      if (!item.contains(e.relatedTarget)) setOpen(item, false);
+    });
+    item.addEventListener('keydown', e => {
+      if (e.key !== 'Escape') return;
+      setOpen(item, false);
+      trigger.focus();
+    });
+  });
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.nav-item.has-menu')) closeAll();
+  });
+
+  // Mobile menu: close it after following an in-page link, and on Escape.
+  const mnav = document.querySelector('.mnav');
+  if (mnav) {
+    mnav.addEventListener('click', e => { if (e.target.closest('a')) mnav.open = false; });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && mnav.open) { mnav.open = false; mnav.querySelector('summary').focus(); }
+    });
+    window.matchMedia('(min-width: 961px)').addEventListener('change', e => { if (e.matches) mnav.open = false; });
+  }
+
   // ── CLI / CI tabs ─────────────────────────────────────────────────
   const tabs = Array.from(document.querySelectorAll('.pill-toggle [role="tab"]'));
   function select(tab) {
