@@ -125,10 +125,13 @@ class Fixer:
             # Decide if we can fix this record. Skip dataset-scope issues
             # (duplicates, eval overlap) here — they're handled in stage 2.
             non_dup_issues = [i for i in issues if not self._dataset_scoped(i.rule_id)]
+            # Only an unfixable *error* costs the record; a warning with no
+            # mechanical repair (an empty tool_calls list) leaves it as it is.
             unfixable_rules = [
                 i.rule_id for i in non_dup_issues
-                if not (self._rules_by_id.get(i.rule_id)
-                        and self._rules_by_id[i.rule_id].fixable)
+                if i.severity == Severity.ERROR
+                and not (self._rules_by_id.get(i.rule_id)
+                         and self._rules_by_id[i.rule_id].fixable)
             ]
 
             if unfixable_rules:
