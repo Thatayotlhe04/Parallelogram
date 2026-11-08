@@ -7,12 +7,16 @@ on:
       - "landing/**"
       - "scripts/check_csp.py"
       - "scripts/build_agent_view.py"
+      - "scripts/build_shared.py"
+      - "cli/src/parallelogram/__init__.py"
       - ".github/workflows/landing-ci.yml"
   pull_request:
     paths:
       - "landing/**"
       - "scripts/check_csp.py"
       - "scripts/build_agent_view.py"
+      - "scripts/build_shared.py"
+      - "cli/src/parallelogram/__init__.py"
       - ".github/workflows/landing-ci.yml"
 
 permissions:
@@ -23,10 +27,10 @@ jobs:
     name: CSP consistency
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.12"
 
@@ -35,3 +39,6 @@ jobs:
 
       - name: Check the Agent view matches landing/index.md
         run: python scripts/build_agent_view.py --check
+
+      - name: Check the shared header and footer are current on every page
+        run: python scripts/build_shared.py --check
