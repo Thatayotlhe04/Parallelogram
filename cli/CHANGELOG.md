@@ -5,7 +5,21 @@ All notable changes to the `parallelogram` CLI. Versions correspond to
 
 ## 1.6.1 — 2026-11-08
 
-No behavior changes.
+Fixes from running 1.6 over popular public datasets:
+
+- `null` tool fields (`tool_calls`, `function_call`, `tools`, `functions`,
+  `tool_call_id`, a call's `id`) read as absent. Hugging Face `datasets` writes
+  null for any column a row doesn't use, so ordinary chat rows exported from a
+  mixed dataset failed `tool-calls` with exit 2.
+- An empty `tool_calls: []` is a warning, not an error: chat templates treat it
+  as no calls, OpenAI's API wants null or at least one. `--fix` no longer drops
+  a record whose only unfixable issue is a warning.
+- HuggingFaceH4/ultrafeedback_binarized-style rows (`prompt` plus full
+  `chosen`/`rejected` conversations and a `messages` column) are read as
+  preference pairs. The repeated prompt was being prepended a second time,
+  failing `roles`. Every column round-trips in its original order.
+
+Also:
 
 - Listed in the official MCP Registry as `io.github.Thatayotlhe04/parallelogram`
   (`server.json`, and the ownership marker in the PyPI README).

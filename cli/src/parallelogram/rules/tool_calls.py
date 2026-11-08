@@ -39,8 +39,10 @@ class ToolCallsRule(Rule):
         names = set()
         if "parallel_tool_calls" in record and not isinstance(record["parallel_tool_calls"], bool):
             yield issue("'parallel_tool_calls' must be a boolean")
+        # Hugging Face datasets fill a column a row doesn't use with null, so null
+        # means "absent" for every tool field below, the way the trainers read it.
         for key in ("tools", "functions"):
-            if key not in record:
+            if record.get(key) is None:
                 continue
             definitions = record[key]
             if isinstance(definitions, str):
@@ -72,14 +74,20 @@ class ToolCallsRule(Rule):
         for label, i, msg in message_slots(record):
             if not isinstance(msg, dict):
                 continue
-            calls = msg.get("tool_calls", [])
-            if "tool_calls" in msg:
+            calls = msg.get("tool_calls") or []
+            if msg.get("tool_calls") is not None:
                 if msg.get("role") != "assistant":
                     yield issue(f"Message {i}: only assistant messages may contain tool_calls", i, label)
-                if not isinstance(calls, list) or not calls:
+                if calls == []:
+                    # Chat templates treat [] as "no calls"; OpenAI's API wants at least one.
+                    yield Issue(rule_id=self.id, severity=Severity.WARNING, line_no=line_no,
+                                message=f"{where(label)}Message {i}: tool_calls is an empty list "
+                                        "(fine for chat templates; OpenAI expects null or at least one call)",
+                                context={"message_index": i})
+                elif not isinstance(calls, list):
                     yield issue(f"Message {i}: tool_calls must be a nonempty list", i, label)
                     calls = []
-            if "function_call" in msg:
+            if msg.get("function_call") is not None:
                 if msg.get("role") != "assistant":
                     yield issue(f"Message {i}: only assistant messages may contain function_call", i, label)
                 calls = [*calls, {"type": "function", "function": msg["function_call"]}]
@@ -90,7 +98,7 @@ class ToolCallsRule(Rule):
                     continue
                 # Ids are optional: Hugging Face chat templates (TRL, Axolotl, Unsloth) use
                 # id-less calls answered in order. When present, an id must be usable.
-                if "tool_calls" in msg and "id" in call:
+                if msg.get("tool_calls") is not None and call.get("id") is not None:
                     call_id = call.get("id")
                     if not isinstance(call_id, str) or not call_id.strip():
                         yield issue(prefix + "id must be a nonempty string", i, label)
@@ -107,7 +115,7 @@ class ToolCallsRule(Rule):
                 name = fn.get("name")
                 if not isinstance(name, str) or not name.strip():
                     yield issue(prefix + "function name must be a nonempty string", i, label)
-                elif "tools" in record and name not in names:
+                elif record.get("tools") is not None and name not in names:
                     yield issue(prefix + "function name is not declared in tools", i, label)
                 # OpenAI encodes arguments as a JSON string; Hugging Face chat templates
                 # expect the object itself. Either way it has to be an object.

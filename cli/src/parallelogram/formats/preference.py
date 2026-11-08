@@ -23,14 +23,19 @@ from .jsonline import PARSE_ERRORS, describe
 
 _KEYS = ("prompt", "chosen", "rejected")
 _OTHER_SHAPES = ("messages", "conversations", "conversation")
+# Where a source ``messages`` column waits while the record is in the internal
+# shape, which uses ``messages`` for prompt + chosen. Restored on output.
+_STASH = "parallelogram:source-messages"
 
 
 def is_preference_record(record: Any) -> bool:
-    return (
-        isinstance(record, dict)
-        and ("chosen" in record or "rejected" in record)
-        and not any(key in record for key in _OTHER_SHAPES)
-    )
+    if not isinstance(record, dict):
+        return False
+    # HuggingFaceH4/ultrafeedback_binarized-style rows carry a ``messages``
+    # column next to chosen/rejected; with both sides present it's a preference pair.
+    if "chosen" in record and "rejected" in record and "messages" in record:
+        return not any(key in record for key in ("conversations", "conversation"))
+    return ("chosen" in record or "rejected" in record) and not any(key in record for key in _OTHER_SHAPES)
 
 
 def field_errors(record: dict) -> list[str]:
@@ -61,21 +66,47 @@ def _common_prefix(a: list, b: list) -> int:
     return n
 
 
+def _implicit_split(chosen: list, rejected: list) -> int:
+    n = _common_prefix(chosen, rejected)
+    # Never let the shared prefix swallow a whole side: if one side is a
+    # prefix of the other, keep at least its last turn as the completion.
+    return max(min(n, len(chosen) - 1, len(rejected) - 1), 0)
+
+
+def _redundant_prompt(record: dict) -> bool:
+    """True when ``prompt`` repeats the opening of full ``chosen``/``rejected`` conversations.
+
+    HuggingFaceH4/ultrafeedback_binarized and datasets built like it keep the
+    prompt string as metadata while both sides already start with that user
+    turn. Prepending it again would double the turn, so these are read like the
+    implicit-prompt shape and ``prompt`` rides along untouched.
+    """
+    chosen, rejected, prompt = record["chosen"], record["rejected"], record["prompt"]
+    if not (isinstance(chosen, list) and isinstance(rejected, list)):
+        return False
+    head = chosen[:_implicit_split(chosen, rejected)]
+    if isinstance(prompt, list):
+        return bool(prompt) and len(prompt) <= len(head) and head[len(head) - len(prompt):] == prompt
+    users = [m.get("content") for m in head if isinstance(m, dict) and m.get("role") == "user"]
+    return bool(users) and isinstance(users[-1], str) and users[-1].strip() == prompt.strip()
+
+
 def normalize(record: Any) -> Any:
     if not isinstance(record, dict) or field_errors(record):
         return record
-    extras = {k: v for k, v in record.items() if k not in _KEYS}
-    if "prompt" in record:
+    extras = {(_STASH if k == "messages" else k): v for k, v in record.items() if k not in _KEYS}
+    if "prompt" in record and _redundant_prompt(record):
+        chosen_full, rejected_full = list(record["chosen"]), list(record["rejected"])
+        n = _implicit_split(chosen_full, rejected_full)
+        prompt, chosen, rejected = chosen_full[:n], chosen_full[n:], rejected_full[n:]
+        extras = {**extras, "prompt": record["prompt"]}
+    elif "prompt" in record:
         prompt = _as_turns(record["prompt"], "user")
         chosen = _as_turns(record["chosen"], "assistant")
         rejected = _as_turns(record["rejected"], "assistant")
     else:
         chosen_full, rejected_full = list(record["chosen"]), list(record["rejected"])
-        n = _common_prefix(chosen_full, rejected_full)
-        # Never let the shared prefix swallow a whole side: if one side is a
-        # prefix of the other, keep at least its last turn as the completion.
-        n = min(n, len(chosen_full) - 1, len(rejected_full) - 1)
-        n = max(n, 0)
+        n = _implicit_split(chosen_full, rejected_full)
         prompt, chosen, rejected = chosen_full[:n], chosen_full[n:], rejected_full[n:]
     return ConversationRecord({**extras, "messages": prompt + chosen, "rejected": rejected},
                               prompt_length=len(prompt))
@@ -85,10 +116,12 @@ def source_metadata(record: Any) -> dict[str, Any]:
     if not isinstance(record, dict):
         return {}
     kind = lambda v: "str" if isinstance(v, str) else "list"
+    redundant = "prompt" in record and not field_errors(record) and _redundant_prompt(record)
     return {
-        "implicit": "prompt" not in record,
+        "implicit": "prompt" not in record or redundant,
         "kinds": {k: kind(record.get(k)) for k in _KEYS if k in record},
-        "extras": [k for k in record if k not in _KEYS],
+        "extras": [k for k in record if k not in _KEYS or (redundant and k == "prompt")],
+        "order": list(record),
     }
 
 
@@ -134,6 +167,10 @@ def to_preference(record: Any, metadata: dict[str, Any] | None = None) -> Any:
             "rejected": _restore(rejected, kinds.get("rejected", "list"), "assistant"),
         }
     for key in meta.get("extras", []):
-        if key in record:
-            out[key] = record[key]
+        source = _STASH if key == "messages" else key
+        if source in record:
+            out[key] = record[source]
+    order = meta.get("order")
+    if order:
+        out = {**{k: out[k] for k in order if k in out}, **out}
     return out

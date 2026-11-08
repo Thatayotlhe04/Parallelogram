@@ -45,7 +45,7 @@ class RolesRule(Rule):
                 continue
             if role == "tool":
                 key = None
-                if "tool_call_id" in msg:
+                if msg.get("tool_call_id") is not None:
                     call_id = msg["tool_call_id"]
                     if not isinstance(call_id, str) or call_id not in pending:
                         reason = ("tool call was already answered" if isinstance(call_id, str) and call_id in answered
@@ -96,7 +96,7 @@ class RolesRule(Rule):
                     fn_name = fn.get("name") if isinstance(fn, dict) else None
                     if isinstance(call.get("id"), str):
                         pending[call["id"]] = (i, fn_name, True)
-                    elif "id" not in call:
+                    elif call.get("id") is None:
                         pending[f"#{i}:{j}"] = (i, fn_name, False)
                 expected = "assistant"
             fn = msg.get("function_call")
