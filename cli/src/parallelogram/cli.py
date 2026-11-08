@@ -183,6 +183,32 @@ def check(
     raise typer.Exit(result.exit_code)
 
 
+@app.command("integrate")
+def integrate_client(
+    client: Optional[str] = typer.Argument(None, help="Agent client to configure."),
+    list_clients: bool = typer.Option(False, "--list", help="List clients and configuration destinations."),
+    agents_md: bool = typer.Option(False, "--agents-md", help="Install the agent instruction block in the project."),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Preview changes without writing."),
+) -> None:
+    """Configure project MCP settings, or print instructions for user-scoped clients."""
+    from .integrations import PROJECT_CLIENTS, MANUAL_CLIENTS, integrate
+    if list_clients:
+        for name, (path, _) in PROJECT_CLIENTS.items():
+            typer.echo(f"{name}: writes {path}")
+        for name, path in MANUAL_CLIENTS.items():
+            typer.echo(f"{name}: prints setup for {path}; writes no client configuration")
+        return
+    if client is None:
+        typer.echo("Choose a client, or use --list.", err=True)
+        raise typer.Exit(2)
+    try:
+        for message in integrate(client, root=Path.cwd(), agents_md=agents_md, dry_run=dry_run):
+            typer.echo(message)
+    except (ValueError, OSError, UnicodeError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(2)
+
+
 @app.command("rules")
 def list_rules(json_output: bool = typer.Option(False, "--json", help="Emit rule metadata as JSON.")) -> None:
     """List validation rules and what mechanical fixes do."""
