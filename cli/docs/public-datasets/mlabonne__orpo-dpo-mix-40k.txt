@@ -1,0 +1,43 @@
+# mlabonne/orpo-dpo-mix-40k
+# config=default split=train revision=0f72511202b8
+# Row indices are 0-based positions in the split (the dataset viewer's numbering). All 44,245 rows.
+
+## chosen and rejected are the same text (38)
+2173
+3585
+3841
+4544
+5670
+6210
+15438
+16798
+32553
+32572
+32579
+32670
+33072
+33142
+33195
+33203
+33207
+33217
+33221
+33224
+33228
+33241
+33479
+33511
+33646
+33703
+33739
+33773
+33878
+33886
+34031
+34163
+34188
+34422
+34450
+34487
+34552
+34646

@@ -1,0 +1,26 @@
+# HuggingFaceTB/smoltalk
+# config=all split=train revision=5feaf2fd3ffc
+# Row indices are 0-based positions in the split (the dataset viewer's numbering). First 50,000 rows.
+
+## ends on a user turn (16)
+1775
+1871
+4739
+5829
+7329
+12733
+12853
+15704
+16287
+20748
+27882
+32063
+32172
+38436
+39808
+41489
+
+## tool schema default looks like a GitHub token (3)
+8491
+30982
+48621
