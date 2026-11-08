@@ -245,9 +245,14 @@ is data preflight, not a model/template compatibility check.
 | [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory/blob/main/data/README.md) | Alpaca with `system`/`history`; ShareGPT with `function_call`/`observation` and JSON-string `tools`. | `parallelogram check train.jsonl --format auto` |
 | [OpenAI fine-tuning](https://developers.openai.com/api/docs/guides/supervised-fine-tuning) | Text chat `messages`, including the tool-calling format described above. | `parallelogram check train.jsonl --format openai-chat` |
 
-TRL/Hugging Face tool examples may use object-valued arguments and omit call
-ids. Those are distinct from the OpenAI wire shape supported here: export
-JSON-string arguments and explicit call/reply ids before checking that shape.
+Tool calls are accepted in both shapes trainers use. OpenAI's: every call has
+an `id`, `arguments` is a JSON-encoded string, and each `tool` reply carries the
+matching `tool_call_id`. Hugging Face's, which TRL, Axolotl and Unsloth render
+through the model's chat template: calls may omit `id`, `arguments` is the
+object itself, replies without `tool_call_id` answer outstanding calls in order
+(by `name` when given), and `tools` may be a list or, from `datasets` older than
+4.7, a JSON string. A call that has an `id` must be answered by `tool_call_id`.
+For OpenAI's fine-tuning API, use the OpenAI shape throughout.
 Plain `text`-only language-modeling rows, multimodal training schemas, and
 framework-specific ranking layouts outside the documented preference format
 are not supported. The OpenAI preflight does not check account/model eligibility

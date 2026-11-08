@@ -76,7 +76,7 @@ def test_roles_errors(tmp_path, change, fragment):
     assert fix(write(tmp_path, record)).report.dropped == 1
 
 
-@pytest.mark.parametrize("arguments", ['{"secret":"do-not-print"', '[]', 'null', '"do-not-print"', 5, {}, None])
+@pytest.mark.parametrize("arguments", ['{"secret":"do-not-print"', '[]', 'null', '"do-not-print"', 5, [], None])
 def test_arguments_error_private(tmp_path, arguments):
     record = conversation()
     record["messages"][1]["tool_calls"][0]["function"]["arguments"] = arguments
@@ -89,7 +89,7 @@ def test_arguments_error_private(tmp_path, arguments):
 @pytest.mark.parametrize("change", [
     lambda r: r["messages"][1]["tool_calls"][0]["function"].update(name="absent"),
     lambda r: r["messages"][1]["tool_calls"][1].update(id="a"),
-    lambda r: r["messages"][1]["tool_calls"][0].pop("id"),
+    lambda r: r["messages"][1]["tool_calls"][0].update(id=""),
     lambda r: r["messages"][1]["tool_calls"][0].update(type="invalid"),
     lambda r: r["messages"][1]["tool_calls"][0].update(function=[]),
     lambda r: r["messages"][1].update(tool_calls={}),
@@ -297,3 +297,68 @@ def test_unanswered_call_before_the_final_turn_is_still_an_error(tmp_path):
     record["messages"][2:] = [{"role": "tool", "tool_call_id": "a", "content": "A is cold."},
                               {"role": "assistant", "content": "Only A answered."}]
     assert any("never answered" in i["message"] for i in findings(tmp_path, record, "roles"))
+
+
+def trl_record():
+    """The tool-calling example from TRL's dataset-format docs, as written there."""
+    schema = {"type": "function", "function": {
+        "name": "control_light", "description": "Controls the lights in a room.",
+        "parameters": {"type": "object", "properties": {"room": {"type": "string"}, "state": {"type": "string"}},
+                       "required": ["room", "state"]},
+        "return": {"type": "string", "description": "str: A message indicating the new state of the lights."}}}
+    return {"messages": [
+        {"role": "user", "content": "Turn on the living room lights."},
+        {"role": "assistant", "tool_calls": [{"type": "function", "function": {
+            "name": "control_light", "arguments": {"room": "living room", "state": "on"}}}]},
+        {"role": "tool", "name": "control_light", "content": "The lights in the living room are now on."},
+        {"role": "assistant", "content": "Done!"}], "tools": [schema]}
+
+
+@pytest.mark.parametrize("tools_as_string", [False, True])
+def test_hugging_face_tool_shape_is_clean_and_round_trips(tmp_path, tools_as_string):
+    """TRL, Axolotl and Unsloth render through chat templates that want object arguments
+    and id-less calls; older datasets store the tools column as a JSON string."""
+    record = trl_record()
+    if tools_as_string:
+        record["tools"] = json.dumps(record["tools"])
+    path = write(tmp_path, record)
+    result = check(path)
+    assert result.exit_code == 0, result.to_dict()["issues"]
+    out = tmp_path / "out.jsonl"
+    cli = CliRunner().invoke(app, ["check", str(path), "--fix", "--output", str(out)])
+    assert cli.exit_code == 0, cli.output
+    assert out.read_bytes() == path.read_bytes()
+
+
+def test_id_less_parallel_calls_are_answered_in_order(tmp_path):
+    record = trl_record()
+    call = record["messages"][1]["tool_calls"][0]
+    record["messages"][1]["tool_calls"] = [call, deepcopy(call)]
+    record["messages"][2:2] = [{"role": "tool", "content": "Kitchen is on."}]
+    assert check(write(tmp_path, record)).exit_code == 0
+
+
+@pytest.mark.parametrize("change,fragment", [
+    (lambda r: r["messages"][2].update(name="unknown_tool"), "no matching earlier call"),
+    (lambda r: r["messages"].insert(3, {"role": "tool", "name": "control_light", "content": "again"}),
+     "no matching earlier call"),
+    (lambda r: r["messages"][1]["tool_calls"][0].update(id="x"), "must reference its call with tool_call_id"),
+    (lambda r: r["messages"][2].update(tool_call_id="x"), "no matching earlier call id"),
+])
+def test_hugging_face_tool_shape_errors(tmp_path, change, fragment):
+    record = trl_record()
+    change(record)
+    issues = findings(tmp_path, record, "roles")
+    assert any(fragment in i["message"] for i in issues), issues
+
+
+def test_secrets_in_object_arguments_are_found_and_redacted(tmp_path):
+    record = trl_record()
+    secret = "sk-" + "AbCdEf0123456789" * 3
+    record["messages"][1]["tool_calls"][0]["function"]["arguments"]["token"] = secret
+    path = write(tmp_path, record)
+    assert findings(tmp_path, record, "secrets")
+    out = tmp_path / "out.jsonl"
+    assert fix(path, output=out).exit_code == 0
+    assert secret not in out.read_text()
+    assert check(out).exit_code == 0

@@ -29,7 +29,10 @@ class RolesRule(Rule):
                                   else f"{prefix}Message {i}: {text}"), context={"message_index": i})
 
         expected = "user"
-        pending: dict[str, int] = {}
+        # Outstanding calls in call order: key -> (message index, function name, has id).
+        # Calls without an id (the Hugging Face / TRL shape) get a positional key and
+        # are answered in order by tool messages that carry no tool_call_id.
+        pending: dict[str, tuple[int, object, bool]] = {}
         answered: set[str] = set()
         legacy: tuple[str, int] | None = None
         for i, msg in enumerate(messages):
@@ -41,14 +44,27 @@ class RolesRule(Rule):
                     yield issue(i, "'system' message must be first")
                 continue
             if role == "tool":
-                call_id = msg.get("tool_call_id")
-                if not isinstance(call_id, str) or call_id not in pending:
-                    reason = ("tool call was already answered" if isinstance(call_id, str) and call_id in answered
-                              else "tool message has no matching earlier call id")
-                    yield issue(i, reason)
+                key = None
+                if "tool_call_id" in msg:
+                    call_id = msg["tool_call_id"]
+                    if not isinstance(call_id, str) or call_id not in pending:
+                        reason = ("tool call was already answered" if isinstance(call_id, str) and call_id in answered
+                                  else "tool message has no matching earlier call id")
+                        yield issue(i, reason)
+                    else:
+                        key = call_id
                 else:
-                    del pending[call_id]
-                    answered.add(call_id)
+                    name = msg.get("name")
+                    key = next((k for k, (_, fn, _) in pending.items()
+                                if not isinstance(name, str) or fn == name), None)
+                    if key is None:
+                        yield issue(i, "tool message has no matching earlier call")
+                    elif pending[key][2]:
+                        yield issue(i, "tool message must reference its call with tool_call_id")
+                        key = None
+                if key is not None:
+                    del pending[key]
+                    answered.add(key)
                     if not pending:
                         expected = "assistant or user"
                 continue
@@ -59,7 +75,7 @@ class RolesRule(Rule):
                     legacy = None
                     expected = "assistant or user"
                 continue
-            for call_index in pending.values():
+            for call_index, _, _ in pending.values():
                 yield issue(call_index, "tool call never answered before the next assistant or user turn")
             pending.clear()
             if legacy is not None:
@@ -73,9 +89,15 @@ class RolesRule(Rule):
             expected = "assistant" if role == "user" else "user"
             calls = msg.get("tool_calls")
             if role == "assistant" and isinstance(calls, list) and calls:
-                for call in calls:
-                    if isinstance(call, dict) and isinstance(call.get("id"), str):
-                        pending[call["id"]] = i
+                for j, call in enumerate(calls):
+                    if not isinstance(call, dict):
+                        continue
+                    fn = call.get("function")
+                    fn_name = fn.get("name") if isinstance(fn, dict) else None
+                    if isinstance(call.get("id"), str):
+                        pending[call["id"]] = (i, fn_name, True)
+                    elif "id" not in call:
+                        pending[f"#{i}:{j}"] = (i, fn_name, False)
                 expected = "assistant"
             fn = msg.get("function_call")
             if role == "assistant" and isinstance(fn, dict):
@@ -86,7 +108,7 @@ class RolesRule(Rule):
         # fine-tuning data teaches the model to emit a call (OpenAI's own examples
         # end there). Only a call followed by something other than its answer is broken.
         final = len(messages) - 1
-        for call_index in pending.values():
+        for call_index, _, _ in pending.values():
             if call_index != final:
                 yield issue(call_index, "tool call never answered")
         if legacy is not None and legacy[1] != final:

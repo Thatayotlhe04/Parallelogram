@@ -6,12 +6,18 @@ All notable changes to the `parallelogram` CLI. Versions correspond to
 ## 1.6.0 — 2026-11-08
 
 ### Added
-- OpenAI tool-calling datasets with parallel call/reply validation, optional
-  tool-only assistant content, and legacy function-call support.
+- Tool-calling datasets in both shapes trainers use: OpenAI's (call ids,
+  JSON-string arguments, `tool_call_id` replies) and Hugging Face's, as in TRL,
+  Axolotl and Unsloth (id-less calls, object arguments, replies answered in
+  order, `tools` as a list or a JSON string). Parallel call/reply validation,
+  optional tool-only assistant content, and legacy function-call support.
+- A conversation may end on the assistant's tool call, as OpenAI's own
+  function-calling fine-tuning examples do: the call is the training target.
 - LLaMA-Factory ShareGPT `function_call`/`observation` normalization and inverse
   serialization, including JSON-string tool definitions.
-- `tool-calls`: error diagnostics for malformed definitions/calls, non-object
-  JSON arguments, undeclared functions, and duplicate ids, without argument values.
+- `tool-calls`: error diagnostics for malformed definitions/calls, arguments
+  that are not an object, undeclared functions, and duplicate ids, without
+  argument values.
 - `parallelogram integrate <client>` for Claude Code, Cursor, VS Code and Gemini
   project MCP config; manual setup for Codex, Windsurf, Cline and Zed. Includes
   JSON merging, idempotence, `--agents-md`, `--dry-run`, and `--list`.

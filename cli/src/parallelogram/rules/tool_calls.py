@@ -43,6 +43,12 @@ class ToolCallsRule(Rule):
             if key not in record:
                 continue
             definitions = record[key]
+            if isinstance(definitions, str):
+                # Hugging Face datasets older than 4.7 store the tools column as a JSON string.
+                try:
+                    definitions = json.loads(definitions, parse_constant=_reject_constant)
+                except (ValueError, RecursionError):
+                    pass
             if not isinstance(definitions, list):
                 yield issue(f"'{key}' must be a list of function definitions")
                 continue
@@ -82,7 +88,9 @@ class ToolCallsRule(Rule):
                 if not isinstance(call, dict):
                     yield issue(prefix + "call must be an object", i, label)
                     continue
-                if "tool_calls" in msg:
+                # Ids are optional: Hugging Face chat templates (TRL, Axolotl, Unsloth) use
+                # id-less calls answered in order. When present, an id must be usable.
+                if "tool_calls" in msg and "id" in call:
                     call_id = call.get("id")
                     if not isinstance(call_id, str) or not call_id.strip():
                         yield issue(prefix + "id must be a nonempty string", i, label)
@@ -101,10 +109,13 @@ class ToolCallsRule(Rule):
                     yield issue(prefix + "function name must be a nonempty string", i, label)
                 elif "tools" in record and name not in names:
                     yield issue(prefix + "function name is not declared in tools", i, label)
+                # OpenAI encodes arguments as a JSON string; Hugging Face chat templates
+                # expect the object itself. Either way it has to be an object.
                 args = fn.get("arguments")
                 try:
-                    parsed = json.loads(args, parse_constant=_reject_constant) if isinstance(args, str) else None
+                    parsed = args if isinstance(args, dict) else (
+                        json.loads(args, parse_constant=_reject_constant) if isinstance(args, str) else None)
                 except (ValueError, RecursionError):
                     parsed = None
                 if not isinstance(parsed, dict):
-                    yield issue(prefix + "arguments must be a JSON-encoded object", i, label)
+                    yield issue(prefix + "arguments must be an object or a JSON-encoded object", i, label)

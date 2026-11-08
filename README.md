@@ -8,8 +8,10 @@ The linter for fine-tuning data. **If `parallelogram check` exits 0 with all rul
 
 ## Integrations and tool data (1.6)
 
-Validate OpenAI tool calls (including parallel replies) and LLaMA-Factory
-ShareGPT `function_call`/`observation` datasets. Tool arguments and definitions
+Validate tool calls in OpenAI's shape (call ids, JSON-string arguments) and the
+Hugging Face shape TRL, Axolotl and Unsloth use (object arguments, id-less calls
+answered in order), including parallel replies, plus LLaMA-Factory ShareGPT
+`function_call`/`observation` datasets. Tool arguments and definitions
 are checked, counted in context estimates, and preserved on fix output.
 
 ```bash
