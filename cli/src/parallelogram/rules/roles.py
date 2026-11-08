@@ -1,12 +1,19 @@
 """Validate training turns, including complete parallel tool-call exchanges."""
 from __future__ import annotations
 
+import re
 from collections.abc import Iterable
 from typing import Any
 
 from ..core.conversation import conversations, where
 from ..core.report import Issue, Severity
 from ..core.rules import Rule, registry
+
+
+# A call written into the assistant's text, as Hermes-format data does
+# (NousResearch/hermes-function-calling-v1): <tool_call>{"name": ...}</tool_call>.
+# Requiring the JSON body keeps a prose mention of the tag from counting.
+_TEXT_CALL = re.compile(r"<tool_call>\s*\{.*?\}\s*</tool_call>", re.DOTALL)
 
 
 @registry.register
@@ -35,6 +42,10 @@ class RolesRule(Rule):
         pending: dict[str, tuple[int, object, bool]] = {}
         answered: set[str] = set()
         legacy: tuple[str, int] | None = None
+        # Text-encoded calls carry no ids or structure to match against, so any
+        # tool turns that follow them are their replies (Hermes packs several
+        # <tool_response> blocks into one turn).
+        text_call = False
         for i, msg in enumerate(messages):
             if not isinstance(msg, dict) or not isinstance(msg.get("role"), str):
                 return  # schema reports malformed messages
@@ -57,6 +68,9 @@ class RolesRule(Rule):
                     name = msg.get("name")
                     key = next((k for k, (_, fn, _) in pending.items()
                                 if not isinstance(name, str) or fn == name), None)
+                    if key is None and text_call and not pending:
+                        expected = "assistant or user"
+                        continue
                     if key is None:
                         yield issue(i, "tool message has no matching earlier call")
                     elif pending[key][2]:
@@ -87,6 +101,8 @@ class RolesRule(Rule):
                 else:
                     yield issue(i, f"Role alternation broken: expected {expected!r}, got {role!r}")
             expected = "assistant" if role == "user" else "user"
+            content = msg.get("content")
+            text_call = role == "assistant" and isinstance(content, str) and bool(_TEXT_CALL.search(content))
             calls = msg.get("tool_calls")
             if role == "assistant" and isinstance(calls, list) and calls:
                 for j, call in enumerate(calls):

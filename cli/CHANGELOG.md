@@ -18,6 +18,21 @@ Fixes from running 1.6 over popular public datasets:
   `chosen`/`rejected` conversations and a `messages` column) are read as
   preference pairs. The repeated prompt was being prepended a second time,
   failing `roles`. Every column round-trips in its original order.
+- A string `prompt` beside full `chosen`/`rejected` conversations is read as
+  metadata whichever turn it copies, as TRL's `maybe_extract_prompt` does.
+  mlabonne/orpo-dpo-mix-40k keeps the opening turn on multi-turn rows (4,487
+  false `roles` errors) and argilla/distilabel-capybara-dpo-7k-binarized keeps
+  a chat-templated string.
+- Preference pairs with a `conversation` column that holds metadata rather
+  than turns (distilabel-capybara-dpo's `{"input", "output"}` pairs) are read
+  as preference, not ShareGPT. Every row was failing `schema`.
+- Hermes-format tool calls written in the text
+  (`<tool_call>{...}</tool_call>`, NousResearch/hermes-function-calling-v1)
+  are matched by the `tool` turns after them; 1,100 of 1,893 rows were
+  failing `roles`. The 173 that end on tool replies the assistant never
+  requested still fail.
+- Issues in a preference row's own `messages` column name it `messages`, not
+  an internal key.
 
 Also:
 

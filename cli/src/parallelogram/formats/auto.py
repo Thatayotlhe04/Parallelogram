@@ -48,7 +48,7 @@ def iter_jsonl(path: str) -> Iterator[ParseResult]:
                 )
                 continue
 
-            if is_sharegpt_record(record) and "messages" not in record:
+            if is_sharegpt_record(record) and "messages" not in record and not preference.metadata_conversation(record):
                 yield ParseResult(
                     line_no=line_no,
                     raw=raw,

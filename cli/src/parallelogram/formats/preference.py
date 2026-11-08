@@ -18,19 +18,40 @@ from collections.abc import Iterator
 from typing import Any
 
 from . import ParseResult
-from ..core.conversation import ConversationRecord, prompt_end
+from ..core.conversation import SOURCE_MESSAGES, ConversationRecord, prompt_end
 from .jsonline import PARSE_ERRORS, describe
 
 _KEYS = ("prompt", "chosen", "rejected")
 _OTHER_SHAPES = ("messages", "conversations", "conversation")
-# Where a source ``messages`` column waits while the record is in the internal
-# shape, which uses ``messages`` for prompt + chosen. Restored on output.
-_STASH = "parallelogram:source-messages"
+_STASH = SOURCE_MESSAGES
+
+
+def _holds_turns(value: Any) -> bool:
+    return isinstance(value, list) and any(
+        isinstance(t, dict) and {"from", "value", "role", "content"} & t.keys() for t in value)
+
+
+def metadata_conversation(record: Any) -> bool:
+    """True for a pair whose ``conversation(s)`` column is metadata, not ShareGPT turns.
+
+    argilla/distilabel-capybara-dpo-7k-binarized keeps the source Capybara
+    dialogue as ``conversation: [{"input", "output"}, ...]`` beside full
+    chat-format ``chosen``/``rejected`` lists. Read as ShareGPT, every row
+    fails schema; the pair is the training data.
+    """
+    if not (isinstance(record, dict) and isinstance(record.get("chosen"), list)
+            and isinstance(record.get("rejected"), list)):
+        return False
+    other = record.get("conversations", record.get("conversation"))
+    return (isinstance(other, list) and bool(other) and all(isinstance(t, dict) for t in other)
+            and not _holds_turns(other) and _holds_turns(record["chosen"]))
 
 
 def is_preference_record(record: Any) -> bool:
     if not isinstance(record, dict):
         return False
+    if metadata_conversation(record):
+        return True
     # HuggingFaceH4/ultrafeedback_binarized-style rows carry a ``messages``
     # column next to chosen/rejected; with both sides present it's a preference pair.
     if "chosen" in record and "rejected" in record and "messages" in record:
@@ -74,21 +95,28 @@ def _implicit_split(chosen: list, rejected: list) -> int:
 
 
 def _redundant_prompt(record: dict) -> bool:
-    """True when ``prompt`` repeats the opening of full ``chosen``/``rejected`` conversations.
+    """True when ``prompt`` repeats part of the shared head of full ``chosen``/``rejected`` conversations.
 
     HuggingFaceH4/ultrafeedback_binarized and datasets built like it keep the
     prompt string as metadata while both sides already start with that user
     turn. Prepending it again would double the turn, so these are read like the
     implicit-prompt shape and ``prompt`` rides along untouched.
+
+    A string ``prompt`` next to conversations whose shared head already holds a
+    user turn is metadata whatever its exact text: the opening turn
+    (mlabonne/orpo-dpo-mix-40k), the last one, or a chat-templated rendering
+    (argilla/distilabel-capybara-dpo-7k-binarized). TRL's ``maybe_extract_prompt``
+    reads these rows the same way, ignoring the string and splitting the
+    shared prefix off, so that is what gets checked.
     """
     chosen, rejected, prompt = record["chosen"], record["rejected"], record["prompt"]
     if not (isinstance(chosen, list) and isinstance(rejected, list)):
         return False
     head = chosen[:_implicit_split(chosen, rejected)]
     if isinstance(prompt, list):
-        return bool(prompt) and len(prompt) <= len(head) and head[len(head) - len(prompt):] == prompt
-    users = [m.get("content") for m in head if isinstance(m, dict) and m.get("role") == "user"]
-    return bool(users) and isinstance(users[-1], str) and users[-1].strip() == prompt.strip()
+        n = len(prompt)
+        return bool(prompt) and n <= len(head) and prompt in (head[:n], head[len(head) - n:])
+    return any(isinstance(m, dict) and m.get("role") == "user" for m in head)
 
 
 def normalize(record: Any) -> Any:
