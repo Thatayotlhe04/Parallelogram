@@ -22,7 +22,7 @@ from typing import Iterator
 
 from . import ParseResult
 from .sharegpt import is_sharegpt_record, normalize as normalize_sharegpt
-from . import alpaca, preference
+from . import alpaca, preference, sharegpt
 from .prompt_completion import (
     is_prompt_completion_record, normalize as normalize_prompt_completion, source_metadata,
 )
@@ -54,6 +54,7 @@ def iter_jsonl(path: str) -> Iterator[ParseResult]:
                     raw=raw,
                     record=normalize_sharegpt(record),
                     source_format="sharegpt",
+                    source_metadata=sharegpt.source_metadata(record),
                 )
             elif preference.is_preference_record(record):
                 yield ParseResult(

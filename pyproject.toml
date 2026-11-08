@@ -1,0 +1,25 @@
+# pre-commit installs the repository root; PyPI releases still build from cli/.
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "parallelogram"
+dynamic = ["version"]
+description = "Strict validator for fine-tuning datasets. Run before you train."
+readme = "cli/README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+dependencies = ["typer>=0.12", "rich>=13.7"]
+
+[project.scripts]
+parallelogram = "parallelogram.cli:run"
+
+[tool.hatch.version]
+path = "cli/src/parallelogram/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["cli/src/parallelogram"]
+
+[tool.hatch.build.targets.sdist]
+include = ["cli/src/parallelogram", "cli/README.md", "pyproject.toml", "cli/LICENSE"]

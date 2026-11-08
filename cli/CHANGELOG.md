@@ -3,6 +3,33 @@
 All notable changes to the `parallelogram` CLI. Versions correspond to
 [PyPI releases](https://pypi.org/project/parallelogram/) and `cli-v*` git tags.
 
+## 1.6.0 — 2026-11-08
+
+### Added
+- OpenAI tool-calling datasets with parallel call/reply validation, optional
+  tool-only assistant content, and legacy function-call support.
+- LLaMA-Factory ShareGPT `function_call`/`observation` normalization and inverse
+  serialization, including JSON-string tool definitions.
+- `tool-calls`: error diagnostics for malformed definitions/calls, non-object
+  JSON arguments, undeclared functions, and duplicate ids, without argument values.
+- `parallelogram integrate <client>` for Claude Code, Cursor, VS Code and Gemini
+  project MCP config; manual setup for Codex, Windsurf, Cline and Zed. Includes
+  JSON merging, idempotence, `--agents-md`, `--dry-run`, and `--list`.
+- Repository pre-commit hook `parallelogram` and root installation metadata.
+- Integration documentation covering clients, pre-commit, the GitHub Action,
+  and TRL, Axolotl, Unsloth, LLaMA-Factory and OpenAI training preflights.
+
+### Changed
+- `check` accepts several inputs, checks each, and returns the highest exit code.
+  JSON is an array only for multiple inputs; `--output` requires one input.
+- Context counts include tool definitions and calls. Duplicate hashing includes
+  tool-call content, reply links and definitions.
+- A clean no-op `--fix --output` preserves the complete source bytes, including
+  whitespace, blank lines, CRLF, and an absent final newline. Unchanged records
+  within repaired files also retain their original serialized content.
+- Empty-turn repairs never remove turns from tool exchanges; broken records
+  are dropped whole. Runtime dependencies and JSON schema version remain unchanged.
+
 ## 1.5.1 — 2026-11-07
 
 Fixes from an independent leak audit of 1.5.0. Every fix has a regression

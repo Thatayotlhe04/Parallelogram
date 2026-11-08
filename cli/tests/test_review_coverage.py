@@ -33,7 +33,7 @@ def test_detection_is_per_line_and_new_formats_keep_metadata(tmp_path, rotation)
     assert [p.source_format for p in get_parser('auto')(str(path))] == [fmt for fmt, _ in records]
     result = CliRunner().invoke(app, ['check', str(path), '--fix', '--output', str(out)])
     assert result.exit_code == 0, result.output
-    assert [json.loads(line) for line in out.read_text().splitlines()] == [rec for _, rec in records]
+    assert [json.loads(line) for line in out.read_text().splitlines() if line.strip()] == [rec for _, rec in records]
     assert CliRunner().invoke(app, ['check', str(out)]).exit_code == 0
 
 

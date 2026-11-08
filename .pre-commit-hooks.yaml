@@ -1,0 +1,7 @@
+- id: parallelogram
+  name: Parallelogram dataset validation
+  description: Validate fine-tuning JSONL before committing.
+  entry: parallelogram check
+  language: python
+  files: '\.jsonl$'
+  pass_filenames: true

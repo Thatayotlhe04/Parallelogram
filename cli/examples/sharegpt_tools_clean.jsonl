@@ -1,0 +1,1 @@
+{"system": "Use the tools.", "tools": "[{\"name\": \"lookup\", \"parameters\": {\"type\": \"object\"}}]", "conversations": [{"from": "human", "value": "Find the weather."}, {"from": "function_call", "value": "{\"name\": \"lookup\", \"arguments\": {\"place\": \"A\"}}"}, {"from": "observation", "value": "It is cold."}, {"from": "gpt", "value": "It is cold there."}]}

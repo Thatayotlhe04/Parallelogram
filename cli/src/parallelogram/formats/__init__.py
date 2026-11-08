@@ -15,7 +15,7 @@ from typing import Any, Callable, Iterator, Optional
 # The internal canonical role set. Every parser maps into this; the schema rule
 # validates against it. Kept here (not in a single format module) because it is
 # shared across formats.
-VALID_ROLES = {"system", "user", "assistant", "tool"}
+VALID_ROLES = {"system", "user", "assistant", "tool", "function"}
 
 
 @dataclass

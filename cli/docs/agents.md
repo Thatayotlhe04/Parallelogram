@@ -1,6 +1,6 @@
 # Parallelogram for agents
 
-Parallelogram 1.5 validates and mechanically repairs local fine-tuning JSONL.
+Parallelogram 1.6 validates and mechanically repairs local fine-tuning JSONL.
 Use the Python API, JSON CLI, or stdio MCP tools before training and after editing
 data. All three share the same validation and fix paths. Runtime dependencies
 remain `typer` and `rich`; MCP needs no extra package, service, or network.
@@ -127,7 +127,21 @@ Initialization echoes supported protocol versions `2025-11-25`, `2025-06-18`,
 `2025-03-26`, or `2024-11-05`, and otherwise selects `2025-11-25`. The server
 advertises tools only; it supports ping and sends no notification responses.
 
+## Tool-calling data
+
+OpenAI tool calls (including parallel replies) and LLaMA-Factory ShareGPT
+`function_call`/`observation` datasets are supported. The `tool-calls` rule checks
+arguments, ids, and definitions; `roles` validates complete call/reply exchanges.
+Clean files round-trip byte-for-byte through `--fix --output`. Diagnostics never
+print tool argument values. See the [integration guide](integrations.md) for
+format details, eight client setups, pre-commit, and training preflights.
+
 ## Client setup
+
+Use `parallelogram integrate <client> --agents-md` from the project root.
+Preview with `--dry-run`; discover destinations with `--list`. Setup preserves
+other servers and keys. Codex, Windsurf, Cline and Zed print manual MCP setup;
+`--agents-md` writes only their project instruction block.
 
 Install Parallelogram in the environment your client launches. If the executable
 is not on that client's PATH, replace `parallelogram` with its absolute path.

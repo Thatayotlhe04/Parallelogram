@@ -28,6 +28,7 @@ def record_hash(record: Any) -> str:
         return ""
     norm = lambda msgs: [  # noqa: E731
         {
+            **{k: m[k] for k in ("tool_calls", "function_call", "tool_call_id", "name") if k in m},
             "role": m.get("role"),
             "content": (m.get("content") or "").strip()
             if isinstance(m.get("content"), str) else m.get("content"),
@@ -42,6 +43,8 @@ def record_hash(record: Any) -> str:
         if isinstance(record.get("rejected"), list):
             normalized = {"messages": normalized, "rejected": norm(record["rejected"]),
                           "prompt_length": prompt_end(record)}
+        if "tools" in record or "functions" in record:
+            normalized = {"conversation": normalized, **{k: record[k] for k in ("tools", "functions") if k in record}}
         canon = json.dumps(normalized, sort_keys=True, ensure_ascii=False)
     except (TypeError, ValueError):
         return ""

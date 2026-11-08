@@ -12,6 +12,21 @@ that cause your model to memorize instead of generalize.
 on anything that would silently corrupt training. **If it exits 0 with all rules enabled,
 your run won't fail because of data.**
 
+## Integrations and tool data (1.6)
+
+Validate OpenAI tool calls (including parallel replies) and LLaMA-Factory
+ShareGPT `function_call`/`observation` datasets. Tool arguments and definitions
+are checked, counted in context estimates, and preserved on fix output.
+
+```bash
+parallelogram integrate cursor --agents-md
+parallelogram integrate --list
+parallelogram check train.jsonl more-training.jsonl --json
+```
+
+[Integration guide](https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/docs/integrations.md): eight agent clients, project-scoped setup,
+pre-commit hook `parallelogram`, GitHub Action, and training-framework preflights.
+
 ## Agents and Python (1.5)
 
 ```bash
@@ -327,6 +342,7 @@ default install.
 | `schema` | error | malformed records, missing fields, wrong types |
 | `roles` | error | bad role sequences (system out of place, no alternation, doesn't end on assistant) |
 | `empty-content` | error | empty or whitespace-only message content |
+| `tool-calls` | error | malformed tool definitions, invalid arguments, undeclared functions, or duplicate call ids |
 | `context-window` | error / warning | records exceeding `max_seq_len` (TRL truncates these silently) — error with an exact tokenizer, warning when the count is approximate |
 | `duplicates` | error | exact-content duplicate records (memorization → poor generalization) |
 | `encoding` | warning | BOM markers, mojibake patterns |
@@ -337,7 +353,7 @@ default install.
 
 ## Status
 
-v1.5.1 — stable CLI and Python API, agent-sized JSON output, rule discovery and a local MCP server. No telemetry, no network, no upload boundary.
+v1.6.0 — stable CLI and Python API, agent-sized JSON output, rule discovery and a local MCP server. No telemetry, no network, no upload boundary.
 
 ## Roadmap
 
