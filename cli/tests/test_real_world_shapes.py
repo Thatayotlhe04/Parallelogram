@@ -13,6 +13,7 @@ from typer.testing import CliRunner
 
 from parallelogram import check
 from parallelogram.cli import app
+from parallelogram.formats import auto
 
 KEY = "sk-" + "AbCdEf0123456789" * 3
 
@@ -27,6 +28,10 @@ def fix(path, tmp_path):
     out = tmp_path / "out.jsonl"
     result = CliRunner().invoke(app, ["check", str(path), "--fix", "--output", str(out)])
     return result, out
+
+
+def detected(path):
+    return [r.source_format for r in auto.iter_jsonl(str(path))]
 
 
 def rules_hit(path):
@@ -109,3 +114,72 @@ def test_a_prompt_that_is_not_repeated_is_still_prepended(tmp_path):
     assert rules_hit(path) == set()
     _, out = fix(path, tmp_path)
     assert json.loads(out.read_text()) == record
+
+
+def multi_turn(prompt_turn):
+    """A mlabonne/orpo-dpo-mix-40k row: ``prompt`` copies one user turn of a multi-turn pair."""
+    turns = [{"role": "user", "content": "Describe Zephyria."},
+             {"role": "assistant", "content": "A city in the clouds."},
+             {"role": "user", "content": "Who lives there?"}]
+    users = [t["content"] for t in turns if t["role"] == "user"]
+    prompt = users[0] if prompt_turn == "first" else users[-1]
+    return {"source": "Airoboros",
+            "chosen": turns + [{"role": "assistant", "content": "Winged humanoids."}],
+            "rejected": turns + [{"role": "assistant", "content": "Nobody."}],
+            "prompt": prompt, "question": prompt}
+
+
+@pytest.mark.parametrize("prompt_turn", ["first", "last"])
+def test_multi_turn_pairs_whose_prompt_repeats_a_user_turn_are_clean(tmp_path, prompt_turn):
+    path = write(tmp_path, multi_turn(prompt_turn))
+    assert rules_hit(path) == set()
+    result, out = fix(path, tmp_path)
+    assert result.exit_code == 0, result.output
+    assert out.read_bytes() == path.read_bytes()
+
+
+def test_a_string_prompt_beside_full_conversations_is_metadata(tmp_path):
+    # TRL's maybe_extract_prompt ignores it and splits the shared prefix; so do we.
+    record = multi_turn("first")
+    record["prompt"] = "<|user|>\nDescribe Zephyria.</s>\n<|assistant|>\n"
+    path = write(tmp_path, record)
+    assert rules_hit(path) == set()
+    _, out = fix(path, tmp_path)
+    assert out.read_bytes() == path.read_bytes()
+
+
+def capybara_dpo(**overrides):
+    """An argilla/distilabel-capybara-dpo-7k-binarized row: ``conversation`` is metadata."""
+    record = multi_turn("first")
+    record = {"source": "Airoboros",
+              "conversation": [{"input": "Describe Zephyria.", "output": "A city in the clouds."}],
+              "prompt": "<|user|>\nDescribe Zephyria.</s>",
+              "chosen": record["chosen"], "rejected": record["rejected"],
+              "rating_chosen": 5, "rating_rejected": 4}
+    return {**record, **overrides}
+
+
+def test_pairs_with_a_metadata_conversation_column_read_as_preference(tmp_path):
+    path = write(tmp_path, capybara_dpo())
+    assert detected(path) == ["preference"]
+    assert rules_hit(path) == set()
+    result, out = fix(path, tmp_path)
+    assert result.exit_code == 0, result.output
+    assert out.read_bytes() == path.read_bytes()
+    leaked = write(tmp_path, capybara_dpo(rejected=capybara_dpo()["rejected"][:3] + [
+        {"role": "assistant", "content": f"Use {KEY}"}]), name="leak.jsonl")
+    assert "secrets" in rules_hit(leaked)
+
+
+def test_conversation_turns_beside_chosen_still_read_as_sharegpt(tmp_path):
+    record = {"conversations": [{"from": "human", "value": "2+2?"}],
+              "chosen": [{"role": "assistant", "content": "4"}],
+              "rejected": [{"role": "assistant", "content": "5"}]}
+    assert detected(write(tmp_path, record)) == ["sharegpt"]
+
+
+def test_issues_in_a_source_messages_column_name_it_messages(tmp_path):
+    path = write(tmp_path, ultrafeedback(good=f"Use {KEY}"))
+    messages = [i["message"] for i in check(path).to_dict()["issues"] if i["rule"] == "secrets"]
+    assert any("Field 'messages[1].content'" in m for m in messages)
+    assert not any("parallelogram:" in m for m in messages)

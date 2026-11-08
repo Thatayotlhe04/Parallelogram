@@ -20,10 +20,15 @@ from __future__ import annotations
 from copy import copy
 from typing import Any, Callable, Iterator
 
-from .conversation import message_slots, where
+from .conversation import SOURCE_MESSAGES, message_slots, where
 
 # Message keys that are structural, never free text a model learns from.
 _STRUCTURAL = {"role"}
+
+
+def _shown(key: Any) -> str:
+    """A record-level key as the user wrote it on disk."""
+    return "messages" if key == SOURCE_MESSAGES else str(key)
 
 
 def iter_strings(value: Any, path: str = "") -> Iterator[tuple[str, str]]:
@@ -71,8 +76,8 @@ def scan_targets(record: Any) -> Iterator[tuple[str, str]]:
     for key, value in record.items():
         if key in ("messages", "rejected"):
             continue
-        yield "Field name", str(key)
-        for path, text in iter_strings(value, str(key)):
+        yield "Field name", _shown(key)
+        for path, text in iter_strings(value, _shown(key)):
             yield f"Field '{path}'", text
 
 
@@ -202,7 +207,7 @@ def field_strings(record: Any) -> Iterator[tuple[str, str, str]]:
     for key, value in record.items():
         if key in ("messages", "rejected"):
             continue
-        for path, near, text in _keyed(value, str(key), str(key)):
+        for path, near, text in _keyed(value, _shown(key), _shown(key)):
             yield f"Field '{path}'", near, text
 
 

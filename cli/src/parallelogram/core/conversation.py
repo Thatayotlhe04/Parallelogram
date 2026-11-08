@@ -11,6 +11,11 @@ from __future__ import annotations
 from copy import copy
 from typing import Any
 
+# Where a source ``messages`` column waits while a preference record is in the
+# internal shape, which uses ``messages`` for prompt + chosen. Restored on
+# output, and shown under its own name in issue messages.
+SOURCE_MESSAGES = "parallelogram:source-messages"
+
 
 class ConversationRecord(dict):
     """Normalized chat with an explicit prompt boundary outside user fields.
