@@ -67,7 +67,7 @@ def main(
 
 @app.command()
 def check(
-    path: Path = typer.Argument(..., exists=True, readable=True, help="Path to JSONL dataset."),
+    paths: list[Path] = typer.Argument(..., help="Paths to JSONL datasets."),
     dataset_format: str = typer.Option(
         "auto",
         "--format", "-f",
@@ -131,56 +131,79 @@ def check(
         typer.echo("--limit applies to check issues, not --fix outcomes.", err=True)
         raise typer.Exit(2)
 
-    try:
-        options = {"format": dataset_format, "tokenizer": tokenizer,
-                   "max_seq_len": max_seq_len, "eval_path": eval_path, "disable": disable,
-                   "output": output}
-        result = (api.fix(path, dry_run=dry_run, **options) if fix
-                  else api.check(path, limit=limit, **options))
-    except ValueError as exc:
-        typer.echo(str(exc), err=True)
+    if len(paths) > 1 and output is not None:
+        typer.echo("--output requires exactly one input file; check files separately when writing output.", err=True)
         raise typer.Exit(2)
-    except ParallelogramError as exc:
-        typer.echo(str(exc), err=True)
-        raise typer.Exit(3)
+    if len(paths) == 1 and not paths[0].is_file():
+        typer.echo(f"Input is not a readable dataset file: {paths[0]}", err=True)
+        raise typer.Exit(2)
 
-    if result.disabled_rules:
-        typer.echo("  ! WARNING: --disable in effect for: "
-                   + ", ".join(result.disabled_rules), err=True)
-        typer.echo("    The 'if it exits 0, your run won't fail' guarantee "
-                   "applies only with all rules enabled.", err=True)
+    payloads = []
+    worst = 0
+    for path in paths:
+        if not json_output and len(paths) > 1:
+            typer.echo(f"Checking {path}")
+        try:
+            options = {"format": dataset_format, "tokenizer": tokenizer,
+                       "max_seq_len": max_seq_len, "eval_path": eval_path, "disable": disable,
+                       "output": output}
+            result = (api.fix(path, dry_run=dry_run, **options) if fix
+                      else api.check(path, limit=limit, **options))
+        except ValueError as exc:
+            typer.echo(str(exc), err=True)
+            if len(paths) == 1:
+                raise typer.Exit(2)
+            worst = max(worst, 2)
+            payloads.append({"schema_version": 1, "file": str(path), "exit_code": 2, "error": str(exc)})
+            continue
+        except ParallelogramError as exc:
+            typer.echo(str(exc), err=True)
+            if len(paths) == 1:
+                raise typer.Exit(3)
+            worst = max(worst, 3)
+            payloads.append({"schema_version": 1, "file": str(path), "exit_code": 3, "error": str(exc)})
+            continue
 
-    console = Console(no_color=no_color)
-    if json_output:
-        json.dump(result.to_dict(), sys.stdout, indent=2)
+        if result.disabled_rules:
+            typer.echo("  ! WARNING: --disable in effect for: "
+                       + ", ".join(result.disabled_rules), err=True)
+            typer.echo("    The 'if it exits 0, your run won't fail' guarantee "
+                       "applies only with all rules enabled.", err=True)
+
+        console = Console(no_color=no_color)
+        if json_output:
+            payloads.append(result.to_dict())
+        elif fix:
+            _render_fix_report(console, result.report, str(path), dry_run,
+                               has_output=output is not None,
+                               disabled_rules=result.disabled_rules)
+        else:
+            render_report(result.report, console, str(path),
+                          disabled_rules=result.disabled_rules)
+
+        if fix:
+            for err in result.report.fixer_errors:
+                typer.echo(f"  ! FIXER ERROR: {err}", err=True)
+            if not json_output and not dry_run:
+                if output:
+                    console.print(f"  [green]→[/green] Wrote {len(result.report.clean_records)} records to {escape(str(output))}")
+                else:
+                    console.print("  [yellow]![/yellow] --fix was requested without --output. "
+                                  "Re-run with --output PATH to write the repaired dataset.")
+        elif output and not json_output:
+            clean_line_nos = {ln for ln, _ in result.clean_records}
+            warned_lines = {i.line_no for i in result.report.issues
+                            if i.severity == Severity.WARNING and i.line_no in clean_line_nos}
+            console.print(f"  [green]→[/green] Wrote {len(result.clean_records)} error-free records to {escape(str(output))}")
+            if warned_lines:
+                console.print(f"  [yellow]![/yellow] {len(warned_lines)} of them still carry "
+                              "warnings (e.g. mojibake/BOM) and were copied verbatim — "
+                              "re-run with [bold]--fix --output[/bold] to repair them.")
+        worst = max(worst, result.exit_code)
+    if json_output and payloads:
+        json.dump(payloads if len(paths) > 1 else payloads[0], sys.stdout, indent=2)
         sys.stdout.write("\n")
-    elif fix:
-        _render_fix_report(console, result.report, str(path), dry_run,
-                           has_output=output is not None,
-                           disabled_rules=result.disabled_rules)
-    else:
-        render_report(result.report, console, str(path),
-                      disabled_rules=result.disabled_rules)
-
-    if fix:
-        for err in result.report.fixer_errors:
-            typer.echo(f"  ! FIXER ERROR: {err}", err=True)
-        if not json_output and not dry_run:
-            if output:
-                console.print(f"  [green]→[/green] Wrote {len(result.report.clean_records)} records to {escape(str(output))}")
-            else:
-                console.print("  [yellow]![/yellow] --fix was requested without --output. "
-                              "Re-run with --output PATH to write the repaired dataset.")
-    elif output and not json_output:
-        clean_line_nos = {ln for ln, _ in result.clean_records}
-        warned_lines = {i.line_no for i in result.report.issues
-                        if i.severity == Severity.WARNING and i.line_no in clean_line_nos}
-        console.print(f"  [green]→[/green] Wrote {len(result.clean_records)} error-free records to {escape(str(output))}")
-        if warned_lines:
-            console.print(f"  [yellow]![/yellow] {len(warned_lines)} of them still carry "
-                          "warnings (e.g. mojibake/BOM) and were copied verbatim — "
-                          "re-run with [bold]--fix --output[/bold] to repair them.")
-    raise typer.Exit(result.exit_code)
+    raise typer.Exit(worst)
 
 
 @app.command("integrate")
