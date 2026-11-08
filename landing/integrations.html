@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <title>Integrations — Parallelogram</title>
-  <meta name="description" content="Use Parallelogram from Claude Code, Codex, Cursor and other MCP clients, in GitHub Actions and pre-commit, and before TRL, Axolotl, Unsloth, LLaMA-Factory or OpenAI fine-tuning.">
+  <meta name="description" content="Use Parallelogram from Claude Code, Codex, Cursor and other MCP clients, in GitHub Actions and pre-commit, and before TRL, Axolotl, Unsloth or LLaMA-Factory.">
   <link rel="canonical" href="https://parallelogram.dev/integrations.html">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://parallelogram.dev/integrations.html">
@@ -226,8 +226,8 @@
             <span class="int-note" aria-hidden="true"></span>
           </li>
           <li class="int-card">
-            <div class="int-head"><span class="int-icon int-mono" aria-hidden="true">O</span><h3>OpenAI fine-tuning</h3></div>
-            <p>Chat records with <code>tools</code> and <code>tool_calls</code>, as the API expects them.</p>
+            <div class="int-head"><span class="int-icon int-mono" aria-hidden="true">O</span><h3>OpenAI chat format</h3></div>
+            <p><code>messages</code> with <code>tools</code> and <code>tool_calls</code>: the shape most trainers accept, OpenAI's fine-tuning API included.</p>
             <div class="int-code"><div class="int-code-bar"><span>shell</span><button class="copy copy-code" type="button" data-copy="parallelogram check train.jsonl \
   --format openai-chat" aria-label="Copy: parallelogram check train.jsonl \"><svg class="copy-icon" viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M5.5 5.5h7v7h-7zM3.5 10.5h-1v-8h8v1"/></svg><span class="copy-label" aria-hidden="true">Copy</span></button></div><pre><code>parallelogram check train.jsonl \
   --format openai-chat</code></pre></div>

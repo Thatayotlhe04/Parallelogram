@@ -5,8 +5,9 @@ canonical: https://parallelogram.dev/
 markdown_url: https://parallelogram.dev/index.md
 llms_url: https://parallelogram.dev/llms.txt
 agent_guide: https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/docs/agents.md
-version: 1.5.1
-updated: 2026-11-07
+version: 1.6.0
+updated: 2026-11-08
+integrations: https://parallelogram.dev/integrations.html
 ---
 
 # Parallelogram
@@ -22,11 +23,13 @@ pip install parallelogram
 ## Use it as an MCP server
 
 ```bash
-claude mcp add parallelogram -- parallelogram mcp    # Claude Code
-codex mcp add parallelogram -- parallelogram mcp     # Codex
+parallelogram integrate claude-code    # writes .mcp.json; also cursor, vscode, gemini
+parallelogram integrate codex          # prints setup; also windsurf, cline, zed
+parallelogram integrate --list
+codex mcp add parallelogram -- parallelogram mcp
 ```
 
-Cursor, Windsurf, Cline and other MCP clients: a stdio server with command `parallelogram` and args `["mcp"]`.
+`integrate` writes project-scoped config only, merges into existing JSON, never touches user-level config, and refuses invalid JSON (exit 2). Add `--agents-md` to put the run instructions in AGENTS.md (CLAUDE.md for Claude Code), `--dry-run` to preview. Any other MCP client: a stdio server with command `parallelogram` and args `["mcp"]`.
 
 - `check_dataset` {path, format?, eval_path?, disable?, limit?}: validate without changing files. Counts are exact; at most `limit` issues are listed (default 50), errors first. Returns `exit_code`.
 - `fix_dataset` {path, output, format?, eval_path?, disable?, dry_run?, overwrite?, limit?}: write a repaired copy to `output`, which must be inside the server's root (its working directory, or `--root`; relative paths resolve against it) and must not already exist unless `overwrite` is true. Never writes over the input or eval file. Lists only dropped, unparseable and fixed records. Returns `exit_code`.
@@ -40,7 +43,10 @@ parallelogram check train.jsonl --eval eval.jsonl --json --limit 50
 parallelogram check train.jsonl --fix --output clean.jsonl
 parallelogram rules --json
 parallelogram report train.jsonl --baseline last.json
+parallelogram check a.jsonl b.jsonl --json       # several files: a JSON array, highest exit code
 ```
+
+pre-commit: `repo: https://github.com/Thatayotlhe04/Parallelogram`, `rev: cli-v1.6.0`, hook id `parallelogram`. GitHub Actions: `uses: Thatayotlhe04/Parallelogram@v1` with `path:`.
 
 `check` exits 0 with no errors or warnings, 1 with warnings only, 2 with errors, 3 on an operational failure such as an invalid `--eval` file. With `--fix`: 0 every record emitted, 1 some dropped or unparseable, 2 nothing emitted. `report --baseline` exits 3 when quality regressed.
 
@@ -58,12 +64,15 @@ fix("train.jsonl", output="clean.jsonl")
 
 Auto-detected per line: OpenAI chat (`messages`), ShareGPT (`conversations`), prompt/completion, Alpaca (`instruction`, `input`, `output`, plus `system` and `history`) and preference/DPO pairs (`prompt`, `chosen`, `rejected`). `--fix --output` writes every record back in its own format.
 
+Tool calling, in both shapes trainers use: OpenAI's (`tools`, `tool_calls` with ids and JSON-string arguments, `tool` replies with `tool_call_id`, legacy `functions`/`function_call`) and Hugging Face's for TRL, Axolotl and Unsloth (id-less calls, object arguments, replies answered in order, `tools` as a list or JSON string). ShareGPT `function_call`/`observation` turns as LLaMA-Factory writes them. A conversation may end on the assistant's call.
+
 ## Checks
 
 | Rule | Severity | --fix |
 | --- | --- | --- |
 | schema | error | Malformed records are left out |
-| roles | error | Records with an invalid role order are dropped |
+| roles | error | Records with an invalid role order, or tool calls and replies that don't pair up, are dropped |
+| tool-calls | error | Records with malformed tool definitions or calls, undeclared functions, or non-object arguments are dropped; argument values are never printed |
 | empty-content | error | Empty turns are removed |
 | context-window | error | The longest user turns are truncated to fit |
 | duplicates | error | The first copy is kept |

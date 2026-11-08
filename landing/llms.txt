@@ -4,7 +4,7 @@
 
 Install with Python 3.10+: pip install parallelogram
 Runtime dependencies are typer and rich. No telemetry or dataset uploads.
-Accepted formats: auto, openai-chat, sharegpt, prompt-completion, alpaca, preference.
+Accepted formats: auto, openai-chat, sharegpt, prompt-completion, alpaca, preference. Tool calls in OpenAI and Hugging Face shapes.
 
 Commands:
 - parallelogram check train.jsonl --json --limit 50
@@ -14,6 +14,7 @@ Commands:
 - parallelogram rules --json
 - parallelogram report train.jsonl --json
 - parallelogram mcp
+- parallelogram integrate claude-code --agents-md   (also cursor, vscode, gemini; codex, windsurf, cline, zed print setup)
 
 Check exits: 0 no errors/warnings, 1 warnings, 2 errors/invalid arguments, 3 operational failure.
 Fix exits: 0 all records emitted, 1 partial fix, 2 none emitted, 3 operational failure.
@@ -23,6 +24,8 @@ Never overwrite the input or eval set. Fix into a separate output file and reche
 
 ## Documentation
 
+- [Integrations](https://parallelogram.dev/integrations.html): Coding agents, CI and pre-commit, and training frameworks, with the command for each.
+- [Integrations guide](https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/docs/integrations.md): Client config files, pre-commit, the GitHub Action and trainer preflights.
 - [Machine-readable page](https://parallelogram.dev/index.md): The landing page as markdown, with MCP setup, commands, exit codes and every check.
 - [Agent guide](https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/docs/agents.md): Python API, MCP tools, client setup and instructions to paste into AGENTS.md or CLAUDE.md.
 - [JSON contract](https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/docs/json-output.md): Stable fields, counts and exit codes.

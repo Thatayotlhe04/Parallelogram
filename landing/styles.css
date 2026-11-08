@@ -221,11 +221,14 @@ h3 { font: 500 16px/1.4 var(--sans); }
 /* ── Split sections (checks, changelog, FAQ) ───────── */
 .split { display: grid; grid-template-columns: 1fr 2fr; }
 .split-head { padding: 64px 48px; border-right: 1px solid var(--line); }
-.cells { display: grid; grid-template-columns: 1fr 1fr; }
-.cell { padding: 32px 32px 30px; border-bottom: 1px solid var(--line); min-height: 172px; display: flex; flex-direction: column; transition: background .15s; }
-.cell:nth-child(odd) { border-right: 1px solid var(--line); }
-.cell:nth-last-child(-n+2) { border-bottom: 0; }
-.cell:hover { background: rgba(255, 255, 255, .02); }
+/* Hairlines come from the 1px gap over a line-colored grid, so any number of
+   cells (and a full-width one) keeps clean borders. */
+.cells { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); }
+.cell { padding: 32px 32px 30px; min-height: 172px; display: flex; flex-direction: column; background: var(--bg); transition: background .15s; }
+.cell-wide { grid-column: 1 / -1; min-height: 0; }
+.cell-wide p { max-width: 720px; }
+.cell p code { font-size: 12.5px; color: #d4d4d4; }
+.cell:hover { background: #0d0d0d; }
 .cell h3 .new { margin-left: 8px; padding: 1px 6px; border: 1px solid var(--accent-line); border-radius: 2px; font: 400 11px/18px var(--mono); color: var(--accent); vertical-align: 2px; }
 .cell p { margin-top: 10px; color: var(--muted); font-size: 14px; line-height: 1.55; }
 .chips { margin-top: auto; padding-top: 20px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
@@ -400,8 +403,7 @@ h3 { font: 500 16px/1.4 var(--sans); }
   .diagram { display: none; }
   .steps { margin-top: 36px; }
   .cells { grid-template-columns: 1fr; }
-  .cell { border-right: 0 !important; border-bottom: 1px solid var(--line) !important; min-height: 0; padding: 24px; }
-  .cell:last-child { border-bottom: 0 !important; }
+  .cell { min-height: 0; padding: 24px; }
   .log li { grid-template-columns: 1fr auto; padding: 18px 24px; gap: 8px 12px; }
   .log p { grid-column: 1 / -1; }
   .legal { padding: 56px 20px 72px; }
