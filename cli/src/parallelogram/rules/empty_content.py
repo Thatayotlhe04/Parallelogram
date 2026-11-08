@@ -6,6 +6,7 @@ from typing import Any, Iterable, Optional
 from ..core.rules import Rule, registry
 from ..core.report import Issue, Severity
 from ..core.conversation import map_messages, message_slots, where
+from .tool_calls import calls_tools
 
 
 @registry.register
@@ -19,6 +20,8 @@ class EmptyContentRule(Rule):
     def check_record(self, record: Any, line_no: int) -> Iterable[Issue]:
         for label, i, msg in message_slots(record):
             if not isinstance(msg, dict):
+                continue
+            if calls_tools(msg):
                 continue
             content = msg.get("content")
             if not isinstance(content, str):
@@ -45,6 +48,11 @@ class EmptyContentRule(Rule):
         and drop anything ambiguous.
         """
         if not isinstance(record, dict) or not isinstance(record.get("messages"), list):
+            return None
+
+        # Removing any turn from a tool exchange can change call/reply meaning.
+        if any(isinstance(m, dict) and (m.get("role") in ("tool", "function") or calls_tools(m))
+               for _, _, m in message_slots(record)):
             return None
 
         def keep(msg: dict):

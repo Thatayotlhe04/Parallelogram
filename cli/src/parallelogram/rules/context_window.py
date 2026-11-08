@@ -15,6 +15,7 @@ that disables this rule pays no startup cost.
 """
 from __future__ import annotations
 
+import json
 from copy import copy
 from typing import Any, Iterable, Optional
 
@@ -70,7 +71,10 @@ class ContextWindowRule(Rule):
             content = msg.get("content", "")
             role = msg.get("role", "")
             if not isinstance(content, str):
-                continue
+                content = ""
+            extra = {k: msg[k] for k in ("tool_calls", "function_call", "tool_call_id", "name") if k in msg}
+            if extra:
+                content += json.dumps(extra, ensure_ascii=False)
             total += self._count_tokens(role, content)
         return total
 
@@ -79,7 +83,9 @@ class ContextWindowRule(Rule):
         side, or for a preference pair whichever side is longer. Both must
         fit, because the trainer sees both."""
         totals = [self._record_total(msgs) for _, msgs in conversations(record)]
-        return max(totals) if totals else None
+        definitions = {k: record[k] for k in ("tools", "functions") if k in record} if isinstance(record, dict) else {}
+        overhead = self._counter.encode_len(json.dumps(definitions, ensure_ascii=False)) if definitions else 0
+        return max(totals) + overhead if totals else None
 
     def record_tokens(self, record: Any) -> Optional[int]:
         """Public per-record token total (None when the record has no
