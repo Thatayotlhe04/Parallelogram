@@ -78,7 +78,9 @@ def normalize(record: Any) -> Any:
             continue
         frm = turn.get("from")
         role = _FROM_TO_ROLE.get(frm, frm) if isinstance(frm, str) else frm
-        messages.append({"role": role, "content": turn.get("value")})
+        # Per-turn fields (weight, name, ...) ride along like record-level ones.
+        extra = {k: v for k, v in turn.items() if k not in ("from", "value", "role", "content")}
+        messages.append({"role": role, "content": turn.get("value"), **extra})
 
     # Keep record-level fields (ids, sources, metadata) so rules can scan them
     # for leaked keys and --fix writes them back instead of dropping them.
@@ -127,6 +129,7 @@ def to_sharegpt(record: Any) -> Any:
         {
             "from": _ROLE_TO_FROM.get(msg.get("role"), msg.get("role")),
             "value": msg.get("content"),
+            **{k: v for k, v in msg.items() if k not in ("role", "content")},
         }
         for msg in record["messages"]
         if isinstance(msg, dict)

@@ -55,6 +55,8 @@ def scan_targets(record: Any) -> Iterator[tuple[str, str]]:
         if not isinstance(msg, dict):
             continue
         for key, value in msg.items():
+            if isinstance(key, str) and key not in _STRUCTURAL and key != "content":
+                yield f"{where(label)}Message {i} field name", key
             if key in _STRUCTURAL:
                 continue
             if key == "content" and isinstance(value, str):
@@ -86,11 +88,33 @@ def text_targets(record: Any) -> Iterator[tuple[str, str]]:
                     yield f"{where(label)}Message {i} part {j}", part["text"]
 
 
+def _unique(key: Any, taken: dict) -> Any:
+    """Two redacted keys in one object both become [REDACTED_SECRET]; number
+    the second so neither entry is silently lost."""
+    if key not in taken:
+        return key
+    n = 2
+    while f"{key}_{n}" in taken:
+        n += 1
+    return f"{key}_{n}"
+
+
+def _map_dict(value: dict, fn: Callable[[str], str], skip: set[str] = frozenset()) -> dict:
+    out: dict = {}
+    for k, v in value.items():
+        if k in skip:
+            out[k] = v
+            continue
+        new_key = fn(k) if isinstance(k, str) and k != "content" else k
+        out[_unique(new_key, out)] = _map_strings(v, fn)
+    return out
+
+
 def _map_strings(value: Any, fn: Callable[[str], str]) -> Any:
     if isinstance(value, str):
         return fn(value)
     if isinstance(value, dict):
-        return {(fn(k) if isinstance(k, str) else k): _map_strings(v, fn) for k, v in value.items()}
+        return _map_dict(value, fn)
     if isinstance(value, list):
         return [_map_strings(v, fn) for v in value]
     return value
@@ -109,13 +133,11 @@ def map_record_strings(record: Any, fn: Callable[[str], str]) -> Any:
         out.clear()
         for key, value in record.items():
             if key in ("messages", "rejected") and isinstance(value, list):
-                out[key] = [
-                    {k: (v if k in _STRUCTURAL else _map_strings(v, fn)) for k, v in m.items()}
-                    if isinstance(m, dict) else m
-                    for m in value
-                ]
+                out[key] = [_map_dict(m, fn, skip=_STRUCTURAL) if isinstance(m, dict) else m
+                            for m in value]
             else:
-                out[fn(key) if isinstance(key, str) else key] = _map_strings(value, fn)
+                new_key = fn(key) if isinstance(key, str) else key
+                out[_unique(new_key, out)] = _map_strings(value, fn)
         return out
     except RecursionError:
         return None

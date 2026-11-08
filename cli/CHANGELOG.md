@@ -9,8 +9,8 @@ Fixes from an independent leak audit of 1.5.0. Every fix has a regression
 test. Upgrade if you run Parallelogram in CI or let an agent call it.
 
 ### Security
-- `secrets` scans every string in a record, dict keys included, not only
-  message text: ids, metadata and other extra fields, message names and
+- `secrets` scans every string in a record, dict and message keys included,
+  not only message text: ids, metadata and other extra fields, message names and
   tool-call arguments, in every format. Before, a key in a record's `id` passed
   `check` and `check --output` copied it out unchanged. `pii` checks the text a
   model trains on, now including the text parts of multimodal content; ids and
@@ -44,8 +44,10 @@ test. Upgrade if you run Parallelogram in CI or let an agent call it.
 
 ### Changed
 - `--fix --output` keeps extra fields on ShareGPT and prompt/completion
-  records (such as `id`) instead of dropping them, as it already did for chat,
-  Alpaca and preference records.
+  records (such as `id`, and per-turn fields like `weight`) instead of
+  dropping them, as it already did for chat, Alpaca and preference records.
+  When two redacted keys in one object would collide, the second becomes
+  `[REDACTED_SECRET]_2` rather than overwriting the first.
 - The publish workflow runs tests and the build without PyPI credentials;
   only a separate publish job can mint a token, and its actions are pinned to
   commit SHAs. The GitHub Action pins `actions/setup-python` to a commit SHA,

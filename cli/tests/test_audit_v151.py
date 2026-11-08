@@ -309,3 +309,28 @@ def test_mcp_refuses_kernel_pseudo_files(tmp_path):
     responses = _session(tmp_path, {"jsonrpc": "2.0", "id": 1, "method": "tools/call",
                                     "params": {"name": "check_dataset", "arguments": {"path": "/proc/self/status"}}})
     assert responses[0]["result"]["isError"]
+
+
+def test_third_pass_gaps(tmp_path):
+    """Keys of message objects, ShareGPT per-turn fields, and two redacted
+    keys in one object (third audit pass)."""
+    GH2 = "ghp_" + "Z9y8X7w6V5u4T3s2R1q0P9o8N7m6L5k4J3i2"
+    records = [
+        {"messages": [{"role": "user", "content": "one", GH: "v"}, {"role": "assistant", "content": "ok"}]},
+        {"conversations": [{"from": "human", "value": "two", "weight": GH}, {"from": "gpt", "value": "ok", "weight": 1}]},
+        chat("three", "ok", metadata={GH: 1, GH2: 2}),
+    ]
+    src = write(tmp_path / "in.jsonl", *records)
+    report = check(src).to_dict()
+    assert {i["line"] for i in report["issues"] if i["rule"] == "secrets"} == {1, 2, 3}
+    filtered = tmp_path / "filtered.jsonl"
+    check(src, output=filtered)  # check-only output keeps only error-free records
+    assert GH not in filtered.read_text()
+    out = tmp_path / "out.jsonl"
+    fix(src, output=out)
+    text = out.read_text()
+    assert GH not in text and GH2 not in text
+    first, second, third = (json.loads(l) for l in text.splitlines())
+    assert "[REDACTED_SECRET]" in first["messages"][0]
+    assert second["conversations"][0]["weight"] == "[REDACTED_SECRET]" and second["conversations"][1]["weight"] == 1
+    assert third["metadata"] == {"[REDACTED_SECRET]": 1, "[REDACTED_SECRET]_2": 2}
