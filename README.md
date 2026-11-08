@@ -11,8 +11,7 @@ The linter for fine-tuning data. **If `parallelogram check` exits 0 with all rul
 675,442 rows from popular Hugging Face fine-tuning sets, pinned revisions.
 1,520 rows have errors a trainer would accept without complaint: 350 DPO
 pairs in ultrafeedback_binarized where chosen and rejected are the same text,
-173 of 1,893 Hermes function-calling rows ending on tool replies with no
-answer, duplicate conversations in Capybara and FineTome, empty responses in
+173 of 1,893 Hermes function-calling rows with broken tool exchanges, duplicate conversations in Capybara and FineTome, empty responses in
 Alpaca. [Full table and method](cli/docs/public-datasets.md).
 
 ## Integrations and tool data (1.6)
