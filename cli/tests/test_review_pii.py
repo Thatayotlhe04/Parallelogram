@@ -39,8 +39,8 @@ def test_numeric_non_contacts_are_not_redacted(text):
     ('Call (212) 867-5309', 'phone number'),
     ('Call +1 212-867-5309', 'phone number'),
     ('card 4539 1488 0343 6467', 'payment card number'),
-    ('email = "person@gmail.com"', 'email address'),
-    ('https://host.test/?contact=person@gmail.com', 'email address'),
+    ('email = "person@parallelogram.dev"', 'email address'),
+    ('https://host.test/?contact=person@parallelogram.dev', 'email address'),
 ])
 def test_actual_contact_text_still_gets_redacted(text, kind):
     assert [k for k, _ in find_pii(text)] == [kind]

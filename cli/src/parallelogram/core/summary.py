@@ -181,7 +181,7 @@ def build_summary(
         }
 
     # shape breakdown — computed on the normalized internal representation
-    from ..rules.secrets import redact
+    from .report import scrub
 
     roles: dict[str, int] = {}
     turns: list[int] = []
@@ -196,7 +196,8 @@ def build_summary(
         last_role = None
         for m in messages:
             role = m.get("role") if isinstance(m, dict) else None
-            key = redact(role) if isinstance(role, str) else "invalid"
+            # Role values are data: scrub them, and keep stray long strings short.
+            key = scrub(role)[:40] if isinstance(role, str) else "invalid"
             roles[key] = roles.get(key, 0) + 1
             last_role = key
         if last_role == "assistant":

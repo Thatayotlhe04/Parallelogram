@@ -30,10 +30,14 @@ tokenizer = ["tokenizers>=0.15", "tiktoken>=0.7"]
 dev = ["pytest>=8", "ruff>=0.5"]
 
 [project.scripts]
-parallelogram = "parallelogram.cli:app"
+parallelogram = "parallelogram.cli:run"
 
 [project.urls]
 Homepage = "https://parallelogram.dev"
+Source = "https://github.com/Thatayotlhe04/Parallelogram"
+Documentation = "https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/docs/agents.md"
+Changelog = "https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/CHANGELOG.md"
+Issues = "https://github.com/Thatayotlhe04/Parallelogram/issues"
 
 [build-system]
 requires = ["hatchling"]

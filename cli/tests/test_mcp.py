@@ -199,7 +199,7 @@ def test_fix_result_stays_agent_sized(tmp_path):
     rows = [json.dumps({"prompt": f"Q{i}", "completion": f"A{i}"}) for i in range(3000)]
     rows[10] = rows[0]                       # one duplicate -> dropped
     rows[20] = "not json"                    # one unparseable line
-    rows[30] = json.dumps({"prompt": "Mail me at someone@gmail.com", "completion": "OK"})  # fixed
+    rows[30] = json.dumps({"prompt": "Mail me at someone@parallelogram.dev", "completion": "OK"})  # fixed
     (tmp_path / "train.jsonl").write_text("\n".join(rows) + "\n")
     responses = session(tmp_path, [tool(1, "fix_dataset", {"path": "train.jsonl", "output": "clean.jsonl"}),
                                    tool(2, "fix_dataset", {"path": "train.jsonl", "output": "c2.jsonl", "limit": 1}),

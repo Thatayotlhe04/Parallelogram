@@ -12,9 +12,9 @@ KEY = 'sk-proj-Ab3dEf9hIjK2mNoPqR5sTuVwXyZ01234'
 
 
 @pytest.mark.parametrize('instruction,expected', [
-    ('Email person@gmail.com', 'Email [REDACTED_EMAIL]'),
+    ('Email person@parallelogram.dev', 'Email [REDACTED_EMAIL]'),
     ('Token ' + KEY, 'Token [REDACTED_SECRET]'),
-    ('\ufeffEmail person@gmail.com using ' + KEY, 'Email [REDACTED_EMAIL] using [REDACTED_SECRET]'),
+    ('\ufeffEmail person@parallelogram.dev using ' + KEY, 'Email [REDACTED_EMAIL] using [REDACTED_SECRET]'),
 ])
 def test_redacting_instruction_preserves_input(tmp_path, instruction, expected):
     original = {'instruction': instruction, 'input': 'Keep this separate', 'output': 'OK',

@@ -190,7 +190,7 @@ def test_secrets_fail_the_check_and_never_print_the_key(tmp_path):
 # ── PII ───────────────────────────────────────────────────────────────
 
 @pytest.mark.parametrize("text,kind", [
-    ("mail thato.k@gmail.com now", "email address"),
+    ("mail thato.k@parallelogram.dev now", "email address"),
     ("call +267 77 123 456", "phone number"),
     ("call 212-867-5309", "phone number"),
     ("card 4539 1488 0343 6467", "payment card number"),
@@ -208,7 +208,7 @@ def test_pii_false_positives_are_ignored(text):
 
 
 def test_pii_is_a_warning_and_fix_redacts(tmp_path):
-    path = write(tmp_path, [{"messages": [U("reach me at thato.k@gmail.com"), A("noted")]}])
+    path = write(tmp_path, [{"messages": [U("reach me at thato.k@parallelogram.dev"), A("noted")]}])
     code, payload = check(path)
     assert code == 1 and rules_hit(payload) == ["pii"]
     code, lines = fix_to(tmp_path, path)

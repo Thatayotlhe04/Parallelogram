@@ -2,11 +2,14 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
+from pathlib import Path
 from contextlib import redirect_stdout
 from typing import TextIO
 
 from . import __version__, api
+from .core.report import scrub
 from .formats import supported_formats
 
 PROTOCOL_VERSIONS = ("2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05")
@@ -33,10 +36,12 @@ TOOLS = [
     },
     {
         "name": "fix_dataset",
-        "description": "Mechanically repair a local fine-tuning JSONL dataset into the required output path, preserving each record's source format. Redacts detected secrets/PII, repairs encoding, truncates overlong user turns, and drops duplicates, eval overlap and unrepairable records. Returns the fix JSON plus exit_code: 0 every record was emitted, 1 some were dropped or unparseable, 2 nothing was emitted. summary and fixes_by_rule are exact; outcomes lists only records that were dropped, unparseable or fixed (in that order, then by line), at most limit of them (default 50), with outcomes_truncated. Review dropped records for data loss; use dry_run=true to preview without writing. Output must differ from input and eval paths. Recheck the repaired copy with check_dataset before training.",
+        "description": "Mechanically repair a local fine-tuning JSONL dataset into the required output path, preserving each record's source format. Redacts detected secrets/PII, repairs encoding, truncates overlong user turns, and drops duplicates, eval overlap and unrepairable records. Returns the fix JSON plus exit_code: 0 every record was emitted, 1 some were dropped or unparseable, 2 nothing was emitted. summary and fixes_by_rule are exact; outcomes lists only records that were dropped, unparseable or fixed (in that order, then by line), at most limit of them (default 50), with outcomes_truncated. Review dropped records for data loss; use dry_run=true to preview without writing. Relative paths are resolved against the server's root directory (its working directory unless started with --root). Output must be inside that root, must differ from the input and eval files, and must not already exist unless overwrite=true. Recheck the repaired copy with check_dataset before training.",
         "inputSchema": _schema({**_COMMON,
                                 "output": {"type": "string", "minLength": 1},
                                 "dry_run": {"type": "boolean", "default": False},
+                                "overwrite": {"type": "boolean", "default": False,
+                                              "description": "Replace an existing output file. Without it, an existing output is refused."},
                                 "limit": {"type": "integer", "minimum": 0, "default": 50}}, ["path", "output"]),
     },
     {
@@ -92,12 +97,48 @@ def _arguments(name: str, arguments: object) -> dict:
     return arguments
 
 
-def _call_tool(params: dict) -> dict:
+class ToolRefused(Exception):
+    """A tool call the server won't carry out; returned as an isError result."""
+
+
+_PSEUDO_FS = ("/proc", "/sys", "/dev")
+
+
+def _regular_file(value: str, name: str) -> None:
+    # A FIFO or a device (/dev/stdin, /dev/zero) would block or never end and
+    # the server handles one request at a time, so only regular files are read.
+    # Kernel pseudo-files (/proc/kmsg) report as regular files but can block too.
+    resolved = str(Path(value).resolve())
+    if not Path(value).is_file() or any(
+            resolved == top or resolved.startswith(top + "/") for top in _PSEUDO_FS):
+        raise ToolRefused(f"{name} is not a regular file: {value}")
+
+
+def _confined_output(value: str, root: Path, overwrite: bool, dry_run: bool) -> None:
+    out = Path(value)
+    if out.is_symlink():
+        raise ToolRefused(f"output is a symlink; refusing to write through it: {value}")
+    resolved = out.resolve()
+    if resolved != root and root not in resolved.parents:
+        raise ToolRefused(f"output must be inside {root}: {value}")
+    if out.exists() and not overwrite and not dry_run:
+        raise ToolRefused(f"output already exists; pass overwrite=true to replace it: {value}")
+
+
+def _call_tool(params: dict, root: Path | None = None) -> dict:
     if not isinstance(params.get("name"), str):
         raise InvalidParams("tools/call requires a string name")
     name = params["name"]
     arguments = _arguments(name, params.get("arguments", {}))
+    root = (root or Path(os.getcwd())).resolve()
     try:
+        if name in ("check_dataset", "fix_dataset"):
+            _regular_file(arguments["path"], "path")
+            if "eval_path" in arguments:
+                _regular_file(arguments["eval_path"], "eval_path")
+        if name == "fix_dataset":
+            _confined_output(arguments["output"], root, arguments.pop("overwrite", False),
+                             arguments.get("dry_run", False))
         if name == "check_dataset":
             result = api.check(**{"limit": 50, **arguments})
             obj = {**result.to_dict(), "exit_code": result.exit_code}
@@ -112,14 +153,14 @@ def _call_tool(params: dict) -> dict:
         return {"content": [{"type": "text", "text": json.dumps(obj, separators=(",", ":"))}],
                 "structuredContent": obj}
     except Exception as exc:  # noqa: BLE001 — isolate tool/transport failures
-        return {"isError": True, "content": [{"type": "text", "text": str(exc)}]}
+        return {"isError": True, "content": [{"type": "text", "text": scrub(str(exc))}]}
 
 
 def _error(request_id: object, code: int, message: str) -> dict:
     return {"jsonrpc": "2.0", "id": request_id, "error": {"code": code, "message": message}}
 
 
-def handle(message: object) -> dict | None:
+def handle(message: object, root: Path | None = None) -> dict | None:
     """Dispatch one JSON-RPC message without writing to either stream."""
     if (not isinstance(message, dict) or message.get("jsonrpc") != "2.0"
             or not isinstance(message.get("method"), str)
@@ -147,7 +188,7 @@ def handle(message: object) -> dict | None:
         elif method == "tools/list":
             result = {"tools": TOOLS}
         elif method == "tools/call":
-            result = _call_tool(params)
+            result = _call_tool(params, root)
         else:
             return _error(request_id, -32601, f"Method not found: {method}")
         return {"jsonrpc": "2.0", "id": request_id, "result": result}
@@ -159,24 +200,55 @@ def _invalid_constant(value: str) -> None:
     raise ValueError(f"Invalid JSON constant: {value}")
 
 
-def serve(stdin: TextIO | None = None, stdout: TextIO | None = None) -> None:
+MAX_LINE = 1_000_000  # characters; real requests are a few hundred
+
+
+def _lines(stdin: TextIO):
+    """Yield request lines, or None for one longer than MAX_LINE.
+
+    Reading in bounded chunks keeps a client that never sends a newline from
+    growing the server's memory without limit.
+    """
+    while True:
+        line = stdin.readline(MAX_LINE + 1)
+        if not line:
+            return
+        if len(line) > MAX_LINE and not line.endswith("\n"):
+            while True:  # discard the rest of the oversized line
+                more = stdin.readline(MAX_LINE + 1)
+                if not more or more.endswith("\n"):
+                    break
+            yield None
+            continue
+        yield line
+
+
+def serve(stdin: TextIO | None = None, stdout: TextIO | None = None,
+          root: Path | None = None) -> None:
     """Process one JSON object per line until EOF, flushing every response."""
     stdin = sys.stdin if stdin is None else stdin
     stdout = sys.stdout if stdout is None else stdout
-    for line in stdin:
-        try:
-            message = json.loads(line, parse_constant=_invalid_constant)
-        except ValueError:
-            response = _error(None, -32700, "Parse error")
+    root = Path(root or os.getcwd()).resolve()
+    # Relative paths in tool calls resolve against the root. This process
+    # serves one client, so changing its working directory is safe.
+    os.chdir(root)
+    for line in _lines(stdin):
+        if line is None:
+            response = _error(None, -32600, "Request too large")
         else:
-            # Keep accidental downstream diagnostics off the transport.
-            with redirect_stdout(sys.stderr):
-                try:
-                    response = handle(message)
-                except Exception as exc:  # noqa: BLE001 — isolate tool/transport failures
-                    print(f"MCP internal error: {exc}", file=sys.stderr)
-                    response = _error(message.get("id") if isinstance(message, dict) else None,
-                                      -32603, "Internal error")
+            try:
+                message = json.loads(line, parse_constant=_invalid_constant)
+            except (ValueError, RecursionError):
+                response = _error(None, -32700, "Parse error")
+            else:
+                # Keep accidental downstream diagnostics off the transport.
+                with redirect_stdout(sys.stderr):
+                    try:
+                        response = handle(message, root)
+                    except Exception as exc:  # noqa: BLE001 — isolate tool/transport failures
+                        print(scrub(f"MCP internal error: {type(exc).__name__}: {exc}"), file=sys.stderr)
+                        response = _error(message.get("id") if isinstance(message, dict) else None,
+                                          -32603, "Internal error")
         if response is not None:
             stdout.write(json.dumps(response, separators=(",", ":")) + "\n")
             stdout.flush()

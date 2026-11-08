@@ -6,6 +6,7 @@ from collections.abc import Iterator
 from typing import Any
 
 from . import ParseResult
+from .jsonline import PARSE_ERRORS, describe
 
 
 def is_prompt_completion_record(record: Any) -> bool:
@@ -36,7 +37,9 @@ def normalize(record: Any) -> Any:
     for key, role in (("prompt", "user"), ("completion", "assistant")):
         value = record[key]
         messages.extend([{"role": role, "content": value}] if isinstance(value, str) else value)
-    return {"messages": messages}
+    # Keep other fields (ids, metadata) for the secrets rule and for --fix output.
+    extras = {k: v for k, v in record.items() if k not in ("prompt", "completion", "messages", "rejected")}
+    return {**extras, "messages": messages}
 
 
 def source_metadata(record: Any) -> dict[str, Any]:
@@ -55,10 +58,10 @@ def iter_jsonl(path: str) -> Iterator[ParseResult]:
                 continue
             try:
                 record = json.loads(raw)
-            except json.JSONDecodeError as exc:
+            except PARSE_ERRORS as exc:
                 yield ParseResult(
                     line_no=line_no, raw=raw, record=None,
-                    parse_error=f"{exc.msg} at column {exc.colno}",
+                    parse_error=describe(exc),
                     source_format="prompt-completion",
                 )
                 continue
@@ -81,6 +84,7 @@ def to_prompt_completion(record: Any, metadata: dict[str, Any] | None = None) ->
     while split and isinstance(messages[split - 1], dict) and messages[split - 1].get("role") == "assistant":
         split -= 1
     result = {"prompt": messages[:split], "completion": messages[split:]}
+    extras = {k: v for k, v in record.items() if k not in ("messages", "rejected", "prompt", "completion")}
     string_fields = (metadata or {}).get("string_fields", [])
     for key, role in (("prompt", "user"), ("completion", "assistant")):
         turns = result[key]
@@ -88,4 +92,4 @@ def to_prompt_completion(record: Any, metadata: dict[str, Any] | None = None) ->
                 and isinstance(turns[0], dict) and turns[0].get("role") == role
                 and isinstance(turns[0].get("content"), str)):
             result[key] = turns[0]["content"]
-    return result
+    return {**result, **extras}

@@ -31,3 +31,10 @@ stress_clean*.jsonl
 
 # Agent handoff notes (Claude <-> Codex), never committed
 .handoff/
+*.bundle
+
+# Local agent settings (may hold machine paths or tokens)
+.claude/settings.local.json
+.codex/
+.env
+.env.*

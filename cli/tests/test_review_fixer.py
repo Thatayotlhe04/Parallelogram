@@ -26,7 +26,7 @@ def test_dataset_drops_keep_prior_fix_attribution(tmp_path):
 
 def test_redaction_cannot_rescue_an_original_eval_overlap(tmp_path):
     train, ev, out = (tmp_path / name for name in ['train.jsonl', 'eval.jsonl', 'fixed.jsonl'])
-    leak = {'prompt': 'Email person@gmail.com', 'completion': 'A'}
+    leak = {'prompt': 'Email person@parallelogram.dev', 'completion': 'A'}
     train.write_text(json.dumps(leak) + '\n' + json.dumps({'prompt': 'safe', 'completion': 'B'}) + '\n')
     ev.write_text(json.dumps(leak) + '\n')
     result = CliRunner().invoke(app, ['check', str(train), '--eval', str(ev), '--fix', '--json', '--output', str(out)])
@@ -39,7 +39,7 @@ def test_redaction_cannot_rescue_an_original_eval_overlap(tmp_path):
 
 def test_fixes_recheck_for_pii_revealed_by_encoding_repair(tmp_path):
     train, out = tmp_path / 'train.jsonl', tmp_path / 'fixed.jsonl'
-    train.write_text(json.dumps({'instruction': 'Email person@\ufeffgmail.com', 'output': 'OK'}) + '\n')
+    train.write_text(json.dumps({'instruction': 'Email person@\ufeffparallelogram.dev', 'output': 'OK'}) + '\n')
     result = CliRunner().invoke(app, ['check', str(train), '--fix', '--output', str(out), '--json'])
     assert result.exit_code == 0, result.output
     assert json.loads(out.read_text()) == {'instruction': 'Email [REDACTED_EMAIL]', 'output': 'OK'}
@@ -49,10 +49,10 @@ def test_fixes_recheck_for_pii_revealed_by_encoding_repair(tmp_path):
 
 def test_revealed_pii_respects_disabled_rule(tmp_path):
     train, out = tmp_path / 'train.jsonl', tmp_path / 'fixed.jsonl'
-    train.write_text(json.dumps({'prompt': 'Email person@\ufeffgmail.com', 'completion': 'OK'}) + '\n')
+    train.write_text(json.dumps({'prompt': 'Email person@\ufeffparallelogram.dev', 'completion': 'OK'}) + '\n')
     result = CliRunner().invoke(app, ['check', str(train), '--fix', '--output', str(out), '--disable', 'pii'])
     assert result.exit_code == 0, result.output
-    assert json.loads(out.read_text())['prompt'] == 'Email person@gmail.com'
+    assert json.loads(out.read_text())['prompt'] == 'Email person@parallelogram.dev'
 
 
 def test_nonconverging_fixer_fails_without_looping():

@@ -7,6 +7,7 @@ eyes having to scan past decoration.
 from __future__ import annotations
 
 from rich.console import Console
+from rich.markup import escape
 from rich.panel import Panel
 from rich.text import Text
 
@@ -74,7 +75,7 @@ def render_report(
                 )
             )
             if issue.detail:
-                console.print(f"      [dim]→ {issue.detail}[/dim]")
+                console.print(f"      [dim]→ {escape(issue.detail)}[/dim]")
 
     n_err = len(report.errors)
     n_warn = len(report.warnings)

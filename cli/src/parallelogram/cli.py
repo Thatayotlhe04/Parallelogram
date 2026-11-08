@@ -31,6 +31,7 @@ from typing import Optional
 
 import typer
 from rich.console import Console
+from rich.markup import escape
 
 from . import __version__, api
 from .api import ParallelogramError, _build_rules
@@ -166,7 +167,7 @@ def check(
             typer.echo(f"  ! FIXER ERROR: {err}", err=True)
         if not json_output and not dry_run:
             if output:
-                console.print(f"  [green]→[/green] Wrote {len(result.report.clean_records)} records to {output}")
+                console.print(f"  [green]→[/green] Wrote {len(result.report.clean_records)} records to {escape(str(output))}")
             else:
                 console.print("  [yellow]![/yellow] --fix was requested without --output. "
                               "Re-run with --output PATH to write the repaired dataset.")
@@ -174,7 +175,7 @@ def check(
         clean_line_nos = {ln for ln, _ in result.clean_records}
         warned_lines = {i.line_no for i in result.report.issues
                         if i.severity == Severity.WARNING and i.line_no in clean_line_nos}
-        console.print(f"  [green]→[/green] Wrote {len(result.clean_records)} error-free records to {output}")
+        console.print(f"  [green]→[/green] Wrote {len(result.clean_records)} error-free records to {escape(str(output))}")
         if warned_lines:
             console.print(f"  [yellow]![/yellow] {len(warned_lines)} of them still carry "
                           "warnings (e.g. mojibake/BOM) and were copied verbatim — "
@@ -196,10 +197,17 @@ def list_rules(json_output: bool = typer.Option(False, "--json", help="Emit rule
 
 
 @app.command()
-def mcp() -> None:
+def mcp(
+    root: Optional[Path] = typer.Option(
+        None, "--root",
+        help="Directory fix_dataset may write into (default: the current directory). "
+             "Output paths outside it are refused.",
+        exists=True, file_okay=False, dir_okay=True,
+    ),
+) -> None:
     """Serve local dataset tools over newline-delimited JSON-RPC on stdio."""
     from .mcp_server import serve
-    serve()
+    serve(root=root)
 
 
 @app.command()
@@ -304,7 +312,7 @@ def report(
     if baseline is not None:
         try:
             base = json.loads(baseline.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError) as exc:
+        except (OSError, ValueError, RecursionError) as exc:
             typer.echo(f"could not read baseline {baseline}: {exc}", err=True)
             raise typer.Exit(2)
         regressions = compare_to_baseline(summary, base)
@@ -345,7 +353,7 @@ def _render_fix_report(console, fr, path: str, dry_run: bool,
                 reason = ", ".join(o.rules_fixed) + " (dropped as fix)"
             else:
                 reason = "—"
-            console.print(f"      [dim]{path}:[/dim]{o.line_no} [dim]→[/dim] {reason}")
+            console.print(f"      [dim]{escape(str(path))}:[/dim]{o.line_no} [dim]→[/dim] {escape(str(reason))}")
         if len(dropped_outcomes) > 5:
             console.print(f"      [dim]… and {len(dropped_outcomes) - 5} more[/dim]")
 
@@ -366,5 +374,26 @@ def _render_fix_report(console, fr, path: str, dry_run: bool,
     console.print(Panel.fit(summary, title=title, border_style=border))
 
 
+def run() -> None:
+    """Console entry point. An unexpected crash must never look like success.
+
+    Python exits 1 on an uncaught exception, and 1 means "warnings only", so a
+    crash used to read as a pass to any gate that tolerates warnings (the
+    GitHub Action does by default). Unexpected failures exit 3 instead, the
+    operational-failure code, with a one-line message and no traceback.
+    """
+    try:
+        app()
+    except SystemExit:
+        raise
+    except KeyboardInterrupt:
+        raise SystemExit(130)
+    except Exception as exc:  # noqa: BLE001 — last line of defence
+        from .core.report import scrub
+
+        sys.stderr.write(scrub(f"parallelogram: internal error: {type(exc).__name__}: {exc}") + "\n")
+        raise SystemExit(3)
+
+
 if __name__ == "__main__":
-    app()
+    run()

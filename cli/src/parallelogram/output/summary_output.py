@@ -6,12 +6,29 @@ nothing to format.) The Markdown renderer targets GitHub: pipe it into
 """
 from __future__ import annotations
 
+import re
+
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
 from ..core.summary import DatasetSummary
+
+
+def _code(value: object) -> str:
+    """A Markdown code span that data can't break out of.
+
+    Paths, rule ids, formats and role values come from the dataset or the
+    command line. Inside a plain `...` a backtick in the value ends the span
+    and the rest renders as Markdown (images, links) in a GitHub job summary.
+    The fence is one backtick longer than any run in the value.
+    """
+    text = " ".join(str(value).split())  # no newlines: they end a table row or list item
+    longest = max((len(r) for r in re.findall(r"`+", text)), default=0)
+    fence = "`" * (longest + 1)
+    pad = " " if text.startswith("`") or text.endswith("`") or longest else ""
+    return f"{fence}{pad}{text}{pad}{fence}"
 
 
 def _pct(part: int, whole: int) -> str:
@@ -139,11 +156,11 @@ def render_markdown_summary(s: DatasetSummary) -> str:
     n = s.total_records
     status = {0: "✅ clean", 1: "⚠️ warnings", 2: "❌ errors"}.get(s.exit_code, "?")
     lines = [
-        f"## parallelogram report — `{s.file}`",
+        f"## parallelogram report — {_code(s.file)}",
         "",
         f"**{status}** · exit code `{s.exit_code}`"
         + (f" · {len(s.disabled_rules)} rule(s) disabled: "
-           f"`{', '.join(s.disabled_rules)}`" if s.disabled_rules else ""),
+           f"{_code(', '.join(s.disabled_rules))}" if s.disabled_rules else ""),
         "",
         "| records | clean | with errors | with warnings | unparseable |",
         "|---:|---:|---:|---:|---:|",
@@ -181,7 +198,7 @@ def render_markdown_summary(s: DatasetSummary) -> str:
             "### Token budget",
             "",
             f"Budget **{ts.get('max_seq_len')}** · counting **{ts.get('counting')}** "
-            f"({ts.get('method', '')})",
+            f"({_code(ts.get('method', ''))})",
             "",
             "| over budget | at risk (≥85%) | median | max |",
             "|---:|---:|---:|---:|",
@@ -198,11 +215,11 @@ def render_markdown_summary(s: DatasetSummary) -> str:
         f"- duplicate clusters: **{ds.get('clusters', 0)}** "
         f"({ds.get('duplicate_records', 0)} duplicate records, "
         f"largest cluster {ds.get('largest_cluster', 0)})",
-        f"- declared format: `{fb.get('declared_format', '?')}`",
+        f"- declared format: {_code(fb.get('declared_format', '?'))}",
         "- detected formats: " + (", ".join(
-            f"`{k}` × {v}" for k, v in fb.get("detected_formats", {}).items()) or "—"),
+            f"{_code(k)} × {v}" for k, v in fb.get("detected_formats", {}).items()) or "—"),
         "- roles: " + (", ".join(
-            f"`{k}` × {v}" for k, v in fb.get("roles", {}).items()) or "—"),
+            f"{_code(k)} × {v}" for k, v in fb.get("roles", {}).items()) or "—"),
         f"- turns per record (min/median/max): "
         f"{fb.get('turns_per_record', {}).get('min', 0)} / "
         f"{fb.get('turns_per_record', {}).get('median', 0)} / "
