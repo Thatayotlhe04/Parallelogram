@@ -515,7 +515,7 @@ Auto-detected per line: OpenAI chat (`messages`), ShareGPT (`conversations`), pr
 | encoding | warning | BOMs and mojibake are repaired |
 | preference | error | Pairs with identical chosen and rejected answers are dropped |
 | secrets | error | API keys, tokens and private keys are redacted, in every field of a record |
-| pii | warning | Emails, phone numbers and card numbers in training text are replaced with placeholders |
+| pii | warning | Emails, phone numbers and card numbers are replaced with placeholders: in training text, and in fields named for them (`email`, `phone`, `card`) |
 | eval-overlap | error | Train records that repeat the eval set are dropped (only with `--eval`) |
 
 Without `--tokenizer`, token counts are estimates and an estimated overflow is a warning, not an error.

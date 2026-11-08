@@ -8,8 +8,12 @@ so this costs no false alarms.
 Personal data is different. Structured fields are full of order numbers,
 SKUs, UUIDs and ``git@github.com`` remotes that look like phone numbers,
 card numbers and emails, and rewriting them corrupts ids and JSON-encoded
-arguments. So the pii rule scans the text a model trains on: message content,
-including the text parts of multimodal content.
+arguments. So the pii rule scans the text a model trains on (message content, including
+the text parts of multimodal content) for every kind of personal data, and
+other fields only where the field says what it holds: an email address
+anywhere (except git remotes like ``git@github.com:org/repo``), a phone number
+only under a key such as ``phone`` or ``contact``, a card number only under a
+key such as ``card``. See ``field_strings``.
 """
 from __future__ import annotations
 
@@ -165,3 +169,68 @@ def map_record_text(record: Any, fn: Callable[[str], str]) -> Any:
             new.append(m)
         out[key] = new
     return out
+
+
+def _keyed(value: Any, path: str, key: str) -> Iterator[tuple[str, str, str]]:
+    """Like iter_strings, but also yield the nearest dict key above each string."""
+    stack: list[tuple[str, str, Any]] = [(path, key, value)]
+    while stack:
+        p, k, v = stack.pop()
+        if isinstance(v, str):
+            yield p, k, v
+        elif isinstance(v, dict):
+            for child in reversed(list(v)):
+                stack.append((f"{p}.{child}" if p else str(child), str(child), v[child]))
+        elif isinstance(v, list):
+            for i in reversed(range(len(v))):
+                stack.append((f"{p}[{i}]", k, v[i]))
+
+
+def field_strings(record: Any) -> Iterator[tuple[str, str, str]]:
+    """Strings outside the training text, as ``(label, nearest_key, text)``:
+    record-level fields and message fields other than role and content."""
+    if not isinstance(record, dict):
+        return
+    for label, i, msg in message_slots(record):
+        if not isinstance(msg, dict):
+            continue
+        for key, value in msg.items():
+            if key in _STRUCTURAL or key == "content":
+                continue
+            for path, near, text in _keyed(value, str(key), str(key)):
+                yield f"{where(label)}Message {i} field '{path}'", near, text
+    for key, value in record.items():
+        if key in ("messages", "rejected"):
+            continue
+        for path, near, text in _keyed(value, str(key), str(key)):
+            yield f"Field '{path}'", near, text
+
+
+def _map_keyed(value: Any, key: str, fn: Callable[[str, str], str]) -> Any:
+    if isinstance(value, str):
+        return fn(key, value)
+    if isinstance(value, dict):
+        return {k: _map_keyed(v, str(k), fn) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_map_keyed(v, key, fn) for v in value]
+    return value
+
+
+def map_record_fields(record: Any, fn: Callable[[str, str], str]) -> Any:
+    """Apply ``fn(nearest_key, text)`` to every string ``field_strings`` yields."""
+    if not isinstance(record, dict):
+        return record
+    try:
+        out = copy(record)
+        for key, value in record.items():
+            if key in ("messages", "rejected") and isinstance(value, list):
+                out[key] = [
+                    {k: (v if k in _STRUCTURAL or k == "content" else _map_keyed(v, str(k), fn))
+                     for k, v in m.items()} if isinstance(m, dict) else m
+                    for m in value
+                ]
+            else:
+                out[key] = _map_keyed(value, str(key), fn)
+        return out
+    except RecursionError:
+        return None
