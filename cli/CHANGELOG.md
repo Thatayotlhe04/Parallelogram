@@ -3,6 +3,16 @@
 All notable changes to the `parallelogram` CLI. Versions correspond to
 [PyPI releases](https://pypi.org/project/parallelogram/) and `cli-v*` git tags.
 
+## 1.6.1 — 2026-11-08
+
+No behavior changes.
+
+- Listed in the official MCP Registry as `io.github.Thatayotlhe04/parallelogram`
+  (`server.json`, and the ownership marker in the PyPI README).
+- The GitHub Action's `@v1` tag now follows every 1.x release; it had stayed on
+  1.0.0. Pin `@cli-v1.x.y` if you want upgrades to be explicit.
+- More PyPI keywords; integration guide examples point at released tags.
+
 ## 1.6.0 — 2026-11-08
 
 ### Added

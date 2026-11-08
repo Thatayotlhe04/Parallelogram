@@ -355,7 +355,7 @@ default install.
 
 ## Status
 
-v1.6.0 — stable CLI and Python API, agent-sized JSON output, rule discovery and a local MCP server. No telemetry, no network, no upload boundary.
+v1.6.1 — stable CLI and Python API, agent-sized JSON output, rule discovery and a local MCP server. No telemetry, no network, no upload boundary.
 
 ## Roadmap
 
@@ -369,3 +369,6 @@ v1.6.0 — stable CLI and Python API, agent-sized JSON output, rule discovery an
 ## License
 
 Apache-2.0
+
+<!-- mcp-name: io.github.Thatayotlhe04/parallelogram -->
+<!-- mcp-name: io.github.thatayotlhe04/parallelogram -->

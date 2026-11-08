@@ -176,13 +176,13 @@ parallelogram check tools.jsonl --fix --output clean.jsonl
 ## pre-commit
 
 The repository provides the Python hook `parallelogram`. Add to your project's
-`.pre-commit-config.yaml`, pinning the integration commit until the 1.6 release
-is tagged (then use `cli-v1.6.0`):
+`.pre-commit-config.yaml`, pinned to a release tag (`pre-commit autoupdate`
+moves it forward):
 
 ```yaml
 repos:
   - repo: https://github.com/Thatayotlhe04/Parallelogram
-    rev: feat/integrations # replace with the reviewed commit SHA or release tag
+    rev: cli-v1.6.0
     hooks:
       - id: parallelogram
 ```
@@ -212,13 +212,13 @@ pre-commit try-repo . parallelogram --files cli/examples/tools_clean.jsonl cli/e
 ## GitHub Action
 
 The existing repository Action installs the CLI, checks a dataset, and appends
-a health report to the job summary. Use these steps in your own workflow;
-pin the Action to the reviewed integration commit until `cli-v1.6.0` exists:
+a health report to the job summary. `@v1` follows the latest 1.x release; pin a
+release tag such as `@cli-v1.6.0` instead if you want upgrades to be explicit:
 
 ```yaml
 steps:
   - uses: actions/checkout@v4
-  - uses: Thatayotlhe04/Parallelogram@feat/integrations
+  - uses: Thatayotlhe04/Parallelogram@v1
     with:
       path: data/train.jsonl
       format: auto
