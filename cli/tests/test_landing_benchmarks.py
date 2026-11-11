@@ -29,15 +29,18 @@ def test_research_is_readable_without_javascript():
     elements = parsed_page()
     ids = [e['id'] for e in elements if 'id' in e]
     assert len(ids) == len(set(ids))
-    for panel in ('panel-quality', 'panel-ownership'):
+    for panel in ('panel-cost', 'panel-fit', 'panel-quality'):
         element = next(e for e in elements if e.get('id') == panel)
         assert 'hidden' not in element
         assert element['aria-labelledby'] in ids
     script = next(e for e in elements if e.get('src') == 'benchmarks.js')
     assert 'defer' in script
-    research_links = [e['href'] for e in elements if '/a-parallel-paradigm/' in e.get('href', '')]
-    assert research_links
-    assert all('/1fcefb66637638ead2c50ab60d49ffaada57d769/' in url for url in research_links)
+    assert not any('/a-parallel-paradigm/' in e.get('href', '') for e in elements)
+    logos = {e['src'] for e in elements if e.get('src', '').startswith('logos/')}
+    assert logos == {'logos/openai.svg', 'logos/claude.svg', 'logos/gemini.svg', 'logos/meta.svg'}
+    assert all((ROOT / 'landing' / logo).is_file() for logo in logos)
+    evidence = json.loads((ROOT / 'landing/benchmark-evidence.json').read_text())
+    assert evidence['source_revision'] == '1fcefb66637638ead2c50ab60d49ffaada57d769'
 
 
 def test_research_interactions():

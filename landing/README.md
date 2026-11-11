@@ -44,15 +44,27 @@ parallelogram check clean.jsonl                         # exit 0
 
 The display removes Rich box borders, blank lines, indentation, and two explanatory detail lines. Diagnostic text, summary counts, and command order are unchanged; `exit N` annotations show captured process statuses, not CLI-generated lines. The approximate-token-count note is retained.
 
-## Research section
+## Model comparison section
 
-`#benchmarks` presents two views: measured data-quality experiments and modeled
-ownership economics from *A Parallel Paradigm*. Links pin research revision
-`1fcefb66637638ead2c50ab60d49ffaada57d769`; do not silently refresh the numbers
-or describe them as current vendor prices. `benchmarks.js` enhances local tabs
-and the 10%/30% defect selector. Both views remain visible without JavaScript.
-The accuracy experiment is not a before/after linter test or a frontier ranking.
+`#benchmarks` uses vertical, provider-colored columns and local brand marks.
+Its three views are cost at scale, ownership/control tradeoffs and measured
+training-data quality. There is no paper promotion or model intelligence score.
 
-Check tab isolation from CLI/CI/Agents, arrow/Home/End keys, defect selection,
-methodology disclosures and 375px layout. Run `python scripts/build_agent_view.py`
-after changing the markdown research summary. All assets remain first-party.
+`benchmarks.js` holds a dated official-price snapshot (12 November 2026), two
+API tiers and a browser-local scenario calculator. Costs assume 1,500 input and
+200 total billed output tokens per task. The owned deployment is an editable
+budget, not a measured model cost. The default includes $2,800 hosting, $2,500
+maintenance and $700 amortized training. Capacity is assumed, not simulated.
+Gemini 4 Carbon's promotional rates expire November 30; update the snapshot
+and source text together if refreshing prices. No runtime network requests.
+
+The quality data is preserved in `benchmark-evidence.json`, with provenance
+from research revision `1fcefb66637638ead2c50ab60d49ffaada57d769`. These are small-model
+and validator experiments, not evidence of linter-induced accuracy gains.
+
+Brand SVGs in `logos/` come from `@lobehub/icons-static-svg` 1.102.0 (MIT; license
+included). Logos identify providers and model families; no endorsement implied.
+
+Test the three tabs, arrows/Home/End, API tiers, volume buttons, invalid budgets,
+quality selector, 375px layout, reduced motion and no-JS fallback. Both all-panel
+fallback and the scenario arithmetic have automated tests in `cli/tests/`.

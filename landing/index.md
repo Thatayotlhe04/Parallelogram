@@ -91,28 +91,30 @@ Without `--tokenizer`, token counts are estimates and an estimated overflow is a
 - Fix into a separate file, then check that file.
 - Never overwrite the input or the eval set.
 
-## Research benchmarks
+## Model comparisons
 
-A Parallel Paradigm (November 2026), by Parallelogram's author, studies a layer
-of fine-tuned owned models alongside rented frontier APIs.
+The landing page compares API costs and self-hosted model ownership. It is not
+an intelligence ranking. Pricing is a fixed snapshot from 12 November 2026.
+One task means 1,500 input and 200 billed output tokens, including reasoning.
 
-- E1: Parallelogram 1.6.1 flagged 98–100% of injected rows for 18 of 23 defect
-  types (100 injections per type, all rules, approximate token counts).
-  This includes warnings; semantic errors and fuzzy overlap remain gaps.
-- E2: A 383K-parameter model on a narrow extraction task averaged 100% accuracy
-  with clean data, 77.6% with 30% empty answers, and 68.3% with systematic label
-  errors affecting 31.9% of rows. Five seeds, greedy decoding, 600 held-out items.
-  These results do not measure accuracy recovered by running Parallelogram.
-- Economics simulation: ownership is cheaper in half the draws at monthly API
-  spend of $3,027 with flat API prices, $22,402 with falling prices, or $36,873
-  with falling prices and US labor. All three retain workload growth. The model
-  assumes matched quality between a frontier API and a fine-tuned open 8B model;
-  this is not a head-to-head benchmark or an organization-specific forecast.
-- No completed production-scale or frontier-versus-fine-tuned evaluation is
-  reported. Parallelogram's impact on total ownership costs is unmeasured.
+- Flagship APIs: GPT-6 Astra ($10/$50 per million input/output tokens), Claude
+  Fable 5.2 ($8/$40), Gemini 4 Carbon ($2/$10, promotional through Nov 30).
+- Efficient APIs: GPT-6 Luna ($0.10/$0.50), Claude Haiku 5.5 ($0.10/$0.50),
+  Gemini 3.1 Flash-Lite ($0.25/$1.50).
+- The self-hosted fine-tune is an editable $6,000/month scenario, including
+  hosting, maintenance and amortized training. It assumes sufficient capacity
+  for the selected workload and makes no claim of matched model quality.
+- A separate controlled 383K-parameter model test shows 100% accuracy on clean
+  data, 77.6% with 30% empty answers, and 68.3% with systematic wrong labels.
+  Five seeds, greedy decoding, 600 held-out extraction examples. It does not
+  measure accuracy recovered by Parallelogram or production-model performance.
+- Parallelogram 1.6.1 detected 98–100% of injected rows in 18 of 23 defect types
+  in a separate detection test, including warnings. Semantic defects remain.
 
-Source, scripts and results (pinned revision):
-https://github.com/Thatayotlhe04/a-parallel-paradigm/tree/1fcefb66637638ead2c50ab60d49ffaada57d769
+Official pricing sources:
+https://developers.openai.com/api/docs/pricing
+https://platform.claude.com/docs/en/about-claude/pricing
+https://aistudio.google.com/docs/pricing
 
 ## Links
 
