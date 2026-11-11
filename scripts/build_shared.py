@@ -33,6 +33,7 @@ STAR = ('<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="c
 NAV = [
     ("Product", [
         ("Checks", "What each rule catches, and why", "/#checks"),
+        ("Benchmarks", "Data quality and model ownership", "/#benchmarks"),
         ("How it works", "Check, fix, then gate the run", "/#how"),
         ("Changelog", "What shipped, release by release", "/#changelog"),
         ("FAQ", "Formats, tokenizers and limits", "/#faq"),
@@ -120,6 +121,7 @@ def footer(version: str) -> str:
       <div class="footer-col">
         <h3>Product</h3>
         <a href="/#checks">Checks</a>
+        <a href="/#benchmarks">Benchmarks</a>
         <a href="/#how">How it works</a>
         <a href="/integrations.html">Integrations</a>
         <a href="/#changelog">Changelog</a>

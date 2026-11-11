@@ -26,6 +26,7 @@
   <link rel="preload" href="fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="styles.css">
   <script src="main.js" defer></script>
+  <script src="benchmarks.js" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -41,6 +42,7 @@
           <button class="nav-trigger" type="button" aria-expanded="false" aria-controls="menu-product">Product<svg class="chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
           <div class="menu" id="menu-product">
             <a href="/#checks"><strong>Checks</strong><span>What each rule catches, and why</span></a>
+            <a href="/#benchmarks"><strong>Benchmarks</strong><span>Data quality and model ownership</span></a>
             <a href="/#how"><strong>How it works</strong><span>Check, fix, then gate the run</span></a>
             <a href="/#changelog"><strong>Changelog</strong><span>What shipped, release by release</span></a>
             <a href="/#faq"><strong>FAQ</strong><span>Formats, tokenizers and limits</span></a>
@@ -79,7 +81,7 @@
       </div>
       <details class="mnav">
         <summary aria-label="Menu"><span></span><span></span></summary>
-        <nav class="mnav-panel" aria-label="Menu"><div class="mnav-group"><p>Product</p><a href="/#checks">Checks</a><a href="/#how">How it works</a><a href="/#changelog">Changelog</a><a href="/#faq">FAQ</a></div><div class="mnav-group"><p>Docs</p><a href="https://github.com/Thatayotlhe04/Parallelogram#quickstart">Quickstart</a><a href="https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/docs/agents.md">Agents and MCP</a><a href="https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/docs/integrations.md">Integrations guide</a><a href="https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/docs/json-output.md">JSON output</a><a href="https://github.com/Thatayotlhe04/Parallelogram#github-action">GitHub Action</a></div><div class="mnav-group"><a href="/integrations.html">Integrations</a></div><div class="mnav-group"><p>More</p><a href="https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/CHANGELOG.md">Full changelog</a><a href="https://pypi.org/project/parallelogram/">PyPI</a><a href="https://github.com/Thatayotlhe04/Parallelogram/security/advisories/new">Report a vulnerability</a><a href="/llms.txt">llms.txt</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a></div></nav>
+        <nav class="mnav-panel" aria-label="Menu"><div class="mnav-group"><p>Product</p><a href="/#checks">Checks</a><a href="/#benchmarks">Benchmarks</a><a href="/#how">How it works</a><a href="/#changelog">Changelog</a><a href="/#faq">FAQ</a></div><div class="mnav-group"><p>Docs</p><a href="https://github.com/Thatayotlhe04/Parallelogram#quickstart">Quickstart</a><a href="https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/docs/agents.md">Agents and MCP</a><a href="https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/docs/integrations.md">Integrations guide</a><a href="https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/docs/json-output.md">JSON output</a><a href="https://github.com/Thatayotlhe04/Parallelogram#github-action">GitHub Action</a></div><div class="mnav-group"><a href="/integrations.html">Integrations</a></div><div class="mnav-group"><p>More</p><a href="https://github.com/Thatayotlhe04/Parallelogram/blob/main/cli/CHANGELOG.md">Full changelog</a><a href="https://pypi.org/project/parallelogram/">PyPI</a><a href="https://github.com/Thatayotlhe04/Parallelogram/security/advisories/new">Report a vulnerability</a><a href="/llms.txt">llms.txt</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a></div></nav>
       </details>
     </div>
   </header>
@@ -216,6 +218,99 @@
 <span class="t-ok">→ fix_dataset</span> <span class="t-dim">{"path": "train.jsonl", "eval_path": "eval.jsonl", "output": "clean.jsonl"}</span>
 { "summary": { "fixed": 2, "dropped": 3, "emitted": 3 } }                 <span class="t-dim">clean.jsonl rechecks clean</span></code></pre>
       </figure>
+    </section>
+
+    <!-- Research: measured data quality and modeled ownership economics -->
+    <section id="benchmarks" class="section benchmarks" aria-labelledby="benchmarks-title">
+      <div class="bench-heading">
+        <div>
+          <p class="bench-eyebrow">THE CASE FOR BETTER DATA</p>
+          <h2 id="benchmarks-title">Rent the frontier.<br><span class="accent">Build your advantage.</span></h2>
+          <p class="sub">Frontier APIs for open-ended reasoning. Fine-tuned models for the work you repeat. The data you train on helps decide whether that investment pays off.</p>
+        </div>
+        <a class="textlink" href="https://github.com/Thatayotlhe04/a-parallel-paradigm/blob/1fcefb66637638ead2c50ab60d49ffaada57d769/paper/a-parallel-paradigm.pdf">Read A Parallel Paradigm <span aria-hidden="true">↗</span></a>
+      </div>
+
+      <div class="bench-tabs" role="tablist" aria-label="Research evidence" hidden>
+        <button type="button" id="tab-quality" role="tab" aria-selected="true" aria-controls="panel-quality">01 <span>Data quality</span></button>
+        <button type="button" id="tab-ownership" role="tab" aria-selected="false" aria-controls="panel-ownership" tabindex="-1">02 <span>Model ownership</span></button>
+      </div>
+
+      <div id="panel-quality" class="bench-panel" role="tabpanel" aria-labelledby="tab-quality" tabindex="0">
+        <div class="bench-body">
+          <figure class="bench-figure">
+            <figcaption>
+              <span class="bench-tag">MEASURED · SMALL-MODEL EXPERIMENT</span>
+              <h3>A completed run can still learn the wrong thing.</h3>
+              <p>Held-out extraction accuracy · higher is better</p>
+            </figcaption>
+            <div class="bench-controls" hidden>
+              <label for="defect-rate">Training rows affected</label>
+              <select id="defect-rate" aria-describedby="quality-context"><option value="30">30% defects</option><option value="10">10% defects</option></select>
+            </div>
+            <div class="bench-bars" aria-label="Accuracy by training-data condition">
+              <div class="bench-row"><div class="bench-row-label"><span>Clean training data</span><strong>100%</strong></div><div class="bench-track" aria-hidden="true"><span class="bench-fill clean" style="--bar:100%"></span></div></div>
+              <div class="bench-row"><div class="bench-row-label"><span>Empty answers</span><strong id="empty-score">77.6%</strong></div><div class="bench-track" aria-hidden="true"><span id="empty-bar" class="bench-fill" style="--bar:77.6%"></span></div></div>
+              <div class="bench-row"><div class="bench-row-label"><span>Systematic label errors</span><strong id="label-score">68.3%</strong></div><div class="bench-track" aria-hidden="true"><span id="label-bar" class="bench-fill semantic" style="--bar:68.33333333333333%"></span></div></div>
+              <div class="bench-axis" aria-hidden="true"><span>0%</span><span>50%</span><span>100%</span></div>
+            </div>
+            <p class="bench-caption" id="quality-context">30% injection setting; systematic errors affected 31.9% of rows. Five seeds · 383K-parameter model · greedy decoding.</p>
+            <p class="sr-only" id="quality-announcement" aria-live="polite"></p>
+          </figure>
+          <aside class="bench-insight" aria-label="What Parallelogram contributes">
+            <span class="bench-tag">WHERE PARALLELOGRAM FITS</span>
+            <p class="bench-number">98–100<span>%</span></p>
+            <p class="bench-insight-lede">of injected rows flagged in<br><strong>18 of 23 defect types.</strong></p>
+            <p>A separate detection experiment found missing answers, broken structure, exact leakage and other checkable defects before training.</p>
+            <div class="bench-boundary"><span class="bench-dot" aria-hidden="true"></span><p>Empty answers are detectable. Wrong but well-formed answers still need semantic review and task evaluations.</p></div>
+          </aside>
+        </div>
+        <details class="bench-method">
+          <summary>Methodology &amp; limits <span aria-hidden="true">+</span></summary>
+          <div>
+            <p><strong>Accuracy (E2).</strong> A locally built 383K-parameter GPT-style model, 2,000 fine-tuning examples, 600 held-out extraction examples and five seeds. Clean accuracy was 100% for every seed. At the 30% setting, the mean loss was 22.4 percentage points for empty answers (95% paired t-interval: 18.8–26.0) and 31.7 for systematic errors (30.3–33.1). At 10%, losses were 4.6 (3.3–5.9) and 12.2 (10.6–13.8). Systematic errors actually affected 12.1% and 31.9% of rows.</p>
+            <p><strong>Detection (E1).</strong> Parallelogram 1.6.1, all rules, approximate token counts and a 2,048-token limit; 100 injected rows per defect type in cleaned Alpaca and HH-RLHF data. The 98–100% range includes warnings. The clean base was filtered using all detectors, so this does not estimate false positives on natural data. Fuzzy overlap and semantic defects remain gaps.</p>
+            <p>These are separate experiments by Parallelogram’s author. They do not measure accuracy recovered by running the linter, production-model performance, or a win against a frontier API. The paper’s direct fine-tuned-versus-frontier experiment (E3) has not been run.</p>
+            <p class="bench-source-links"><a href="https://github.com/Thatayotlhe04/a-parallel-paradigm/blob/1fcefb66637638ead2c50ab60d49ffaada57d769/results/e2/e2_summary.json">Accuracy results ↗</a><a href="https://github.com/Thatayotlhe04/a-parallel-paradigm/blob/1fcefb66637638ead2c50ab60d49ffaada57d769/results/e1/e1_results.json">Detection results ↗</a><a href="https://github.com/Thatayotlhe04/a-parallel-paradigm/blob/1fcefb66637638ead2c50ab60d49ffaada57d769/code/e2_harm.py">Reproduce the experiment ↗</a></p>
+          </div>
+        </details>
+      </div>
+
+      <div id="panel-ownership" class="bench-panel" role="tabpanel" aria-labelledby="tab-ownership" tabindex="0">
+        <div class="bench-body">
+          <figure class="bench-figure">
+            <figcaption>
+              <span class="bench-tag">MODELED · NOT A PERFORMANCE BENCHMARK</span>
+              <h3>When does owning start to pay?</h3>
+              <p>Monthly API spend at the simulation’s break-even point</p>
+            </figcaption>
+            <div class="bench-bars economics-bars" aria-label="Monthly API spend at which ownership is cheaper in half the simulation draws">
+              <div class="bench-row"><div class="bench-row-label"><span>API prices held flat</span><strong>$3.0K</strong></div><div class="bench-track" aria-hidden="true"><span class="bench-fill semantic" style="--bar:7.5675%"></span></div></div>
+              <div class="bench-row"><div class="bench-row-label"><span>Falling API prices</span><strong>$22.4K</strong></div><div class="bench-track" aria-hidden="true"><span class="bench-fill clean" style="--bar:56.005%"></span></div></div>
+              <div class="bench-row"><div class="bench-row-label"><span>Falling prices · US labor</span><strong>$36.9K</strong></div><div class="bench-track" aria-hidden="true"><span class="bench-fill" style="--bar:92.1825%"></span></div></div>
+              <div class="bench-axis" aria-hidden="true"><span>$0</span><span>$20K</span><span>$40K / mo</span></div>
+            </div>
+            <p class="bench-caption">One narrow task · frontier API vs. fine-tuned open 8B model · matched quality assumed · 36-month horizon.</p>
+          </figure>
+          <aside class="bench-insight" aria-label="Implications of model ownership">
+            <span class="bench-tag">THE OWNED LAYER</span>
+            <p class="bench-number">7.4<span>×</span></p>
+            <p class="bench-insight-lede">higher break-even when<br><strong>API prices keep falling.</strong></p>
+            <p>Owning a model means funding data preparation, evaluation, serving and upkeep. Cheaper tokens alone may not cover that work.</p>
+            <div class="bench-boundary"><span class="bench-dot" aria-hidden="true"></span><p>Parallelogram checks the data layer you control. Its effect on total cost or this break-even point has not been measured.</p></div>
+          </aside>
+        </div>
+        <details class="bench-method">
+          <summary>Assumptions &amp; sources <span aria-hidden="true">+</span></summary>
+          <div>
+            <p>The November 2026 paper models replacing Claude Sonnet 5.5 on one narrow task with a LoRA-tuned open 8B model. Equal task quality is an assumption, not an observed comparison. Each bill level uses 20,000 Monte Carlo draws over 36 months, discounted at 10% annually.</p>
+            <p>Both the flat-price and falling-price scenarios keep workload growth at 0–100% per year. The latter assumes a 4.7–13× annual decline in API prices at fixed capability. Labor is sampled from $20–$121/hour; the US scenario fixes it at $121/hour. Costs include initial engineering, data review, maintenance, re-adaptation and dedicated GPU serving.</p>
+            <p>Exact thresholds: $3,027, $22,402 and $36,873/month. “Break-even” here means ownership is cheaper in half the draws under the chosen input ranges—not a 50% probability for your organization. These are dated research scenarios, not current vendor quotes. Batch discounts, negotiated prices and differing quality can change the outcome.</p>
+            <p class="bench-source-links"><a href="https://github.com/Thatayotlhe04/a-parallel-paradigm/blob/1fcefb66637638ead2c50ab60d49ffaada57d769/results/econ/econ_results.json">Model outputs ↗</a><a href="https://github.com/Thatayotlhe04/a-parallel-paradigm/blob/1fcefb66637638ead2c50ab60d49ffaada57d769/code/econ_model.py">Assumptions &amp; code ↗</a></p>
+          </div>
+        </details>
+      </div>
+      <div class="bench-takeaway"><p><strong>The reusable asset is your data pipeline.</strong> Validate it before every fine-tune, whichever model you choose.</p><a class="textlink" href="#how">See the workflow <span aria-hidden="true">→</span></a></div>
     </section>
 
     <!-- Checks -->
@@ -452,6 +547,7 @@
       <div class="footer-col">
         <h3>Product</h3>
         <a href="/#checks">Checks</a>
+        <a href="/#benchmarks">Benchmarks</a>
         <a href="/#how">How it works</a>
         <a href="/integrations.html">Integrations</a>
         <a href="/#changelog">Changelog</a>
@@ -573,6 +669,29 @@ Without `--tokenizer`, token counts are estimates and an estimated overflow is a
 - Judge the result by `exit_code`, not `summary.clean`, which is also false when the only finding is an informational note.
 - Fix into a separate file, then check that file.
 - Never overwrite the input or the eval set.
+
+## Research benchmarks
+
+A Parallel Paradigm (November 2026), by Parallelogram's author, studies a layer
+of fine-tuned owned models alongside rented frontier APIs.
+
+- E1: Parallelogram 1.6.1 flagged 98–100% of injected rows for 18 of 23 defect
+  types (100 injections per type, all rules, approximate token counts).
+  This includes warnings; semantic errors and fuzzy overlap remain gaps.
+- E2: A 383K-parameter model on a narrow extraction task averaged 100% accuracy
+  with clean data, 77.6% with 30% empty answers, and 68.3% with systematic label
+  errors affecting 31.9% of rows. Five seeds, greedy decoding, 600 held-out items.
+  These results do not measure accuracy recovered by running Parallelogram.
+- Economics simulation: ownership is cheaper in half the draws at monthly API
+  spend of $3,027 with flat API prices, $22,402 with falling prices, or $36,873
+  with falling prices and US labor. All three retain workload growth. The model
+  assumes matched quality between a frontier API and a fine-tuned open 8B model;
+  this is not a head-to-head benchmark or an organization-specific forecast.
+- No completed production-scale or frontier-versus-fine-tuned evaluation is
+  reported. Parallelogram's impact on total ownership costs is unmeasured.
+
+Source, scripts and results (pinned revision):
+https://github.com/Thatayotlhe04/a-parallel-paradigm/tree/1fcefb66637638ead2c50ab60d49ffaada57d769
 
 ## Links
 

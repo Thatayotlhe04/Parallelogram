@@ -91,6 +91,29 @@ Without `--tokenizer`, token counts are estimates and an estimated overflow is a
 - Fix into a separate file, then check that file.
 - Never overwrite the input or the eval set.
 
+## Research benchmarks
+
+A Parallel Paradigm (November 2026), by Parallelogram's author, studies a layer
+of fine-tuned owned models alongside rented frontier APIs.
+
+- E1: Parallelogram 1.6.1 flagged 98–100% of injected rows for 18 of 23 defect
+  types (100 injections per type, all rules, approximate token counts).
+  This includes warnings; semantic errors and fuzzy overlap remain gaps.
+- E2: A 383K-parameter model on a narrow extraction task averaged 100% accuracy
+  with clean data, 77.6% with 30% empty answers, and 68.3% with systematic label
+  errors affecting 31.9% of rows. Five seeds, greedy decoding, 600 held-out items.
+  These results do not measure accuracy recovered by running Parallelogram.
+- Economics simulation: ownership is cheaper in half the draws at monthly API
+  spend of $3,027 with flat API prices, $22,402 with falling prices, or $36,873
+  with falling prices and US labor. All three retain workload growth. The model
+  assumes matched quality between a frontier API and a fine-tuned open 8B model;
+  this is not a head-to-head benchmark or an organization-specific forecast.
+- No completed production-scale or frontier-versus-fine-tuned evaluation is
+  reported. Parallelogram's impact on total ownership costs is unmeasured.
+
+Source, scripts and results (pinned revision):
+https://github.com/Thatayotlhe04/a-parallel-paradigm/tree/1fcefb66637638ead2c50ab60d49ffaada57d769
+
 ## Links
 
 - Source: https://github.com/Thatayotlhe04/Parallelogram

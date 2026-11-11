@@ -426,3 +426,85 @@ h3 { font: 500 16px/1.4 var(--sans); }
 /* Inline links inside FAQ answers */
 .faq details p a { text-decoration: underline; text-underline-offset: 3px; }
 .faq details p a:hover { color: var(--accent); }
+
+/* Research: local, reproducible evidence within the landing page's frame. */
+.benchmarks { padding-top: 80px; padding-bottom: 48px; }
+.bench-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 36px; margin-bottom: 38px; }
+.bench-eyebrow, .bench-tag { font: 500 10px/1.6 var(--mono); letter-spacing: .09em; color: var(--muted); }
+.bench-eyebrow { color: var(--accent); margin-bottom: 18px; }
+.bench-heading h2 { font-size: 38px; line-height: 1.2; }
+.bench-heading .sub { max-width: 610px; }
+.bench-heading > .textlink { flex-shrink: 0; margin-bottom: 3px; font-size: 13px; }
+.bench-tabs { display: flex; gap: 28px; border-bottom: 1px solid var(--line-strong); }
+.bench-tabs button { display: flex; gap: 10px; align-items: center; position: relative; padding: 16px 0; border: 0; background: none; color: var(--muted); font: 400 11px/1.5 var(--mono); cursor: pointer; }
+.bench-tabs button span { font: 500 14px/1.5 var(--sans); }
+.bench-tabs button[aria-selected="true"] { color: var(--accent); }
+.bench-tabs button[aria-selected="true"]::after { content: ""; position: absolute; height: 2px; left: 0; right: 0; bottom: -1px; background: var(--accent); }
+.bench-tabs button:hover { color: var(--text); }
+.bench-panel { border: 1px solid var(--line-strong); border-top: 0; background: #0d0d0d; }
+.bench-tabs[hidden], .bench-panel[hidden], .bench-controls[hidden] { display: none; }
+.bench-body { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); }
+.bench-figure { padding: 32px; min-width: 0; }
+.bench-figure h3 { font: 400 21px/1.4 var(--display); letter-spacing: -.02em; margin: 10px 0 8px; }
+.bench-figure figcaption > p, .bench-caption { color: var(--muted); font-size: 12px; line-height: 1.7; }
+.bench-controls { display: flex; justify-content: space-between; align-items: center; gap: 14px; margin-top: 22px; font-size: 12px; color: var(--muted); }
+.bench-controls select { border: 1px solid var(--line-strong); border-radius: 4px; background: var(--panel-2); color: var(--text); padding: 8px 10px; font: 400 12px/1.5 var(--sans); cursor: pointer; }
+.bench-bars { margin-top: 22px; }
+.bench-row + .bench-row { margin-top: 18px; }
+.bench-row-label { display: flex; justify-content: space-between; gap: 16px; font-size: 13px; margin-bottom: 7px; color: #d4d4d4; }
+.bench-row-label strong { color: var(--text); font: 500 13px/1.6 var(--mono); font-variant-numeric: tabular-nums; }
+.bench-track { height: 15px; background: #1a1a1a; border-radius: 2px; overflow: hidden; }
+.bench-fill { display: block; height: 100%; width: var(--bar); background: #b3b3b3; border-radius: 2px; }
+.bench-fill.clean { background: var(--accent); }
+.bench-fill.semantic { background: #686868; }
+.bench-axis { display: flex; justify-content: space-between; color: var(--muted); font: 400 10px/1.5 var(--mono); margin-top: 12px; }
+.bench-caption { margin-top: 22px; max-width: 550px; }
+.economics-bars { margin-top: 35px; }
+.economics-bars .bench-row + .bench-row { margin-top: 25px; }
+.bench-insight { padding: 32px; border-left: 1px solid var(--line-strong); background: linear-gradient(135deg, rgba(251,146,60,.045), transparent 65%); }
+.bench-number { margin-top: 20px; color: var(--accent); font: 400 clamp(36px, 4vw, 54px)/1.1 var(--display); letter-spacing: -.055em; font-variant-numeric: tabular-nums; }
+.bench-number span { font-size: .6em; margin-left: 3px; }
+.bench-insight-lede { margin-top: 14px; font-size: 15px; line-height: 1.6; color: #d4d4d4; }
+.bench-insight-lede strong { font-weight: 500; color: var(--text); }
+.bench-insight > p:not([class]) { margin-top: 20px; color: var(--muted); font-size: 13px; line-height: 1.75; }
+.bench-boundary { display: flex; align-items: flex-start; gap: 10px; border-top: 1px solid var(--line); padding-top: 20px; margin-top: 22px; color: var(--muted); font-size: 12px; line-height: 1.7; }
+.bench-dot { flex: none; width: 5px; height: 5px; background: var(--accent); margin-top: 8px; }
+.bench-method { border-top: 1px solid var(--line-strong); font-size: 12px; }
+.bench-method summary { display: flex; justify-content: space-between; cursor: pointer; list-style: none; padding: 16px 32px; color: var(--muted); }
+.bench-method summary::-webkit-details-marker { display: none; }
+.bench-method summary:hover { color: var(--text); }
+.bench-method summary span { font-size: 18px; line-height: 1; }
+.bench-method[open] summary span { transform: rotate(45deg); }
+.bench-method > div { padding: 4px 32px 24px; max-width: 920px; color: var(--muted); line-height: 1.8; }
+.bench-method p + p { margin-top: 12px; }
+.bench-source-links { display: flex; flex-wrap: wrap; gap: 10px 24px; }
+.bench-source-links a { color: var(--text); text-decoration: underline; text-underline-offset: 4px; }
+.bench-source-links a:hover { color: var(--accent); }
+.bench-takeaway { display: flex; justify-content: space-between; align-items: center; gap: 24px; margin-top: 24px; color: var(--muted); font-size: 12px; }
+.bench-takeaway strong { color: #d4d4d4; font-weight: 500; }
+.bench-takeaway .textlink { flex-shrink: 0; margin: 0; font-size: 12px; }
+@media (max-width: 960px) {
+  .bench-heading { display: block; }
+  .bench-heading > .textlink { margin-top: 20px; }
+  .bench-body { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); }
+  .bench-figure, .bench-insight { padding: 24px; }
+}
+@media (max-width: 640px) {
+  .benchmarks { padding: 56px 20px 32px; }
+  .bench-heading { margin-bottom: 24px; }
+  .bench-heading h2 { font-size: 32px; }
+  .bench-body { grid-template-columns: minmax(0, 1fr); }
+  .bench-figure, .bench-insight { padding: 24px 18px; }
+  .bench-insight { border-left: 0; border-top: 1px solid var(--line-strong); }
+  .bench-number { font-size: 48px; }
+  .bench-tabs { gap: 20px; }
+  .bench-tabs button { gap: 7px; }
+  .bench-tabs button span { font-size: 13px; }
+  .bench-row-label { font-size: 12px; }
+  .bench-controls { gap: 8px; font-size: 11px; }
+  .bench-controls select { font-size: 11px; }
+  .bench-method summary { padding: 16px 18px; }
+  .bench-method > div { padding: 4px 18px 24px; }
+  .bench-takeaway { display: block; }
+  .bench-takeaway .textlink { margin-top: 14px; }
+}

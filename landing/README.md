@@ -43,3 +43,16 @@ parallelogram check clean.jsonl                         # exit 0
 ```
 
 The display removes Rich box borders, blank lines, indentation, and two explanatory detail lines. Diagnostic text, summary counts, and command order are unchanged; `exit N` annotations show captured process statuses, not CLI-generated lines. The approximate-token-count note is retained.
+
+## Research section
+
+`#benchmarks` presents two views: measured data-quality experiments and modeled
+ownership economics from *A Parallel Paradigm*. Links pin research revision
+`1fcefb66637638ead2c50ab60d49ffaada57d769`; do not silently refresh the numbers
+or describe them as current vendor prices. `benchmarks.js` enhances local tabs
+and the 10%/30% defect selector. Both views remain visible without JavaScript.
+The accuracy experiment is not a before/after linter test or a frontier ranking.
+
+Check tab isolation from CLI/CI/Agents, arrow/Home/End keys, defect selection,
+methodology disclosures and 375px layout. Run `python scripts/build_agent_view.py`
+after changing the markdown research summary. All assets remain first-party.
