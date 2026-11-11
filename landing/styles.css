@@ -611,3 +611,82 @@ h3 { font: 500 16px/1.4 var(--sans); }
 .budget-error { margin-top: 10px; color: #fca5a5; font-size: 11px; line-height: 1.6; }
 
 .price-date { margin-left: auto; font: 400 8px/1.6 var(--mono); letter-spacing: .04em; }
+
+/* Quiet motion: reveal once, respond to intent, never run an idle loop. */
+.benchmarks { --motion-ease: cubic-bezier(.22, 1, .36, 1); }
+.comparison-board { transition: border-color .3s ease, box-shadow .4s ease; }
+.model-column { position: relative; border-radius: 8px; transition: background-color .25s ease; }
+.model-column:nth-child(1) { --stagger: 0ms; }
+.model-column:nth-child(2) { --stagger: 70ms; }
+.model-column:nth-child(3) { --stagger: 140ms; }
+.model-column:nth-child(4) { --stagger: 210ms; }
+.model-bar {
+  transition: height .65s var(--motion-ease), box-shadow .3s ease, filter .3s ease;
+  box-shadow: inset 0 1px 0 #ffffff30;
+}
+.model-bar::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(110deg, transparent 20%, #ffffff30 48%, transparent 76%);
+  background-size: 250% 100%; background-position: 100% 0; opacity: 0;
+  transition: opacity .25s ease, background-position .7s var(--motion-ease);
+}
+.model-bar > strong { transition: color .25s ease, transform .3s var(--motion-ease); }
+.model-label img, .quality-symbol { transition: transform .4s var(--motion-ease); }
+.model-label strong { transition: color .25s ease; }
+.compare-tabs button, .workload-options button, .benchmarks select {
+  transition: background-color .2s ease, border-color .2s ease, box-shadow .25s ease, color .2s ease, transform .25s var(--motion-ease);
+}
+.compare-tabs button > span { display: inline-block; transition: transform .3s var(--motion-ease); }
+.scenario-card { transition: border-color .3s ease, box-shadow .3s ease, transform .4s var(--motion-ease); }
+.scenario-input > div { transition: border-color .25s ease, box-shadow .25s ease; }
+.scenario-input > div:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px #fb923c16; }
+.scenario-card:focus-within { border-color: #986139; box-shadow: 0 8px 32px #0003; }
+.compare-details summary, .fit-table tbody th, .fit-table tbody td { transition: color .2s ease, background-color .25s ease; }
+.compare-details summary > span { transition: transform .3s var(--motion-ease); }
+.comparison-bottom > a > span { display: inline-block; transition: transform .3s var(--motion-ease); }
+.benchmarks :is(button, select, summary, a):focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.comparison-bottom > a:focus-visible > span { transform: translateX(4px); }
+
+@media (hover: hover) and (pointer: fine) {
+  .comparison-board:hover { border-color: #49413a; box-shadow: 0 18px 60px #0003; }
+  .model-column:hover { background-color: color-mix(in srgb, var(--column) 5%, transparent); }
+  .model-column:hover .model-bar { filter: brightness(1.08); box-shadow: 0 -8px 30px color-mix(in srgb, var(--column) 18%, transparent), inset 0 1px 0 #ffffff60; }
+  .model-column:hover .model-bar::after { opacity: 1; background-position: 0 0; }
+  .model-column:hover .model-bar > strong { color: var(--column); transform: translateY(-4px); }
+  .model-column:hover .model-label :is(img, .quality-symbol) { transform: translateY(-4px) scale(1.08); }
+  .model-column:hover .model-label strong { color: var(--column); }
+  .compare-tabs button:hover { background-color: #28231f; border-color: #58402c; }
+  .compare-tabs button:hover > span { transform: translateY(-2px); }
+  .workload-options button:hover { transform: translateY(-1px); box-shadow: 0 3px 8px #0004; }
+  .workload-options button[aria-pressed="true"]:hover { background: #fff; color: #111; }
+  .benchmarks select:hover { border-color: #8a6040; background-color: #26211d; }
+  .scenario-card:hover { border-color: #986139; transform: translateY(-3px); box-shadow: 0 12px 36px #0004; }
+  .fit-table tbody tr:hover > * { background-color: #ffffff08; color: #fff; }
+  .fit-table tbody tr:hover > :last-child { background-color: #fb923c12; }
+  .compare-details summary:hover { background-color: #ffffff03; }
+  .comparison-bottom > a:hover > span { transform: translateX(4px); }
+}
+.compare-tabs button:active, .workload-options button:active { transform: translateY(1px); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .is-revealed .compare-panel:not([hidden]) { animation: comparison-enter .45s var(--motion-ease) both; }
+  .is-revealed .compare-panel:not([hidden]) .model-bar { animation: column-enter .85s var(--motion-ease) var(--stagger, 0ms) backwards; }
+  .is-revealed .compare-panel:not([hidden]) .model-label { animation: label-enter .6s var(--motion-ease) var(--stagger, 0ms) backwards; }
+  .is-revealed .compare-panel:not([hidden]) .scenario-card { animation: label-enter .7s var(--motion-ease) .16s backwards; }
+  .is-revealed .compare-details[open] > div { animation: label-enter .35s var(--motion-ease); }
+}
+@keyframes comparison-enter { from { opacity: .4; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes column-enter { from { height: 0; } to { height: var(--height); } }
+@keyframes label-enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 760px) { .compare-tabs button > span { display: block; } }
+@media (prefers-reduced-motion: reduce) {
+  .benchmarks *, .benchmarks *::before, .benchmarks *::after { animation: none !important; transition: none !important; }
+  .benchmarks .model-column:hover .model-label :is(img, .quality-symbol),
+  .benchmarks .model-column:hover .model-bar > strong,
+  .benchmarks .scenario-card:hover,
+  .benchmarks .compare-tabs button:hover > span,
+  .benchmarks .workload-options button:hover,
+  .benchmarks .comparison-bottom > a > span,
+  .benchmarks .compare-tabs button:active,
+  .benchmarks .workload-options button:active { transform: none; }
+}

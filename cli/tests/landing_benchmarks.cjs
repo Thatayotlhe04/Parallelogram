@@ -18,6 +18,7 @@ const elements=JSON.parse(fs.readFileSync(0,'utf8')), nodes=new Map();
 class Element {
  constructor(attrs={}) {this.attrs={...attrs};this.hidden='hidden' in attrs;this.value=attrs.value;
   this.tabIndex=Number(attrs.tabindex||0);this.events={};this.dataset={volume:attrs['data-volume']};
+  this.classList=new Set();
   this.style={setProperty:(key,value)=>{this[key]=value;}};}
  setAttribute(k,v){this.attrs[k]=v;} getAttribute(k){return this.attrs[k];}
  addEventListener(k,fn){this.events[k]=fn;} focus(){this.focused=true;}
@@ -26,7 +27,7 @@ class Element {
 for(const attrs of elements) if(attrs.id) nodes.set(attrs.id,new Element(attrs));
 const tabs=['tab-cost','tab-fit','tab-quality'].map(id=>nodes.get(id));
 const tablist=new Element({hidden:''});tablist.querySelectorAll=()=>tabs;
-const controls=new Map(['.chart-mode','.scenario-input','.workload-options','.quality-controls'].map(c=>[c,new Element({hidden:''})]));
+const controls=new Map(['.chart-mode','.scenario-input','.workload-options','.quality-controls','.comparison-board'].map(c=>[c,new Element({hidden:''})]));
 const volumeButtons=elements.filter(e=>'data-volume' in e).map(e=>new Element(e));
 nodes.get('benchmarks').querySelector=s=>s==='[role="tablist"]'?tablist:controls.get(s);
 nodes.get('benchmarks').querySelectorAll=()=>volumeButtons;
@@ -34,6 +35,7 @@ const tier=nodes.get('api-tier'),rate=nodes.get('defect-rate'),budget=nodes.get(
 tier.value='flagship';rate.value='10';budget.value='6000';
 const cliBefore=JSON.stringify(nodes.get('tab-cli').attrs);
 vm.runInNewContext(fs.readFileSync('landing/benchmarks.js','utf8'),{document:{getElementById:id=>nodes.get(id)}});
+assert.equal(nodes.get('benchmarks').classList.has('is-revealed'),true);
 assert.equal(nodes.get('panel-cost').hidden,false);
 assert.equal(nodes.get('panel-fit').hidden,true);
 assert.equal(nodes.get('panel-quality').hidden,true);
@@ -66,4 +68,22 @@ for(const [from,key,to] of [[0,'ArrowLeft',2],[2,'ArrowRight',0],[0,'End',2],[2,
 }
 tabs[1].fire('click');assert.equal(nodes.get('panel-fit').hidden,false);
 assert.equal(JSON.stringify(nodes.get('tab-cli').attrs),cliBefore);
-console.log('Cost arithmetic, tier/volume/budget controls, invalid input, quality chart and tab isolation passed');
+// An offscreen board must not consume its entrance; disconnect after it enters.
+nodes.get('benchmarks').classList.delete('is-revealed');
+let observed, observerCallback, disconnected=false;
+class Observer {
+ constructor(callback) {observerCallback=callback;}
+ observe(element) {observed=element;}
+ disconnect() {disconnected=true;}
+}
+vm.runInNewContext(fs.readFileSync('landing/benchmarks.js','utf8'),{
+ document:{getElementById:id=>nodes.get(id)}, IntersectionObserver:Observer,
+});
+assert.equal(observed,controls.get('.comparison-board'));
+observerCallback([{isIntersecting:false}]);
+assert.equal(nodes.get('benchmarks').classList.has('is-revealed'),false);
+assert.equal(disconnected,false);
+observerCallback([{isIntersecting:true}]);
+assert.equal(nodes.get('benchmarks').classList.has('is-revealed'),true);
+assert.equal(disconnected,true);
+console.log('Cost controls, quality chart, tab isolation and viewport entrance passed');

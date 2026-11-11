@@ -13,7 +13,7 @@ A buildless, static landing page for the [Parallelogram CLI](https://github.com/
 
 Serve `landing/` with `python -m http.server 8000 --directory landing` from the repository root. Vercel uses `landing/` as its root, with no build command or output directory.
 
-Run `python scripts/check_csp.py` from the repository root. Check desktop and 375px layouts, install buttons, FAQ keyboard operation, and legal-page links before publishing. No external resources, telemetry, cookies, storage, animation, or runtime dataset demo.
+Run `python scripts/check_csp.py` from the repository root. Check desktop and 375px layouts, install buttons, FAQ keyboard operation, and legal-page links before publishing. No external resources, telemetry, cookies, storage, or runtime dataset demo.
 
 ## Terminal provenance
 
@@ -68,3 +68,9 @@ included). Logos identify providers and model families; no endorsement implied.
 Test the three tabs, arrows/Home/End, API tiers, volume buttons, invalid budgets,
 quality selector, 375px layout, reduced motion and no-JS fallback. Both all-panel
 fallback and the scenario arithmetic have automated tests in `cli/tests/`.
+
+Comparison motion is local CSS: a one-time viewport entrance, staggered column
+reveals, smooth bar resizing, and hover highlights for columns, rows and controls.
+Hover decoration only runs on fine pointers; keyboard focus has equivalent
+control emphasis. `prefers-reduced-motion` disables all comparison animations
+and transitions. No looping effects, animation libraries or hidden initial content.

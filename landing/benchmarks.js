@@ -104,4 +104,16 @@
     byId('quality-announcement').textContent = `Clean data 100%; empty answers ${result.empty.toFixed(1)}%; wrong labels ${result.label.toFixed(1)}%.`;
   }
   rate.addEventListener('change', updateQuality); updateQuality();
+  // Start the one-time entrance when the board reaches the viewport. Nothing
+  // is hidden while waiting, so charts remain readable if observation fails.
+  if (typeof IntersectionObserver !== 'undefined') {
+    const entrance = new IntersectionObserver(entries => {
+      if (!entries.some(entry => entry.isIntersecting)) return;
+      section.classList.add('is-revealed');
+      entrance.disconnect();
+    }, {threshold: 0.08});
+    entrance.observe(section.querySelector('.comparison-board'));
+  } else {
+    section.classList.add('is-revealed');
+  }
 })();
