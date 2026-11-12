@@ -741,8 +741,8 @@ h3 { font: 500 16px/1.4 var(--sans); }
 .editor-statusbar { height: 24px; display: flex; justify-content: space-between; align-items: center; padding: 0 12px; background: #252629; border-top: 1px solid #141517; color: #a4a5a8; font: 10px var(--sans); }
 .walkthrough-caption { position: absolute; left: 42px; bottom: 26px; width: 36%; transition: opacity .5s, transform .5s; }
 .walkthrough-caption > span { color: #dbb994; letter-spacing: .12em; font: 500 9px/1.5 var(--mono); }
-.walkthrough-caption h3 { max-width: 300px; margin: 12px 0 10px; color: #f8f1e9; font: 500 23px/1.2 var(--display); letter-spacing: -.8px; }
-.walkthrough-caption p { color: #c9beb0; font: 13px/1.65 var(--sans); max-width: 290px; }
+.walkthrough-caption h3 { max-width: none; margin: 12px 0 10px; color: #f8f1e9; font: 500 23px/1.2 var(--display); letter-spacing: -.8px; }
+.walkthrough-caption p { color: #c9beb0; font: 13px/1.65 var(--sans); max-width: 360px; }
 .demo-terminal-window { position: absolute; right: 26px; bottom: 26px; width: 44%; border: 1px solid #5c5852; border-radius: 9px; overflow: hidden; background: #151618; box-shadow: 0 22px 65px #0007, 0 4px 10px #0004; transition: opacity .5s, transform .5s; }
 .demo-terminal-window .desktop-titlebar { background: #353535; }
 .terminal-scroll { height: 320px; padding: 17px 18px; overflow: auto; scrollbar-width: thin; scrollbar-color: #4b4b4b transparent; overflow-anchor: none; overscroll-behavior: contain; }
