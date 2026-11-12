@@ -78,16 +78,27 @@ Hover decoration only runs on fine pointers; keyboard focus has equivalent
 control emphasis. `prefers-reduced-motion` disables all comparison animations
 and transitions. No looping effects, animation libraries or hidden initial content.
 
-## Animated CLI walkthrough
+## Recorded terminal session
 
-`demo.js` turns the CLI panel into a 20-second local animation: check (0–8s),
-fix (8–15s), then re-check (15–20s). The original transcript is always available
-in an expandable disclosure, open by default without JavaScript. The animated
-output is condensed and its timing is illustrative. No commands run in the browser.
+`demo.js` automatically replays actual CLI stdout from `terminal-recording.json`
+in a Mac-style terminal. There are no playback buttons, timer, scrubber, chapter
+UI or rewritten result cards. Commands are typed, then the original output
+appears in continuous scrollback. After the final result, `clear` is typed and
+the session repeats. Focus pauses for reading; moving focus away resumes. It pauses
+offscreen and in hidden pages/tabs. Reduced motion shows the static transcript.
 
-The player autoplays once when visible, and has play/pause, replay, chapter
-buttons and a keyboard-accessible timeline. It pauses when offscreen, when
-the document is hidden or when another CLI/CI/Agent view is selected. Returning
-does not override a pause. Reduced motion starts static, removes typing and
-transitions, and allows deliberate playback. Timing and playback state tests
-are in `cli/tests/landing_demo.cjs`.
+The capture uses a six-record synthetic fixture (including the existing test
+key, not a real credential), at 96 columns. Actual exits are 2 → 1 → 0. All
+stdout is preserved, including the approximate-tokenizer notice, details,
+fix/drop summary and Rich box drawing. ANSI styles are mapped to CSS; command
+typing and reading pauses are presentation pacing, not execution benchmarks.
+
+From the repo root, with the local CLI installed in the current Python env:
+
+```sh
+python scripts/capture_terminal_demo.py          # verify stdout and displayed transcript
+python scripts/capture_terminal_demo.py --write  # recapture and rebuild the transcript
+```
+
+The static transcript is the no-JavaScript fallback and screen-reader version.
+Tests cover autonomous cycles, pause/resume, output preservation and reduced motion.
