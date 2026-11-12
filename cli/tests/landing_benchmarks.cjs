@@ -25,7 +25,7 @@ class Element {
  fire(k,e={}){this.events[k](e);}
 }
 for(const attrs of elements) if(attrs.id) nodes.set(attrs.id,new Element(attrs));
-const tabs=['tab-cost','tab-fit','tab-quality'].map(id=>nodes.get(id));
+const tabs=elements.filter(e => e.role === 'tab' && e['aria-controls']?.startsWith('panel-')).map(e=>nodes.get(e.id));
 const tablist=new Element({hidden:''});tablist.querySelectorAll=()=>tabs;
 const controls=new Map(['.chart-mode','.scenario-input','.workload-options','.quality-controls','.comparison-board'].map(c=>[c,new Element({hidden:''})]));
 const volumeButtons=elements.filter(e=>'data-volume' in e).map(e=>new Element(e));
@@ -36,15 +36,18 @@ tier.value='flagship';rate.value='10';budget.value='6000';
 const cliBefore=JSON.stringify(nodes.get('tab-cli').attrs);
 vm.runInNewContext(fs.readFileSync('landing/benchmarks.js','utf8'),{document:{getElementById:id=>nodes.get(id)}});
 assert.equal(nodes.get('benchmarks').classList.has('is-revealed'),true);
-assert.equal(nodes.get('panel-cost').hidden,false);
+assert.equal(nodes.get('panel-cost').hidden,true);
 assert.equal(nodes.get('panel-fit').hidden,true);
-assert.equal(nodes.get('panel-quality').hidden,true);
+assert.equal(nodes.get('panel-quality').hidden,false);
 assert.equal(nodes.get('empty-score').textContent,'95.4%');
+assert.equal(nodes.get('quality-loss').textContent,'4.6');
 assert.equal(nodes.get('cost-value-openai').textContent,'$25K');
+assert.match(nodes.get('cost-insight').textContent,/above 1.2M tasks/);
 tier.value='efficient';tier.fire('change');
 assert.equal(nodes.get('cost-name-openai').textContent,'GPT-6 Luna');
 assert.equal(nodes.get('cost-value-openai').textContent,'$250');
 assert.equal(nodes.get('cost-value-gemini').textContent,'$675');
+assert.match(nodes.get('cost-insight').textContent,/above 24M tasks/);
 volumeButtons[0].fire('click');
 assert.equal(nodes.get('cost-value-openai').textContent,'$25');
 assert.match(nodes.get('own-unit-cost').innerHTML,/60.00/);
@@ -57,16 +60,17 @@ budget.value='1000';budget.fire('input');
 assert.equal(nodes.get('budget-error').hidden,true);
 assert.equal(nodes.get('cost-value-meta').textContent,'$1K');
 tier.value='flagship';tier.fire('change');volumeButtons[2].fire('click');
-assert.match(nodes.get('cost-insight').textContent,/below all three/);
+assert.match(nodes.get('cost-insight').textContent,/\$24K\/month below the cheapest/);
 rate.value='30';rate.fire('change');
 assert.equal(nodes.get('empty-score').textContent,'77.6%');
+assert.equal(nodes.get('quality-loss').textContent,'22.4');
 assert.equal(nodes.get('label-score').textContent,'68.3%');
 assert.equal(nodes.get('empty-bar')['--height'],'77.6%');
 for(const [from,key,to] of [[0,'ArrowLeft',2],[2,'ArrowRight',0],[0,'End',2],[2,'Home',0]]) {
  let prevented=false;tabs[from].fire('keydown',{key,preventDefault:()=>{prevented=true;}});
  assert.equal(prevented,true);assert.equal(tabs[to].getAttribute('aria-selected'),'true');assert.equal(tabs[to].focused,true);
 }
-tabs[1].fire('click');assert.equal(nodes.get('panel-fit').hidden,false);
+tabs[1].fire('click');assert.equal(nodes.get('panel-cost').hidden,false);
 assert.equal(JSON.stringify(nodes.get('tab-cli').attrs),cliBefore);
 // An offscreen board must not consume its entrance; disconnect after it enters.
 nodes.get('benchmarks').classList.delete('is-revealed');

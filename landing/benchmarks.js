@@ -76,9 +76,13 @@
     const volumeText = volume === 100000 ? '100 thousand' : volume / 1e6 + ' million';
     byId('workload-label').textContent = `${volumeText} tasks`;
     const cheapest = Math.min(...result.api.map(model => model.cost));
-    byId('cost-insight').textContent = result.budget <= cheapest
-      ? `Your budget is below all three API estimates at this volume. Confirm task quality and serving capacity before switching.`
-      : `The lowest listed API estimate is ${money(cheapest)}/month at this volume. Ownership is not automatically cheaper.`;
+    const crossover = result.budget / (cheapest / volume);
+    const crossoverText = crossover >= 1e6
+      ? `${(crossover / 1e6).toLocaleString('en-US', {maximumFractionDigits:2})}M`
+      : `${Math.ceil(crossover).toLocaleString('en-US')}`;
+    byId('cost-insight').textContent = result.budget < cheapest
+      ? `Your estimate is ${money(cheapest - result.budget)}/month below the cheapest listed API at this volume. Confirm task quality and serving capacity before switching.`
+      : `The lowest listed API is ${money(cheapest)}/month here. Your fixed budget becomes cheaper above ${crossoverText} tasks/month, assuming it can serve that volume. Task quality still needs validation.`;
     byId('cost-announcement').textContent = `${volumeText} tasks monthly. ${result.api.map(m => `${m.name}: ${money(m.cost)}`).join('; ')}; your fine-tune: ${money(result.budget)}. Cost scenario, not a quality ranking.`;
   }
   tier.addEventListener('change', updateCosts);
@@ -96,6 +100,7 @@
   const rate = byId('defect-rate');
   function updateQuality() {
     const result = quality[rate.value]; if (!result) return;
+    byId('quality-loss').textContent = (100 - result.empty).toFixed(1);
     ['empty','label'].forEach(key => {
       byId(`${key}-score`).textContent = `${result[key].toFixed(1)}%`;
       byId(`${key}-bar`).style.setProperty('--height', `${result[key]}%`);

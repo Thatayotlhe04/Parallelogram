@@ -47,8 +47,11 @@ The display removes Rich box borders, blank lines, indentation, and two explanat
 ## Model comparison section
 
 `#benchmarks` uses vertical, provider-colored columns and local brand marks.
-Its three views are cost at scale, ownership/control tradeoffs and measured
-training-data quality. There is no paper promotion or model intelligence score.
+Its first view explains measured training-data damage and the defects the CLI
+can catch. The other views compare API costs and ownership/control tradeoffs.
+The cost panel calculates a conditional crossover against the cheapest listed
+API at the selected tier; this assumes the same fixed budget can serve that
+volume and does not establish matched task quality. There is no paper promotion or model intelligence score.
 
 `benchmarks.js` holds a dated official-price snapshot (12 November 2026), two
 API tiers and a browser-local scenario calculator. Costs assume 1,500 input and
@@ -74,3 +77,17 @@ reveals, smooth bar resizing, and hover highlights for columns, rows and control
 Hover decoration only runs on fine pointers; keyboard focus has equivalent
 control emphasis. `prefers-reduced-motion` disables all comparison animations
 and transitions. No looping effects, animation libraries or hidden initial content.
+
+## Animated CLI walkthrough
+
+`demo.js` turns the CLI panel into a 20-second local animation: check (0–8s),
+fix (8–15s), then re-check (15–20s). The original transcript is always available
+in an expandable disclosure, open by default without JavaScript. The animated
+output is condensed and its timing is illustrative. No commands run in the browser.
+
+The player autoplays once when visible, and has play/pause, replay, chapter
+buttons and a keyboard-accessible timeline. It pauses when offscreen, when
+the document is hidden or when another CLI/CI/Agent view is selected. Returning
+does not override a pause. Reduced motion starts static, removes typing and
+transitions, and allows deliberate playback. Timing and playback state tests
+are in `cli/tests/landing_demo.cjs`.
