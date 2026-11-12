@@ -162,76 +162,100 @@
         <button type="button" role="tab" id="tab-agents" aria-selected="false" aria-controls="pane-agents" tabindex="-1">Agents</button>
       </div>
       <h2 id="run-title">Catch It Before The GPU Does</h2>
-      <p class="sub">Watch a broken dataset become a checked training file. Check, fix, and re-check in a 20-second walkthrough.</p>
+      <p class="sub">One command between your dataset and your trainer: on your machine, in CI, or called by your coding agent.</p>
       <figure class="terminal" id="pane-cli" role="tabpanel" aria-labelledby="tab-cli">
-        <figcaption><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span>train.jsonl</span><span class="mono dim">parallelogram 1.6.1</span></figcaption>
-<div id="cli-demo" class="cli-demo" hidden>
-          <div class="demo-heading"><span class="demo-eyebrow">SEE IT IN ACTION</span><span class="demo-duration">20 SEC · ANIMATED WALKTHROUGH</span></div>
-          <div class="demo-chapters" role="group" aria-label="Demo chapters">
-            <button type="button" data-demo-stage="0" aria-pressed="true"><span>01</span> Check <i aria-hidden="true">→</i></button>
-            <button type="button" data-demo-stage="1" aria-pressed="false"><span>02</span> Fix <i aria-hidden="true">→</i></button>
-            <button type="button" data-demo-stage="2" aria-pressed="false"><span>03</span> Re-check <i aria-hidden="true">✓</i></button>
-          </div>
-          <div class="demo-screen" aria-hidden="true">
-            <div class="demo-scene" data-scene="0">
-              <p class="demo-command"><span>$</span> <code data-command="parallelogram check train.jsonl --eval eval.jsonl">parallelogram check train.jsonl --eval eval.jsonl</code><i class="demo-cursor"></i></p>
-              <div class="demo-output">
-                <p data-at="1900" class="t-err"><b>✗ secrets</b><span>Line 2 · likely API key: sk-pro…</span></p>
-                <p data-at="2450" class="t-err"><b>✗ preference</b><span>Line 3 · chosen and rejected answers match</span></p>
-                <p data-at="3000" class="t-err"><b>✗ duplicates</b><span>Line 4 · duplicate of line 1</span></p>
-                <p data-at="3550" class="t-warn"><b>! encoding</b><span>Line 5 · mojibake in training text</span></p>
-                <p data-at="4100" class="t-warn"><b>! pii</b><span>Line 5 · email address: t***@***.com</span></p>
-                <p data-at="4650" class="t-err"><b>✗ eval-overlap</b><span>Line 6 · prompt also in the eval set</span></p>
-                <div class="demo-result" data-at="5350"><span>6 records · 4 errors · 2 warnings</span><strong class="t-err">exit 2</strong></div>
-              </div>
-            </div>
-            <div class="demo-scene" data-scene="1" hidden>
-              <p class="demo-command"><span>$</span> <code data-command="parallelogram check train.jsonl --eval eval.jsonl --fix --output clean.jsonl">parallelogram check train.jsonl --eval eval.jsonl --fix --output clean.jsonl</code><i class="demo-cursor"></i></p>
-              <div class="demo-output">
-                <p data-at="1900" class="t-ok"><b>✓ repaired</b><span>Encoding normalized · secrets and PII redacted</span></p>
-                <p data-at="2700" class="t-ok"><b>✓ removed</b><span>Duplicate and eval-overlap records</span></p>
-                <p data-at="3500" class="t-warn"><b>↳ dropped</b><span>Unfixable preference pair · reason preserved</span></p>
-                <div class="demo-file" data-at="4400"><span aria-hidden="true">▱</span><div><strong>clean.jsonl</strong><small>3 records written · original file preserved</small></div></div>
-                <div class="demo-result" data-at="5100"><span>3 records dropped · re-check next</span><strong class="t-warn">exit 1</strong></div>
-              </div>
-            </div>
-            <div class="demo-scene" data-scene="2" hidden>
-              <p class="demo-command"><span>$</span> <code data-command="parallelogram check clean.jsonl --eval eval.jsonl">parallelogram check clean.jsonl --eval eval.jsonl</code><i class="demo-cursor"></i></p>
-              <div class="demo-output">
-                <div class="demo-success" data-at="1900"><span class="demo-success-mark">✓</span><h3>Checks passed.</h3><p>3 clean records. No errors. No warnings.</p><strong>exit 0</strong></div>
-                <p class="demo-ready-note" data-at="2900">The next step is training—not debugging the file.</p>
-              </div>
-            </div>
-          </div>
-          <p class="demo-caption" id="demo-caption">Find the problems before training starts.</p>
-          <div class="demo-player">
-            <button type="button" id="demo-toggle" aria-label="Play demo"><span aria-hidden="true">▶</span> Play</button>
-            <button type="button" id="demo-replay" aria-label="Replay demo">↻</button>
-            <label class="sr-only" for="demo-seek">Demo playback position</label><input id="demo-seek" type="range" min="0" max="20" value="0" step="0.1" aria-valuetext="0 of 20 seconds">
-            <span id="demo-clock" class="demo-clock">0:00 / 0:20</span>
-          </div>
-          <p class="demo-disclaimer">Example workflow · playback timing is illustrative · condensed output</p>
-        </div>
-        <details id="demo-transcript" class="demo-transcript" open><summary>Read the full transcript <span aria-hidden="true">+</span></summary>
-<pre><code><span class="t-cmd">$ parallelogram check train.jsonl --eval eval.jsonl</span>
-<span class="t-err">✗ train.jsonl:2 [secrets] Message 0 contains a likely OpenAI API key: sk-pro…</span>
-<span class="t-err">✗ train.jsonl:3 [preference] Chosen and rejected answers are identical</span>
-<span class="t-err">✗ train.jsonl:4 [duplicates] Duplicate of line 1</span>
-<span class="t-warn">! train.jsonl:5 [encoding] Message 1 contains likely mojibake: 'â€™'</span>
-<span class="t-warn">! train.jsonl:5 [pii] Message 0 contains an email address: t***@***.com</span>
-<span class="t-err">✗ train.jsonl:6 [eval-overlap] Prompt also appears in the eval set (eval.jsonl:1)</span>
-<span class="t-dim">6 records  2 clean  4 errors  2 warnings</span>                 <span class="t-err">exit 2</span>
+        <!-- terminal-recording:start -->
+        <figcaption><span class="mac-lights" aria-hidden="true"><i></i><i></i><i></i></span><span class="terminal-path">datasets — zsh</span><span class="terminal-window-spacer" aria-hidden="true"></span></figcaption>
+        <div class="terminal-scroll" id="terminal-screen" tabindex="0" role="region" aria-label="Automatic terminal demonstration. Focus to pause and read." hidden><div class="terminal-history" aria-hidden="true"><div class="terminal-run" data-run><div class="terminal-command"><span class="shell-prompt">❯</span> <span data-command="parallelogram check train.jsonl --eval eval.jsonl">parallelogram check train.jsonl --eval eval.jsonl</span><span class="shell-cursor" aria-hidden="true"></span></div><pre class="terminal-output" data-output><span class="ansi-bold ansi-cyan">  i </span><span class="ansi-dim">(global) </span><span class="ansi-cyan">[context-window] </span>Context-window counts are approximate
+      <span class="ansi-dim">→ no tokenizer specified — pass --tokenizer </span><span class="ansi-bold ansi-dim">&lt;</span><span class="ansi-bold ansi-dim ansi-magenta">model</span><span class="ansi-bold ansi-dim">&gt;</span><span class="ansi-dim"> </span><span class="ansi-bold ansi-dim">(</span><span class="ansi-dim">e.g. gpt-4o, Qwen/Qwen2.</span><span class="ansi-bold ansi-cyan ansi-dim">5</span><span class="ansi-dim">-7B</span><span class="ansi-bold ansi-dim">)</span><span class="ansi-dim"> for an </span>
+<span class="ansi-dim">exact count</span>
+<span class="ansi-bold ansi-red">  ✗ </span><span class="ansi-dim">train.jsonl:2 </span><span class="ansi-cyan">[secrets] </span>Message 0 contains a likely OpenAI API key: sk-pro…
+      <span class="ansi-dim">→ A model trained on it can repeat it; --fix redacts it</span>
+<span class="ansi-bold ansi-red">  ✗ </span><span class="ansi-dim">train.jsonl:3 </span><span class="ansi-cyan">[preference] </span>Chosen and rejected answers are identical
+      <span class="ansi-dim">→ The pair carries no preference signal; DPO pushes the same text up and down</span>
+<span class="ansi-bold ansi-red">  ✗ </span><span class="ansi-dim">train.jsonl:4 </span><span class="ansi-cyan">[duplicates] </span>Duplicate of line 1
+      <span class="ansi-dim">→ </span><span class="ansi-bold ansi-cyan ansi-dim">2</span><span class="ansi-dim"> copies total at lines: </span><span class="ansi-bold ansi-dim">[</span><span class="ansi-bold ansi-cyan ansi-dim">1</span><span class="ansi-dim">, </span><span class="ansi-bold ansi-cyan ansi-dim">4</span><span class="ansi-bold ansi-dim">]</span>
+<span class="ansi-bold ansi-yellow">  ! </span><span class="ansi-dim">train.jsonl:5 </span><span class="ansi-cyan">[encoding] </span>Message 1 contains likely mojibake: &#x27;â€™&#x27;
+      <span class="ansi-dim">→ UTF-</span><span class="ansi-bold ansi-cyan ansi-dim">8</span><span class="ansi-dim"> → latin-</span><span class="ansi-bold ansi-cyan ansi-dim">1</span><span class="ansi-dim"> → UTF-</span><span class="ansi-bold ansi-cyan ansi-dim">8</span><span class="ansi-dim"> round-trip artifact</span>
+<span class="ansi-bold ansi-yellow">  ! </span><span class="ansi-dim">train.jsonl:5 </span><span class="ansi-cyan">[pii] </span>Message 1 contains an email address: t***@***.com
+      <span class="ansi-dim">→ The model can learn and repeat it; --fix replaces it with a placeholder</span>
+<span class="ansi-bold ansi-red">  ✗ </span><span class="ansi-dim">train.jsonl:6 </span><span class="ansi-cyan">[eval-overlap] </span>Record also appears in the eval set (eval.jsonl:1)
+      <span class="ansi-dim">→ Training on eval examples inflates the eval score; --fix drops this train record</span>
 
-<span class="t-cmd">$ parallelogram check train.jsonl --eval eval.jsonl --fix --output clean.jsonl</span>
-<span class="t-ok">✓</span> duplicates · 1   <span class="t-ok">✓</span> encoding · 1   <span class="t-ok">✓</span> eval-overlap · 1   <span class="t-ok">✓</span> pii · 1   <span class="t-ok">✓</span> secrets · 1
-<span class="t-err">✗ dropped:</span> train.jsonl:3 → preference (unfixable)
-           train.jsonl:4 → duplicates (dropped as fix)
-           train.jsonl:6 → eval-overlap (dropped as fix)
-<span class="t-dim">→ Wrote 3 records to clean.jsonl</span>                           <span class="t-warn">exit 1</span>
+<span class="ansi-red">╭─</span><span class="ansi-red">────────────</span><span class="ansi-red"> parallelogram </span><span class="ansi-red">─────────────</span><span class="ansi-red">─╮</span>
+<span class="ansi-red">│</span> <span class="ansi-bold">6 records  </span><span class="ansi-green">2 clean  </span><span class="ansi-bold ansi-red">4 errors  </span><span class="ansi-bold ansi-yellow">2 warnings</span> <span class="ansi-red">│</span>
+<span class="ansi-red">╰──────────────────────────────────────────╯</span>
+</pre></div><div class="terminal-run" data-run><div class="terminal-command"><span class="shell-prompt">❯</span> <span data-command="parallelogram check train.jsonl --eval eval.jsonl --fix --output clean.jsonl">parallelogram check train.jsonl --eval eval.jsonl --fix --output clean.jsonl</span><span class="shell-cursor" aria-hidden="true"></span></div><pre class="terminal-output" data-output>
+  <span class="ansi-green">✓</span> <span class="ansi-cyan">duplicates</span> <span class="ansi-dim">·</span> <span class="ansi-bold ansi-cyan">1</span> fix
+  <span class="ansi-green">✓</span> <span class="ansi-cyan">encoding</span> <span class="ansi-dim">·</span> <span class="ansi-bold ansi-cyan">1</span> fix
+  <span class="ansi-green">✓</span> <span class="ansi-cyan">eval-overlap</span> <span class="ansi-dim">·</span> <span class="ansi-bold ansi-cyan">1</span> fix
+  <span class="ansi-green">✓</span> <span class="ansi-cyan">pii</span> <span class="ansi-dim">·</span> <span class="ansi-bold ansi-cyan">1</span> fix
+  <span class="ansi-green">✓</span> <span class="ansi-cyan">secrets</span> <span class="ansi-dim">·</span> <span class="ansi-bold ansi-cyan">1</span> fix
 
-<span class="t-cmd">$ parallelogram check clean.jsonl --eval eval.jsonl</span>
-<span class="t-dim">3 records  3 clean  0 errors  0 warnings</span>                 <span class="t-ok">exit 0</span></code></pre>
-        </details>
+  <span class="ansi-red">✗</span> <span class="ansi-bold">dropped:</span>
+      <span class="ansi-dim">train.jsonl:</span><span class="ansi-bold ansi-cyan">3</span> <span class="ansi-dim">→</span> preference <span class="ansi-bold">(</span>unfixable<span class="ansi-bold">)</span>
+      <span class="ansi-dim">train.jsonl:</span><span class="ansi-bold ansi-cyan">4</span> <span class="ansi-dim">→</span> duplicates <span class="ansi-bold">(</span>dropped as fix<span class="ansi-bold">)</span>
+      <span class="ansi-dim">train.jsonl:</span><span class="ansi-bold ansi-cyan">6</span> <span class="ansi-dim">→</span> eval-overlap <span class="ansi-bold">(</span>dropped as fix<span class="ansi-bold">)</span>
+
+<span class="ansi-yellow">╭─</span><span class="ansi-yellow">──────────────────</span><span class="ansi-yellow"> parallelogram --fix </span><span class="ansi-yellow">──────────────────</span><span class="ansi-yellow">─╮</span>
+<span class="ansi-yellow">│</span> <span class="ansi-bold">6 records  </span><span class="ansi-dim">1 unchanged  </span><span class="ansi-bold ansi-green">2 fixed  </span><span class="ansi-bold ansi-red">3 dropped  </span><span class="ansi-dim">0 unparseable</span> <span class="ansi-yellow">│</span>
+<span class="ansi-yellow">╰───────────────────────────────────────────────────────────╯</span>
+  <span class="ansi-green">→</span> Wrote <span class="ansi-bold ansi-cyan">3</span> records to clean.jsonl
+</pre></div><div class="terminal-run" data-run><div class="terminal-command"><span class="shell-prompt">❯</span> <span data-command="parallelogram check clean.jsonl --eval eval.jsonl">parallelogram check clean.jsonl --eval eval.jsonl</span><span class="shell-cursor" aria-hidden="true"></span></div><pre class="terminal-output" data-output><span class="ansi-bold ansi-cyan">  i </span><span class="ansi-dim">(global) </span><span class="ansi-cyan">[context-window] </span>Context-window counts are approximate
+      <span class="ansi-dim">→ no tokenizer specified — pass --tokenizer </span><span class="ansi-bold ansi-dim">&lt;</span><span class="ansi-bold ansi-dim ansi-magenta">model</span><span class="ansi-bold ansi-dim">&gt;</span><span class="ansi-dim"> </span><span class="ansi-bold ansi-dim">(</span><span class="ansi-dim">e.g. gpt-4o, Qwen/Qwen2.</span><span class="ansi-bold ansi-cyan ansi-dim">5</span><span class="ansi-dim">-7B</span><span class="ansi-bold ansi-dim">)</span><span class="ansi-dim"> for an </span>
+<span class="ansi-dim">exact count</span>
+
+<span class="ansi-green">╭─</span><span class="ansi-green">────────────</span><span class="ansi-green"> parallelogram </span><span class="ansi-green">─────────────</span><span class="ansi-green">─╮</span>
+<span class="ansi-green">│</span> <span class="ansi-bold">3 records  </span><span class="ansi-green">3 clean  </span><span class="ansi-dim">0 errors  </span><span class="ansi-dim">0 warnings</span> <span class="ansi-green">│</span>
+<span class="ansi-green">╰──────────────────────────────────────────╯</span>
+</pre></div><div class="terminal-idle" id="terminal-idle"><span class="shell-prompt">❯</span> <span id="terminal-clear"></span><span class="shell-cursor"></span></div></div></div>
+        <div id="terminal-static" class="terminal-static"><pre><span class="shell-prompt">❯</span> parallelogram check train.jsonl --eval eval.jsonl
+<span class="ansi-bold ansi-cyan">  i </span><span class="ansi-dim">(global) </span><span class="ansi-cyan">[context-window] </span>Context-window counts are approximate
+      <span class="ansi-dim">→ no tokenizer specified — pass --tokenizer </span><span class="ansi-bold ansi-dim">&lt;</span><span class="ansi-bold ansi-dim ansi-magenta">model</span><span class="ansi-bold ansi-dim">&gt;</span><span class="ansi-dim"> </span><span class="ansi-bold ansi-dim">(</span><span class="ansi-dim">e.g. gpt-4o, Qwen/Qwen2.</span><span class="ansi-bold ansi-cyan ansi-dim">5</span><span class="ansi-dim">-7B</span><span class="ansi-bold ansi-dim">)</span><span class="ansi-dim"> for an </span>
+<span class="ansi-dim">exact count</span>
+<span class="ansi-bold ansi-red">  ✗ </span><span class="ansi-dim">train.jsonl:2 </span><span class="ansi-cyan">[secrets] </span>Message 0 contains a likely OpenAI API key: sk-pro…
+      <span class="ansi-dim">→ A model trained on it can repeat it; --fix redacts it</span>
+<span class="ansi-bold ansi-red">  ✗ </span><span class="ansi-dim">train.jsonl:3 </span><span class="ansi-cyan">[preference] </span>Chosen and rejected answers are identical
+      <span class="ansi-dim">→ The pair carries no preference signal; DPO pushes the same text up and down</span>
+<span class="ansi-bold ansi-red">  ✗ </span><span class="ansi-dim">train.jsonl:4 </span><span class="ansi-cyan">[duplicates] </span>Duplicate of line 1
+      <span class="ansi-dim">→ </span><span class="ansi-bold ansi-cyan ansi-dim">2</span><span class="ansi-dim"> copies total at lines: </span><span class="ansi-bold ansi-dim">[</span><span class="ansi-bold ansi-cyan ansi-dim">1</span><span class="ansi-dim">, </span><span class="ansi-bold ansi-cyan ansi-dim">4</span><span class="ansi-bold ansi-dim">]</span>
+<span class="ansi-bold ansi-yellow">  ! </span><span class="ansi-dim">train.jsonl:5 </span><span class="ansi-cyan">[encoding] </span>Message 1 contains likely mojibake: &#x27;â€™&#x27;
+      <span class="ansi-dim">→ UTF-</span><span class="ansi-bold ansi-cyan ansi-dim">8</span><span class="ansi-dim"> → latin-</span><span class="ansi-bold ansi-cyan ansi-dim">1</span><span class="ansi-dim"> → UTF-</span><span class="ansi-bold ansi-cyan ansi-dim">8</span><span class="ansi-dim"> round-trip artifact</span>
+<span class="ansi-bold ansi-yellow">  ! </span><span class="ansi-dim">train.jsonl:5 </span><span class="ansi-cyan">[pii] </span>Message 1 contains an email address: t***@***.com
+      <span class="ansi-dim">→ The model can learn and repeat it; --fix replaces it with a placeholder</span>
+<span class="ansi-bold ansi-red">  ✗ </span><span class="ansi-dim">train.jsonl:6 </span><span class="ansi-cyan">[eval-overlap] </span>Record also appears in the eval set (eval.jsonl:1)
+      <span class="ansi-dim">→ Training on eval examples inflates the eval score; --fix drops this train record</span>
+
+<span class="ansi-red">╭─</span><span class="ansi-red">────────────</span><span class="ansi-red"> parallelogram </span><span class="ansi-red">─────────────</span><span class="ansi-red">─╮</span>
+<span class="ansi-red">│</span> <span class="ansi-bold">6 records  </span><span class="ansi-green">2 clean  </span><span class="ansi-bold ansi-red">4 errors  </span><span class="ansi-bold ansi-yellow">2 warnings</span> <span class="ansi-red">│</span>
+<span class="ansi-red">╰──────────────────────────────────────────╯</span>
+<span class="shell-prompt">❯</span> parallelogram check train.jsonl --eval eval.jsonl --fix --output clean.jsonl
+
+  <span class="ansi-green">✓</span> <span class="ansi-cyan">duplicates</span> <span class="ansi-dim">·</span> <span class="ansi-bold ansi-cyan">1</span> fix
+  <span class="ansi-green">✓</span> <span class="ansi-cyan">encoding</span> <span class="ansi-dim">·</span> <span class="ansi-bold ansi-cyan">1</span> fix
+  <span class="ansi-green">✓</span> <span class="ansi-cyan">eval-overlap</span> <span class="ansi-dim">·</span> <span class="ansi-bold ansi-cyan">1</span> fix
+  <span class="ansi-green">✓</span> <span class="ansi-cyan">pii</span> <span class="ansi-dim">·</span> <span class="ansi-bold ansi-cyan">1</span> fix
+  <span class="ansi-green">✓</span> <span class="ansi-cyan">secrets</span> <span class="ansi-dim">·</span> <span class="ansi-bold ansi-cyan">1</span> fix
+
+  <span class="ansi-red">✗</span> <span class="ansi-bold">dropped:</span>
+      <span class="ansi-dim">train.jsonl:</span><span class="ansi-bold ansi-cyan">3</span> <span class="ansi-dim">→</span> preference <span class="ansi-bold">(</span>unfixable<span class="ansi-bold">)</span>
+      <span class="ansi-dim">train.jsonl:</span><span class="ansi-bold ansi-cyan">4</span> <span class="ansi-dim">→</span> duplicates <span class="ansi-bold">(</span>dropped as fix<span class="ansi-bold">)</span>
+      <span class="ansi-dim">train.jsonl:</span><span class="ansi-bold ansi-cyan">6</span> <span class="ansi-dim">→</span> eval-overlap <span class="ansi-bold">(</span>dropped as fix<span class="ansi-bold">)</span>
+
+<span class="ansi-yellow">╭─</span><span class="ansi-yellow">──────────────────</span><span class="ansi-yellow"> parallelogram --fix </span><span class="ansi-yellow">──────────────────</span><span class="ansi-yellow">─╮</span>
+<span class="ansi-yellow">│</span> <span class="ansi-bold">6 records  </span><span class="ansi-dim">1 unchanged  </span><span class="ansi-bold ansi-green">2 fixed  </span><span class="ansi-bold ansi-red">3 dropped  </span><span class="ansi-dim">0 unparseable</span> <span class="ansi-yellow">│</span>
+<span class="ansi-yellow">╰───────────────────────────────────────────────────────────╯</span>
+  <span class="ansi-green">→</span> Wrote <span class="ansi-bold ansi-cyan">3</span> records to clean.jsonl
+<span class="shell-prompt">❯</span> parallelogram check clean.jsonl --eval eval.jsonl
+<span class="ansi-bold ansi-cyan">  i </span><span class="ansi-dim">(global) </span><span class="ansi-cyan">[context-window] </span>Context-window counts are approximate
+      <span class="ansi-dim">→ no tokenizer specified — pass --tokenizer </span><span class="ansi-bold ansi-dim">&lt;</span><span class="ansi-bold ansi-dim ansi-magenta">model</span><span class="ansi-bold ansi-dim">&gt;</span><span class="ansi-dim"> </span><span class="ansi-bold ansi-dim">(</span><span class="ansi-dim">e.g. gpt-4o, Qwen/Qwen2.</span><span class="ansi-bold ansi-cyan ansi-dim">5</span><span class="ansi-dim">-7B</span><span class="ansi-bold ansi-dim">)</span><span class="ansi-dim"> for an </span>
+<span class="ansi-dim">exact count</span>
+
+<span class="ansi-green">╭─</span><span class="ansi-green">────────────</span><span class="ansi-green"> parallelogram </span><span class="ansi-green">─────────────</span><span class="ansi-green">─╮</span>
+<span class="ansi-green">│</span> <span class="ansi-bold">3 records  </span><span class="ansi-green">3 clean  </span><span class="ansi-dim">0 errors  </span><span class="ansi-dim">0 warnings</span> <span class="ansi-green">│</span>
+<span class="ansi-green">╰──────────────────────────────────────────╯</span>
+</pre></div>
+        <!-- terminal-recording:end -->
       </figure>
       <figure class="terminal" id="pane-ci" role="tabpanel" aria-labelledby="tab-ci" hidden>
         <figcaption><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span>.github/workflows/data.yml</span><span class="mono dim">Thatayotlhe04/Parallelogram@v1</span></figcaption>
@@ -726,12 +750,15 @@ Without `--tokenizer`, token counts are estimates and an estimated overflow is a
 - Fix into a separate file, then check that file.
 - Never overwrite the input or the eval set.
 
-## Animated walkthrough
+## Terminal replay
 
-The CLI panel includes a 20-second animated check → fix → re-check example,
-with play/pause, replay, chapter selection, a scrubber and a full text transcript.
-Playback timing is illustrative, not a runtime benchmark. Reduced-motion
-visitors start with a static frame and can play the walkthrough on demand.
+The CLI panel automatically replays an actual check → fix → re-check session,
+captured from Parallelogram 1.6.1 on a six-record fixture. It preserves the CLI's
+diagnostic text, details, ANSI colors and summary boxes. The final re-check
+exits 0. It runs continuously in a Mac-style terminal with no player controls.
+Focusing pauses the terminal for reading; moving focus away resumes it.
+The full transcript is available without JavaScript and to screen readers.
+Reduced-motion users see a static session instead of autoplay.
 
 ## Model comparisons
 

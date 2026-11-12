@@ -1,107 +1,96 @@
-/* A narrated terminal animation, not a live CLI or a timing benchmark. */
+/* Continuous replay of captured CLI stdout. The browser runs no shell commands. */
 (() => {
   'use strict';
-  const duration = 20000;
-  const starts = [0, 8000, 15000];
-  const captions = [
-    'Find the problems before training starts.',
-    'Repair what is safe. Drop the rest with a reason.',
-    'Re-check the output. Let a clean exit gate your next step.',
-  ];
-  function frameAt(milliseconds) {
-    const time = Math.max(0, Math.min(duration, Number(milliseconds) || 0));
-    const stage = time >= starts[2] ? 2 : time >= starts[1] ? 1 : 0;
-    const local = time - starts[stage];
-    return {time, stage, local, typed: Math.min(1, local / 1600), ended: time === duration};
+  function timeline(commands) {
+    let at = 0;
+    return commands.map((command, index) => {
+      const start = at;
+      const typedAt = start + command.length * 24 + 240;
+      const outputAt = typedAt + 300;
+      at = outputAt + (index === 0 ? 6500 : index === 1 ? 4800 : 4200);
+      return {start, typedAt, outputAt, end: at};
+    });
   }
-  if (typeof module !== 'undefined' && module.exports) module.exports = {frameAt, duration};
+  function frameAt(time, steps) {
+    const duration = steps[steps.length - 1].end;
+    const elapsed = Math.max(0, Number(time) || 0);
+    const index = steps.findIndex(step => elapsed < step.end);
+    const stage = index < 0 ? steps.length - 1 : index;
+    const step = steps[stage];
+    return {stage, typed: Math.min(1, (elapsed - step.start) / (step.typedAt - step.start)),
+      output: elapsed >= step.outputAt,
+      clear: Math.max(0, Math.min(5, Math.floor((elapsed - duration) / 65)))};
+  }
+  if (typeof module !== 'undefined' && module.exports) module.exports = {timeline, frameAt};
   if (typeof document === 'undefined') return;
-  const player = document.getElementById('cli-demo');
-  if (!player) return;
   const byId = id => document.getElementById(id);
-  const pane = byId('pane-cli');
-  const toggle = byId('demo-toggle'), seek = byId('demo-seek');
-  const scenes = Array.from(player.querySelectorAll('[data-scene]')).map(element => ({
-    element, command: element.querySelector('[data-command]'),
-    lines: Array.from(element.querySelectorAll('[data-at]')),
+  const screen = byId('terminal-screen');
+  if (!screen) return;
+  const pane = byId('pane-cli'), transcript = byId('terminal-static');
+  const runs = Array.from(screen.querySelectorAll('[data-run]')).map(element => ({
+    element, command: element.querySelector('[data-command]'), output: element.querySelector('[data-output]'),
   }));
-  const chapters = Array.from(player.querySelectorAll('[data-demo-stage]'));
+  const steps = timeline(runs.map(run => run.command.dataset.command));
+  const duration = steps[steps.length - 1].end;
+  const cycle = duration + 850;
   const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
-  let time = 0, playing = false, started = false, raf = 0, previous = null;
+  let time = 0, playing = false, inView = false, reading = false, previous = null, raf = 0;
+  let lastStage = -1, lastOutput = false;
   function render() {
-    const frame = frameAt(time);
-    player.dataset.stage = String(frame.stage);
-    player.classList.toggle('is-playing', playing);
-    scenes.forEach((scene, index) => {
-      scene.element.hidden = index !== frame.stage;
-      if (index !== frame.stage) return;
-      const full = scene.command.dataset.command;
-      const typed = motion.matches ? 1 : frame.typed;
-      scene.command.textContent = full.slice(0, Math.ceil(full.length * typed));
-      scene.element.classList.toggle('is-typing', playing && typed < 1);
-      scene.lines.forEach(line => {
-        line.classList.toggle('is-visible', motion.matches || frame.local >= Number(line.dataset.at));
-      });
+    const state = frameAt(time, steps);
+    screen.classList.toggle('is-running', playing);
+    runs.forEach((run, index) => {
+      run.element.hidden = index > state.stage;
+      const full = run.command.dataset.command;
+      const text = index < state.stage ? full : index === state.stage ? full.slice(0, Math.ceil(full.length * state.typed)) : '';
+      if (run.command.textContent !== text) run.command.textContent = text;
+      run.output.hidden = !(index < state.stage || index === state.stage && state.output);
+      run.element.classList.toggle('is-typing', index === state.stage && !state.output);
     });
-    chapters.forEach((chapter,index) => {
-      chapter.setAttribute('aria-pressed', String(index === frame.stage));
-      chapter.classList.toggle('is-complete', index < frame.stage || frame.ended);
-    });
-    byId('demo-caption').textContent = captions[frame.stage];
-    toggle.innerHTML = playing ? '<span aria-hidden="true">Ⅱ</span> Pause' : frame.ended ? '<span aria-hidden="true">↻</span> Replay' : '<span aria-hidden="true">▶</span> Play';
-    toggle.setAttribute('aria-label', playing ? 'Pause demo' : frame.ended ? 'Replay demo from start' : 'Play demo');
-    seek.value = (time / 1000).toFixed(1);
-    seek.style.setProperty('--progress', `${time / duration * 100}%`);
-    seek.setAttribute('aria-valuetext', `${Math.floor(time / 1000)} of 20 seconds`);
-    byId('demo-clock').textContent = `0:${String(Math.floor(time / 1000)).padStart(2,'0')} / 0:20`;
+    byId('terminal-idle').hidden = state.stage !== runs.length - 1 || !state.output;
+    byId('terminal-clear').textContent = 'clear'.slice(0, state.clear);
+    // Scroll only this terminal when new output arrives. Page position stays fixed.
+    if (playing && (state.stage !== lastStage || state.output !== lastOutput)) screen.scrollTop = screen.scrollHeight;
+    lastStage = state.stage; lastOutput = state.output;
   }
   function pause() {
-    playing = false; previous = null;
-    cancelAnimationFrame(raf); render();
+    playing = false; previous = null; cancelAnimationFrame(raf); render();
   }
   function tick(now) {
     if (!playing) return;
-    if (previous !== null) time = Math.min(duration, time + now - previous);
+    if (previous !== null) time += now - previous;
     previous = now;
-    if (time === duration) { pause(); return; }
+    if (time >= cycle) {
+      time %= cycle; lastStage = -1; lastOutput = false;
+      screen.scrollTop = 0; screen.scrollLeft = 0;
+    }
     render(); raf = requestAnimationFrame(tick);
   }
-  function play() {
+  function sync() {
+    const on = inView && !reading && !motion.matches && !document.hidden && !pane.hidden && document.documentElement.dataset.mode !== 'agent';
+    if (!on) { pause(); return; }
     if (playing) return;
-    if (time >= duration) time = 0;
-    started = true; playing = true; previous = null;
-    render(); raf = requestAnimationFrame(tick);
+    playing = true; previous = null; render(); raf = requestAnimationFrame(tick);
   }
-  toggle.addEventListener('click', () => { started = true; if (playing) pause(); else play(); });
-  byId('demo-replay').addEventListener('click', () => { pause(); time = 0; play(); });
-  seek.addEventListener('input', () => {
-    const next = Number(seek.value) * 1000;
-    started = true; pause(); time = frameAt(next).time; render();
-  });
-  chapters.forEach((chapter, index) => chapter.addEventListener('click', () => {
-    started = true; pause();
-    // A chapter selection shows its result immediately; Play continues from it.
-    time = starts[index] + (index === 0 ? 6000 : index === 1 ? 5500 : 3500);
-    render();
-  }));
-  document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
-  motion.addEventListener('change', () => { pause(); });
-  // Switching to CI/Agents or Agent view must not leave an invisible demo playing.
+  screen.addEventListener('focusin', () => { reading = true; sync(); });
+  screen.addEventListener('focusout', () => { reading = false; sync(); });
+  screen.addEventListener('wheel', () => { screen.focus(); }, {passive:true});
+  document.addEventListener('visibilitychange', sync);
+  function accessibility() {
+    screen.hidden = motion.matches;
+    transcript.classList.toggle('sr-only', !motion.matches);
+    sync();
+  }
+  motion.addEventListener('change', accessibility);
   if (typeof MutationObserver !== 'undefined') {
-    const visibility = new MutationObserver(() => {
-      if (pane.hidden || document.documentElement.dataset.mode === 'agent') pause();
-    });
+    const visibility = new MutationObserver(sync);
     visibility.observe(pane, {attributes:true, attributeFilter:['hidden']});
     visibility.observe(document.documentElement, {attributes:true, attributeFilter:['data-mode']});
   }
-  byId('demo-transcript').open = false;
-  player.hidden = false;
-  render();
+  accessibility(); render();
   if (typeof IntersectionObserver !== 'undefined') {
     new IntersectionObserver(entries => {
-      const visible = entries.some(entry => entry.isIntersecting);
-      if (!visible) pause();
-      else if (!started && !motion.matches && !document.hidden && !pane.hidden && document.documentElement.dataset.mode !== 'agent') play();
-    }, {threshold:0.35}).observe(player);
-  }
+      inView = entries.some(entry => entry.isIntersecting); sync();
+    }, {threshold:0.3}).observe(pane);
+  } else { inView = true; sync(); }
 })();

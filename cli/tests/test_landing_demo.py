@@ -1,29 +1,33 @@
-"""Check demo playback behavior without a browser or network dependency."""
+"""The landing terminal must faithfully replay real CLI output."""
 import json
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 
 import pytest
 from test_landing_benchmarks import ROOT, parsed_page
 
 
-def test_demo_transcript_and_progressive_controls():
+def test_terminal_recording_matches_cli():
+    subprocess.run([sys.executable, str(ROOT / 'scripts/capture_terminal_demo.py')],
+                   check=True, cwd=ROOT)
+
+
+def test_terminal_transcript_is_available_without_javascript():
     elements = parsed_page()
-    transcript = next(e for e in elements if e.get('id') == 'demo-transcript')
-    assert 'open' in transcript  # Full result available without JavaScript.
-    player = next(e for e in elements if e.get('id') == 'cli-demo')
-    assert 'hidden' in player  # No dead playback controls when scripts are off.
-    scenes = [e for e in elements if 'data-scene' in e]
-    assert len(scenes) == 3
-    screen = next(e for e in elements if e.get('class') == 'demo-screen')
-    assert screen['aria-hidden'] == 'true'  # Transcript provides a stable alternative.
-    source = (ROOT / 'landing/index.html').read_text()
-    assert 'playback timing is illustrative' in source
-    assert '3 records  3 clean  0 errors  0 warnings' in source
+    transcript = next(e for e in elements if e.get('id') == 'terminal-static')
+    assert 'hidden' not in transcript
+    assert 'sr-only' not in transcript.get('class', '')
+    screen = next(e for e in elements if e.get('id') == 'terminal-screen')
+    assert 'hidden' in screen
+    assert len([e for e in elements if 'data-run' in e]) == 3
+    assert not any(e.get('id') in ('demo-clock', 'demo-seek', 'terminal-controls', 'terminal-toggle', 'terminal-replay') for e in elements)
+    recording = json.loads((ROOT / 'landing/terminal-recording.json').read_text())
+    assert [clip['exit_code'] for clip in recording['commands']] == [2, 1, 0]
 
 
-def test_demo_playback():
+def test_terminal_replay():
     node = shutil.which('node')
     if not node:
         pytest.skip('Node is needed for the landing-page interaction tests')

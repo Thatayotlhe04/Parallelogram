@@ -91,12 +91,15 @@ Without `--tokenizer`, token counts are estimates and an estimated overflow is a
 - Fix into a separate file, then check that file.
 - Never overwrite the input or the eval set.
 
-## Animated walkthrough
+## Terminal replay
 
-The CLI panel includes a 20-second animated check → fix → re-check example,
-with play/pause, replay, chapter selection, a scrubber and a full text transcript.
-Playback timing is illustrative, not a runtime benchmark. Reduced-motion
-visitors start with a static frame and can play the walkthrough on demand.
+The CLI panel automatically replays an actual check → fix → re-check session,
+captured from Parallelogram 1.6.1 on a six-record fixture. It preserves the CLI's
+diagnostic text, details, ANSI colors and summary boxes. The final re-check
+exits 0. It runs continuously in a Mac-style terminal with no player controls.
+Focusing pauses the terminal for reading; moving focus away resumes it.
+The full transcript is available without JavaScript and to screen readers.
+Reduced-motion users see a static session instead of autoplay.
 
 ## Model comparisons
 
