@@ -91,9 +91,22 @@ Without `--tokenizer`, token counts are estimates and an estimated overflow is a
 - Fix into a separate file, then check that file.
 - Never overwrite the input or the eval set.
 
+## Animated walkthrough
+
+The CLI panel includes a 20-second animated check → fix → re-check example,
+with play/pause, replay, chapter selection, a scrubber and a full text transcript.
+Playback timing is illustrative, not a runtime benchmark. Reduced-motion
+visitors start with a static frame and can play the walkthrough on demand.
+
 ## Model comparisons
 
-The landing page compares API costs and self-hosted model ownership. It is not
+The landing page leads with the impact of training-data defects: empty answers
+reduced accuracy by 22.4 percentage points in the 30% injection test (4.6 at
+10%). This is damage measured in a controlled model, not accuracy recovered by
+Parallelogram. The practical benefit is flagging these checkable defects before
+training, separating eval data, redacting secrets and re-checking repairs.
+
+Additional views compare API costs and self-hosted model ownership. It is not
 an intelligence ranking. Pricing is a fixed snapshot from 12 November 2026.
 One task means 1,500 input and 200 billed output tokens, including reasoning.
 

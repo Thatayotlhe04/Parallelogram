@@ -27,6 +27,7 @@
   <link rel="stylesheet" href="styles.css">
   <script src="main.js" defer></script>
   <script src="benchmarks.js" defer></script>
+  <script src="demo.js" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -154,16 +155,64 @@
 
 
     <!-- Terminal -->
-    <section class="section center" aria-labelledby="run-title">
+    <section id="demo" class="section center" aria-labelledby="run-title">
       <div class="pill-toggle" role="tablist" aria-label="Where it runs">
         <button type="button" role="tab" id="tab-cli" aria-selected="true" aria-controls="pane-cli">CLI</button>
         <button type="button" role="tab" id="tab-ci" aria-selected="false" aria-controls="pane-ci" tabindex="-1">CI</button>
         <button type="button" role="tab" id="tab-agents" aria-selected="false" aria-controls="pane-agents" tabindex="-1">Agents</button>
       </div>
       <h2 id="run-title">Catch It Before The GPU Does</h2>
-      <p class="sub">One command between your dataset and your trainer: on your machine, in CI, or called by your coding agent.</p>
+      <p class="sub">Watch a broken dataset become a checked training file. Check, fix, and re-check in a 20-second walkthrough.</p>
       <figure class="terminal" id="pane-cli" role="tabpanel" aria-labelledby="tab-cli">
         <figcaption><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span>train.jsonl</span><span class="mono dim">parallelogram 1.6.1</span></figcaption>
+<div id="cli-demo" class="cli-demo" hidden>
+          <div class="demo-heading"><span class="demo-eyebrow">SEE IT IN ACTION</span><span class="demo-duration">20 SEC · ANIMATED WALKTHROUGH</span></div>
+          <div class="demo-chapters" role="group" aria-label="Demo chapters">
+            <button type="button" data-demo-stage="0" aria-pressed="true"><span>01</span> Check <i aria-hidden="true">→</i></button>
+            <button type="button" data-demo-stage="1" aria-pressed="false"><span>02</span> Fix <i aria-hidden="true">→</i></button>
+            <button type="button" data-demo-stage="2" aria-pressed="false"><span>03</span> Re-check <i aria-hidden="true">✓</i></button>
+          </div>
+          <div class="demo-screen" aria-hidden="true">
+            <div class="demo-scene" data-scene="0">
+              <p class="demo-command"><span>$</span> <code data-command="parallelogram check train.jsonl --eval eval.jsonl">parallelogram check train.jsonl --eval eval.jsonl</code><i class="demo-cursor"></i></p>
+              <div class="demo-output">
+                <p data-at="1900" class="t-err"><b>✗ secrets</b><span>Line 2 · likely API key: sk-pro…</span></p>
+                <p data-at="2450" class="t-err"><b>✗ preference</b><span>Line 3 · chosen and rejected answers match</span></p>
+                <p data-at="3000" class="t-err"><b>✗ duplicates</b><span>Line 4 · duplicate of line 1</span></p>
+                <p data-at="3550" class="t-warn"><b>! encoding</b><span>Line 5 · mojibake in training text</span></p>
+                <p data-at="4100" class="t-warn"><b>! pii</b><span>Line 5 · email address: t***@***.com</span></p>
+                <p data-at="4650" class="t-err"><b>✗ eval-overlap</b><span>Line 6 · prompt also in the eval set</span></p>
+                <div class="demo-result" data-at="5350"><span>6 records · 4 errors · 2 warnings</span><strong class="t-err">exit 2</strong></div>
+              </div>
+            </div>
+            <div class="demo-scene" data-scene="1" hidden>
+              <p class="demo-command"><span>$</span> <code data-command="parallelogram check train.jsonl --eval eval.jsonl --fix --output clean.jsonl">parallelogram check train.jsonl --eval eval.jsonl --fix --output clean.jsonl</code><i class="demo-cursor"></i></p>
+              <div class="demo-output">
+                <p data-at="1900" class="t-ok"><b>✓ repaired</b><span>Encoding normalized · secrets and PII redacted</span></p>
+                <p data-at="2700" class="t-ok"><b>✓ removed</b><span>Duplicate and eval-overlap records</span></p>
+                <p data-at="3500" class="t-warn"><b>↳ dropped</b><span>Unfixable preference pair · reason preserved</span></p>
+                <div class="demo-file" data-at="4400"><span aria-hidden="true">▱</span><div><strong>clean.jsonl</strong><small>3 records written · original file preserved</small></div></div>
+                <div class="demo-result" data-at="5100"><span>3 records dropped · re-check next</span><strong class="t-warn">exit 1</strong></div>
+              </div>
+            </div>
+            <div class="demo-scene" data-scene="2" hidden>
+              <p class="demo-command"><span>$</span> <code data-command="parallelogram check clean.jsonl --eval eval.jsonl">parallelogram check clean.jsonl --eval eval.jsonl</code><i class="demo-cursor"></i></p>
+              <div class="demo-output">
+                <div class="demo-success" data-at="1900"><span class="demo-success-mark">✓</span><h3>Checks passed.</h3><p>3 clean records. No errors. No warnings.</p><strong>exit 0</strong></div>
+                <p class="demo-ready-note" data-at="2900">The next step is training—not debugging the file.</p>
+              </div>
+            </div>
+          </div>
+          <p class="demo-caption" id="demo-caption">Find the problems before training starts.</p>
+          <div class="demo-player">
+            <button type="button" id="demo-toggle" aria-label="Play demo"><span aria-hidden="true">▶</span> Play</button>
+            <button type="button" id="demo-replay" aria-label="Replay demo">↻</button>
+            <label class="sr-only" for="demo-seek">Demo playback position</label><input id="demo-seek" type="range" min="0" max="20" value="0" step="0.1" aria-valuetext="0 of 20 seconds">
+            <span id="demo-clock" class="demo-clock">0:00 / 0:20</span>
+          </div>
+          <p class="demo-disclaimer">Example workflow · playback timing is illustrative · condensed output</p>
+        </div>
+        <details id="demo-transcript" class="demo-transcript" open><summary>Read the full transcript <span aria-hidden="true">+</span></summary>
 <pre><code><span class="t-cmd">$ parallelogram check train.jsonl --eval eval.jsonl</span>
 <span class="t-err">✗ train.jsonl:2 [secrets] Message 0 contains a likely OpenAI API key: sk-pro…</span>
 <span class="t-err">✗ train.jsonl:3 [preference] Chosen and rejected answers are identical</span>
@@ -182,6 +231,7 @@
 
 <span class="t-cmd">$ parallelogram check clean.jsonl --eval eval.jsonl</span>
 <span class="t-dim">3 records  3 clean  0 errors  0 warnings</span>                 <span class="t-ok">exit 0</span></code></pre>
+        </details>
       </figure>
       <figure class="terminal" id="pane-ci" role="tabpanel" aria-labelledby="tab-ci" hidden>
         <figcaption><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span>.github/workflows/data.yml</span><span class="mono dim">Thatayotlhe04/Parallelogram@v1</span></figcaption>
@@ -223,15 +273,33 @@
     <!-- Model comparisons: sourced API prices, editable deployment scenario, measured data quality. -->
     <section id="benchmarks" class="section benchmarks" aria-labelledby="benchmarks-title">
       <div class="bench-intro">
-        <p class="bench-kicker"><span></span> FRONTIER CAPABILITY. YOUR OWN ADVANTAGE.</p>
-        <h2 id="benchmarks-title">Big models. <span>Smarter tradeoffs.</span></h2>
-        <p>Rent broad intelligence. Fine-tune for the work you repeat.<br class="desktop-break"> Compare the tradeoffs, then build on data you can trust.</p>
+        <p class="bench-kicker"><span></span> THE CASE FOR CHECKING FIRST.</p>
+        <h2 id="benchmarks-title">Your advantage starts <span>before training.</span></h2>
+        <p>A fine-tuned model learns your data—including its mistakes.<br class="desktop-break"> Catch checkable defects before you spend GPU hours.</p>
       </div>
       <div class="comparison-board">
         <div class="compare-tabs" role="tablist" aria-label="Model comparisons" hidden>
-          <button id="tab-cost" type="button" role="tab" aria-controls="panel-cost" aria-selected="true"><span aria-hidden="true">▥</span> Cost at scale</button>
+          <button id="tab-quality" type="button" role="tab" aria-controls="panel-quality" aria-selected="true"><span aria-hidden="true">◈</span> Why check first</button>
+          <button id="tab-cost" type="button" role="tab" aria-controls="panel-cost" aria-selected="false" tabindex="-1"><span aria-hidden="true">▥</span> Cost at scale</button>
           <button id="tab-fit" type="button" role="tab" aria-controls="panel-fit" aria-selected="false" tabindex="-1"><span aria-hidden="true">⊞</span> What you control</button>
-          <button id="tab-quality" type="button" role="tab" aria-controls="panel-quality" aria-selected="false" tabindex="-1"><span aria-hidden="true">◈</span> Why data matters</button>
+        </div>
+        <div id="panel-quality" class="compare-panel" role="tabpanel" aria-labelledby="tab-quality" tabindex="0">
+          <div class="chart-topline"><div><h3>Same model. Different data. Different result.</h3><p>Exact-match accuracy · higher is better · controlled small-model test</p></div><span class="comparison-label">MEASURED, NOT PROJECTED</span></div>
+          <div class="quality-layout">
+            <figure class="quality-figure" aria-label="Accuracy by training data quality">
+              <div class="quality-controls" hidden><label for="defect-rate">Defect injection</label><select id="defect-rate"><option value="30">30% of training rows</option><option value="10">10% of training rows</option></select></div>
+              <div class="vertical-chart quality-chart"><div class="chart-grid" aria-hidden="true"><span>100%</span><span>67%</span><span>33%</span><span>0%</span></div><div class="model-columns quality-columns">
+                <div class="model-column orange"><div class="column-space"><div class="model-bar" style="--height:100%"><strong>100%</strong></div></div><div class="model-label"><span class="quality-symbol" aria-hidden="true">✓</span><strong>Clean data</strong><span>Baseline</span></div></div>
+                <div class="model-column sand"><div class="column-space"><div class="model-bar" id="empty-bar" style="--height:77.6%"><strong id="empty-score">77.6%</strong></div></div><div class="model-label"><span class="quality-symbol" aria-hidden="true">∅</span><strong>Empty answers</strong><span>Detectable by validation</span></div></div>
+                <div class="model-column lavender"><div class="column-space"><div class="model-bar" id="label-bar" style="--height:68.333333%"><strong id="label-score">68.3%</strong></div></div><div class="model-label"><span class="quality-symbol" aria-hidden="true">≠</span><strong>Wrong labels</strong><span>Needs semantic review</span></div></div>
+              </div></div>
+              <figcaption id="quality-context">30% injection setting; systematic label errors affected 31.9% of rows. 383K parameters · 5 seeds · greedy decoding.</figcaption>
+            </figure>
+            <aside class="quality-story"><span class="comparison-label">THE RISK YOU CAN CATCH</span><p class="quality-stat"><span id="quality-loss">22.4</span><small> pp</small></p><h4>accuracy lost to<br>empty answers.</h4><p>In this test, blank training answers hurt the model. Parallelogram flags empty turns <strong>before training starts.</strong></p><div class="quality-boundary">This measures damage from bad data, not accuracy recovered by the tool. Wrong labels still need semantic review.</div></aside>
+          </div>
+          <div class="impact-actions" aria-label="What Parallelogram helps you catch"><div><span>01 · VALIDATE</span><strong>Stop broken records.</strong><p>Flag empty turns, malformed examples and invalid roles before training.</p></div><div><span>02 · PROTECT</span><strong>Keep eval data separate.</strong><p>Catch train/eval overlap and redact secrets before they reach model weights.</p></div><div><span>03 · VERIFY</span><strong>Re-check what you fix.</strong><p>In a separate test: 18 of 23 defect types flagged at 98–100% recall.</p></div></div>
+          <details class="compare-details"><summary>Test setup &amp; limits <span aria-hidden="true">+</span></summary><div><p>Accuracy: locally built 383K-parameter GPT-style model, 2,000 fine-tuning examples, 600 held-out extraction examples, five seeds. At 30% injection, empty answers reduced mean accuracy by 22.4 percentage points (95% paired t-interval: 18.8–26.0); systematic errors by 31.7 (30.3–33.1). At 10% the reductions were 4.6 (3.3–5.9) and 12.2 (10.6–13.8). Systematic errors actually affected 12.1% and 31.9% of rows.</p><p>Detection: separate test of Parallelogram 1.6.1, 100 injected rows per defect type, all rules, approximate token counts with a 2,048-token limit. The 98–100% range includes warnings. The base was filtered by all detectors, so false positives on natural data are not estimated. Both tests were conducted by Parallelogram’s author; these results do not measure accuracy recovered by the linter, production-model quality, or performance against frontier APIs.</p><p><a href="benchmark-evidence.json">Download experiment results ↗</a></p></div></details>
+          <p class="sr-only" id="quality-announcement" aria-live="polite"></p>
         </div>
         <div id="panel-cost" class="compare-panel" role="tabpanel" aria-labelledby="tab-cost" tabindex="0">
           <div class="chart-topline">
@@ -296,23 +364,6 @@
           </div>
           <div class="fit-verdict"><span aria-hidden="true">↗</span><p><strong>They can work together.</strong> Route familiar work to your specialized model and escalate the harder cases to a frontier API.</p></div>
           <p class="compare-footnote">“In-house” here means a self-hosted, fine-tuned open-weight model—not training a foundation model from scratch. Capability depends on the base, data and task.</p>
-        </div>
-        <div id="panel-quality" class="compare-panel" role="tabpanel" aria-labelledby="tab-quality" tabindex="0">
-          <div class="chart-topline"><div><h3>Your model learns what your data teaches.</h3><p>Exact-match accuracy · higher is better · controlled small-model test</p></div><span class="comparison-label">MEASURED, NOT PROJECTED</span></div>
-          <div class="quality-layout">
-            <figure class="quality-figure" aria-label="Accuracy by training data quality">
-              <div class="quality-controls" hidden><label for="defect-rate">Defect injection</label><select id="defect-rate"><option value="30">30% of training rows</option><option value="10">10% of training rows</option></select></div>
-              <div class="vertical-chart quality-chart"><div class="chart-grid" aria-hidden="true"><span>100%</span><span>67%</span><span>33%</span><span>0%</span></div><div class="model-columns quality-columns">
-                <div class="model-column orange"><div class="column-space"><div class="model-bar" style="--height:100%"><strong>100%</strong></div></div><div class="model-label"><span class="quality-symbol" aria-hidden="true">✓</span><strong>Clean data</strong><span>Baseline</span></div></div>
-                <div class="model-column sand"><div class="column-space"><div class="model-bar" id="empty-bar" style="--height:77.6%"><strong id="empty-score">77.6%</strong></div></div><div class="model-label"><span class="quality-symbol" aria-hidden="true">∅</span><strong>Empty answers</strong><span>Detectable by validation</span></div></div>
-                <div class="model-column lavender"><div class="column-space"><div class="model-bar" id="label-bar" style="--height:68.333333%"><strong id="label-score">68.3%</strong></div></div><div class="model-label"><span class="quality-symbol" aria-hidden="true">≠</span><strong>Wrong labels</strong><span>Needs semantic review</span></div></div>
-              </div></div>
-              <figcaption id="quality-context">30% injection setting; systematic label errors affected 31.9% of rows. 383K parameters · 5 seeds · greedy decoding.</figcaption>
-            </figure>
-            <aside class="quality-story"><span class="comparison-label">BEFORE YOU FINE-TUNE</span><p class="quality-stat">18<span>/23</span></p><h4>defect types flagged<br>at 98–100% recall.</h4><p>Parallelogram catches checkable problems in your training data before they become part of your model.</p><div class="quality-boundary">A valid dataset is the starting line. Semantic quality still needs human review and task evaluations.</div></aside>
-          </div>
-          <details class="compare-details"><summary>Test setup &amp; limits <span aria-hidden="true">+</span></summary><div><p>Accuracy: locally built 383K-parameter GPT-style model, 2,000 fine-tuning examples, 600 held-out extraction examples, five seeds. At 30% injection, empty answers reduced mean accuracy by 22.4 percentage points (95% paired t-interval: 18.8–26.0); systematic errors by 31.7 (30.3–33.1). At 10% the reductions were 4.6 (3.3–5.9) and 12.2 (10.6–13.8). Systematic errors actually affected 12.1% and 31.9% of rows.</p><p>Detection: separate test of Parallelogram 1.6.1, 100 injected rows per defect type, all rules, approximate token counts with a 2,048-token limit. The 98–100% range includes warnings. The base was filtered by all detectors, so false positives on natural data are not estimated. Both tests were conducted by Parallelogram’s author; these results do not measure accuracy recovered by the linter, production-model quality, or performance against frontier APIs.</p><p><a href="benchmark-evidence.json">Download experiment results ↗</a></p></div></details>
-          <p class="sr-only" id="quality-announcement" aria-live="polite"></p>
         </div>
         <div class="comparison-bottom"><span class="pipeline-mark" aria-hidden="true">▱</span><p><strong>Whichever model you choose, start with better data.</strong><span>Check structure, duplicates, leakage and secrets before you train.</span></p><a href="#how">See how Parallelogram fits <span aria-hidden="true">→</span></a></div>
       </div>
@@ -675,9 +726,22 @@ Without `--tokenizer`, token counts are estimates and an estimated overflow is a
 - Fix into a separate file, then check that file.
 - Never overwrite the input or the eval set.
 
+## Animated walkthrough
+
+The CLI panel includes a 20-second animated check → fix → re-check example,
+with play/pause, replay, chapter selection, a scrubber and a full text transcript.
+Playback timing is illustrative, not a runtime benchmark. Reduced-motion
+visitors start with a static frame and can play the walkthrough on demand.
+
 ## Model comparisons
 
-The landing page compares API costs and self-hosted model ownership. It is not
+The landing page leads with the impact of training-data defects: empty answers
+reduced accuracy by 22.4 percentage points in the 30% injection test (4.6 at
+10%). This is damage measured in a controlled model, not accuracy recovered by
+Parallelogram. The practical benefit is flagging these checkable defects before
+training, separating eval data, redacting secrets and re-checking repairs.
+
+Additional views compare API costs and self-hosted model ownership. It is not
 an intelligence ranking. Pricing is a fixed snapshot from 12 November 2026.
 One task means 1,500 input and 200 billed output tokens, including reasoning.
 
