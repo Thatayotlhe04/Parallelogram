@@ -80,31 +80,39 @@ and transitions. No looping effects, animation libraries or hidden initial conte
 
 ## Product walkthrough
 
-`demo.js` synchronizes an editor, a terminal and plain-language explanations.
-The three-record support dataset has one duplicate and one synthetic private
-email. The sequence highlights each issue, runs `--fix --output clean.jsonl`,
-opens the actual output file, then validates it. Input records stay unchanged.
-The editor is an illustrative development workspace, not a new product GUI.
+The CLI panel is two windows on `scene-backdrop.webp` (an original, generated
+painting). Behind: an editor showing lines 2128–2149 of the demo dataset's
+`data/train.jsonl`, exactly as the file has them, with the pasted key on line
+2131 selected. In front: `demo/terminal-108.mp4`, a screen recording of a real
+bash session in that project. Below 760px only the 60-column recording
+(`demo/terminal-60.mp4`) shows.
 
-`scripts/capture_terminal_demo.py` runs the actual CLI in a temporary directory
-and captures input/output records plus ANSI stdout at 72 columns. The saved
-`terminal-recording.json` and generated HTML must match a fresh run. No JSONL
-dataset files are committed. Exit codes are 2 → 1 → 0: dropping a duplicate
-produces a partial-fix exit even though the new file passes its next check.
+`scripts/demo/record.py` builds the synthetic 2,412-ticket support export
+(`scripts/demo_dataset.py`) in a temporary git project, drives an interactive
+bash in a real pty with scripted keystrokes, and saves an asciicast. Readline,
+parallelogram and jq produce every byte on screen. `scripts/demo/render.py`
+replays the cast through xterm.js in Chrome at 2x and encodes H.264 plus a
+poster of the finished run.
 
-The display types commands and highlights issues with presentation pacing;
-it does not execute code in the visitor's browser or claim execution timings.
-There are no playback buttons, chapter controls, progress bars or timers.
-It automatically loops, pauses offscreen/in hidden tabs and on keyboard focus,
-and respects reduced motion. The completed result and transcript are available
-with reduced motion; no-JavaScript users receive the explanation and transcript.
+Names and contacts in the dataset are fictional (Fabrikam/Contoso, Ofcom's
+07700 900xxx drama range) and the API key is random characters.
+
+`scripts/capture_terminal_demo.py` re-runs every recorded command against a
+fresh copy of the project and fails if any output differs from the recording,
+then keeps the page's transcript and editor lines in step. The video plays only while visible,
+pauses on keyboard focus and in hidden tabs, and never plays under reduced
+motion (the poster and transcript show instead). No playback controls.
 
 From the repo root, with the local CLI installed in the current Python env:
 
 ```sh
-python scripts/capture_terminal_demo.py          # verify captured files and stdout
-python scripts/capture_terminal_demo.py --write  # recapture and rebuild the scene
+python scripts/capture_terminal_demo.py            # verify the recording against the CLI
+python scripts/capture_terminal_demo.py --record   # re-record both sessions (bash, git, jq)
+npm install --prefix scripts/demo                  # xterm.js and JetBrains Mono for rendering
+python scripts/demo/render.py scripts/demo/session-108.cast landing/demo/terminal-108.mp4 landing/demo/terminal-108.webp
+python scripts/demo/render.py scripts/demo/session-60.cast landing/demo/terminal-60.mp4 landing/demo/terminal-60.webp
+python scripts/capture_terminal_demo.py --write    # refresh the transcript block
 ```
 
-Tests cover faithful file changes, scene/output synchronization, autonomous
-cycles, pause/resume and reduced motion.
+Tests cover the recording against a fresh CLI run, the media files, visibility
+and focus pausing, the narrow recording and reduced motion.

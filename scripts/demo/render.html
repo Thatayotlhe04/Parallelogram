@@ -1,0 +1,57 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="xterm.css">
+<!-- Render page for scripts/demo/render.py: one terminal window drawn at 2x. -->
+<style>
+  @font-face { font-family: "JetBrains Mono"; src: url(jetbrains-mono-latin-400-normal.woff2) format("woff2"); font-weight: 400; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+  @font-face { font-family: "JetBrains Mono"; src: url(jetbrains-mono-latin-ext-400-normal.woff2) format("woff2"); font-weight: 400; unicode-range: U+0100-02AF, U+0304, U+0308, U+0329, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+  @font-face { font-family: "JetBrains Mono"; src: url(jetbrains-mono-latin-700-normal.woff2) format("woff2"); font-weight: 700; }
+  @font-face { font-family: "Inter"; src: url(Inter-Variable.woff2) format("woff2"); font-weight: 100 900; }
+  html, body { margin: 0; background: #000; zoom: 1; }
+  :root { --s: 2; }
+  #win { display: inline-block; background: var(--bg); }
+  .bar { position: relative; height: calc(36px * var(--s)); display: flex; align-items: center; justify-content: center; background: #1e1c19; border-bottom: calc(1px * var(--s)) solid #0b0a09; font: 500 calc(12.5px * var(--s))/1 Inter, sans-serif; color: #a39d94; letter-spacing: .005em; }
+  .lights { position: absolute; left: calc(14px * var(--s)); top: 50%; transform: translateY(-50%); display: flex; gap: calc(8px * var(--s)); }
+  .lights i { width: calc(12px * var(--s)); height: calc(12px * var(--s)); border-radius: 50%; box-shadow: inset 0 0 0 .5px rgba(0,0,0,.35); }
+  .lights i:nth-child(1) { background: #ff5f57; } .lights i:nth-child(2) { background: #febc2e; } .lights i:nth-child(3) { background: #28c840; }
+  #term { padding: calc(14px * var(--s)) calc(18px * var(--s)) calc(16px * var(--s)); }
+  .xterm .xterm-viewport { overflow: hidden !important; }
+</style>
+</head>
+<body>
+<div id="win"><div class="bar"><span class="lights"><i></i><i></i><i></i></span><span id="title">support-sft — bash — 112×34</span></div><div id="term"></div></div>
+<script src="xterm.js"></script>
+<script src="addon-canvas.js"></script>
+<script>
+const BG = '#161411';
+document.documentElement.style.setProperty('--bg', BG);
+const theme = {
+  background: BG, foreground: '#e7e2d9', cursor: '#e7e2d9', cursorAccent: BG, selectionBackground: '#3a352e',
+  black: '#1f1c18', red: '#f07a76', green: '#72cc8f', yellow: '#e6c062', blue: '#7aa6da', magenta: '#c89ee0', cyan: '#6dbfcc', white: '#d9d3c9',
+  brightBlack: '#6b655d', brightRed: '#ff9490', brightGreen: '#8fe0a8', brightYellow: '#f2d27e', brightBlue: '#97bde8', brightMagenta: '#d9b6ee', brightCyan: '#8fd3dd', brightWhite: '#f6f2ea',
+};
+window.setup = async (cols, rows) => {
+  await document.fonts.load('400 25px "JetBrains Mono"'); await document.fonts.load('700 25px "JetBrains Mono"');
+  await document.fonts.load('500 25px Inter');
+  const term = new Terminal({ cols, rows, fontFamily: '"JetBrains Mono", "DejaVu Sans Mono", monospace', fontSize: 25, lineHeight: 1.2,
+    letterSpacing: 0, theme, cursorBlink: false, cursorStyle: 'block', allowTransparency: false, scrollback: 0, customGlyphs: true,
+    drawBoldTextInBrightColors: false, minimumContrastRatio: 1 });
+  term.open(document.getElementById('term'));
+  try { term.loadAddon(new CanvasAddon.CanvasAddon()); window.renderer = 'canvas'; } catch (e) { window.renderer = 'dom:' + e; }
+  window.term = term; term.focus();
+  document.getElementById('title').textContent = `support-sft — bash — ${cols}×${rows}`;
+  await new Promise(r => setTimeout(r, 200));
+  term.resize(cols + 1, rows); await new Promise(r => setTimeout(r, 100)); term.resize(cols, rows);
+  await new Promise(r => setTimeout(r, 300));
+  const box = document.getElementById('win').getBoundingClientRect();
+  return { w: box.width, h: box.height, renderer: window.renderer };
+};
+window.feed = (chunks) => new Promise(resolve => {
+  if (!chunks.length) return requestAnimationFrame(() => requestAnimationFrame(resolve));
+  term.write(chunks.join(''), () => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+});
+</script>
+</body>
+</html>

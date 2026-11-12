@@ -165,107 +165,106 @@
       <p class="sub">Find the bad examples. Fix what you can. Check the clean file.<br>Here’s what that looks like in a real workflow.</p>
       <figure class="terminal" id="pane-cli" role="tabpanel" aria-labelledby="tab-cli">
         <!-- terminal-recording:start -->
-        <div class="demo-desktop" id="demo-desktop" data-scene="intro" aria-hidden="true">
-          <div class="editor-window">
-            <div class="desktop-titlebar"><span class="mac-lights"><i></i><i></i><i></i></span><span>support-model</span><span class="window-symbol"></span></div>
-            <div class="editor-layout">
-              <aside class="editor-sidebar"><span class="explorer-title">EXPLORER</span><div class="project-folder">⌄ &nbsp; support-model</div><div class="explorer-file original-file"><span class="file-icon">&#123;&#125;</span> train.jsonl <span class="problem-count">2</span></div><div class="explorer-file clean-file"><span class="file-icon">&#123;&#125;</span> clean.jsonl <span class="file-new">U</span></div><div class="explorer-file"><span class="python-icon">◇</span> train.py</div><div class="explorer-file"><span class="readme-icon">≡</span> README.md</div></aside>
-              <div class="editor-main">
-                <div class="editor-tabs"><span class="editor-tab original-file"><span class="file-icon">&#123;&#125;</span> train.jsonl <span>×</span></span><span class="editor-tab clean-file"><span class="file-icon">&#123;&#125;</span> clean.jsonl <span>×</span></span></div>
-                <div class="editor-breadcrumb">support-model <span>›</span> <span id="editor-filename">train.jsonl</span><span class="jsonl-label">JSON Lines</span></div>
-                <div class="editor-code"><div id="source-before"><div class="source-record"><span class="record-number">1</span><pre>{<span class="json-key">"messages"</span>: [
-  {<span class="json-key">"role"</span>: <span class="json-string">&quot;user&quot;</span>, <span class="json-key">"content"</span>: <span class="json-string">&quot;Can I return an item?&quot;</span>},
-  {<span class="json-key">"role"</span>: <span class="json-string">&quot;assistant&quot;</span>, <span class="json-key">"content"</span>: <span class="json-string">&quot;Returns are accepted within 30 days.&quot;</span>}
-]}</pre></div><div class="source-record duplicate-record"><span class="record-number">2</span><pre>{<span class="json-key">"messages"</span>: [
-  {<span class="json-key">"role"</span>: <span class="json-string">&quot;user&quot;</span>, <span class="json-key">"content"</span>: <span class="json-string">&quot;Can I return an item?&quot;</span>},
-  {<span class="json-key">"role"</span>: <span class="json-string">&quot;assistant&quot;</span>, <span class="json-key">"content"</span>: <span class="json-string">&quot;Returns are accepted within 30 days.&quot;</span>}
-]}</pre></div><div class="source-record private-record"><span class="record-number">3</span><pre>{<span class="json-key">"messages"</span>: [
-  {<span class="json-key">"role"</span>: <span class="json-string">&quot;user&quot;</span>, <span class="json-key">"content"</span>: <span class="json-string">&quot;Where is my order?&quot;</span>},
-  {<span class="json-key">"role"</span>: <span class="json-string">&quot;assistant&quot;</span>, <span class="json-key">"content"</span>: <span class="json-string">&quot;Email <mark class="private-value">maya@acme.com</mark> for an update.&quot;</span>}
-]}</pre></div></div><div id="source-after" hidden><div class="source-record"><span class="record-number">1</span><pre>{<span class="json-key">"messages"</span>: [
-  {<span class="json-key">"role"</span>: <span class="json-string">&quot;user&quot;</span>, <span class="json-key">"content"</span>: <span class="json-string">&quot;Can I return an item?&quot;</span>},
-  {<span class="json-key">"role"</span>: <span class="json-string">&quot;assistant&quot;</span>, <span class="json-key">"content"</span>: <span class="json-string">&quot;Returns are accepted within 30 days.&quot;</span>}
-]}</pre></div><div class="source-record"><span class="record-number">2</span><pre>{<span class="json-key">"messages"</span>: [
-  {<span class="json-key">"role"</span>: <span class="json-string">&quot;user&quot;</span>, <span class="json-key">"content"</span>: <span class="json-string">&quot;Where is my order?&quot;</span>},
-  {<span class="json-key">"role"</span>: <span class="json-string">&quot;assistant&quot;</span>, <span class="json-key">"content"</span>: <span class="json-string">&quot;Email <mark class="redacted-value">[REDACTED_EMAIL]</mark> for an update.&quot;</span>}
-]}</pre></div></div></div>
-                <div class="editor-diagnostic" id="editor-diagnostic"><span class="diagnostic-dot"></span><span id="editor-note">3 training examples · customer support</span></div>
+        <div class="scene" id="demo-desktop" data-layout="wide" aria-hidden="true">
+          <div class="scene-stage" id="scene-stage">
+            <div class="win-editor">
+              <div class="ed-bar"><span class="lights"><i></i><i></i><i></i></span>train.jsonl — support-sft</div>
+              <div class="ed-body">
+                <div class="ed-tree"><div class="tree-head">EXPLORER</div><div class="tree-row root">⌄ SUPPORT-SFT</div><div class="tree-row d1">› .github</div><div class="tree-row d1">⌄ configs</div><div class="tree-row d2"><i class="fi fi-yml">≡</i>sft-qwen2.5-7b.yaml</div><div class="tree-row d1">⌄ data</div><div class="tree-row d2"><i class="fi fi-json">{}</i>eval.jsonl</div><div class="tree-row d2 is-active"><i class="fi fi-json">{}</i>train.jsonl</div><div class="tree-row d1">› scripts</div><div class="tree-row d1"><i class="fi fi-git">◆</i>.gitignore</div><div class="tree-row d1"><i class="fi fi-md">ⓘ</i>README.md</div><div class="tree-row d1"><i class="fi fi-py">◆</i>train.py</div></div>
+                <div class="ed-main">
+                  <div class="ed-tabs"><span class="ed-tab is-active"><i class="fi fi-json">{}</i>train.jsonl</span><span class="ed-tab"><i class="fi fi-yml">≡</i>sft-qwen2.5-7b.yaml</span></div>
+                  <div class="ed-crumbs">data <span>›</span> train.jsonl</div>
+                  <div class="ed-code"><div class="ed-line"><span class="ln">2128</span><span class="code"><span class="j-p">{</span><span class="j-k">"messages"</span><span class="j-p">:</span> <span class="j-p">[{</span><span class="j-k">"role"</span><span class="j-p">:</span> <span class="j-s">"user"</span><span class="j-p">,</span> <span class="j-k">"content"</span><span class="j-p">:</span> <span class="j-s">"Why was a AUD 25.29 conversion fee added to INV-2025-72190?"</span><span class="j-p">},</span> <span class="j-p">{</span><span class="j-k">"role"</span><span class="j-p">:</span> <span class="j-s">"assistant"</span><span class="j-p">,</span> <span class="j-k">"content"</span><span class="j-p">:</span> <span class="j-s">"</span><span class="j-n">INV-2025-7</span></span></div><div class="ed-line"><span class="ln">2129</span><span class="code"><span class="j-p">{</span><span class="j-k">"messages"</span><span class="j-p">:</span> <span class="j-p">[{</span><span class="j-k">"role"</span><span class="j-p">:</span> <span class="j-s">"user"</span><span class="j-p">,</span> <span class="j-k">"content"</span><span class="j-p">:</span> <span class="j-s">"Is there a way to export all transactions from 16 October onwards as CSV?"</span><span class="j-p">},</span> <span class="j-p">{</span><span class="j-k">"role"</span><span class="j-p">:</span> <span class="j-s">"assistant"</span><span class="j-p">,</span> <span class="j-s">"</span><span class="j-n">content</span></span></div><div class="ed-line"><span class="ln">2130</span><span class="code"><span class="j-p">{</span><span class="j-k">"messages"</span><span class="j-p">:</span> <span class="j-p">[{</span><span class="j-k">"role"</span><span class="j-p">:</span> <span class="j-s">"user"</span><span class="j-p">,</span> <span class="j-k">"content"</span><span class="j-p">:</span> <span class="j-s">"I was refunded for INV-2025-54886 on 6 November but I still don't see the EUR 6418.20 on my statement."</span><span class="j-p">},</span> <span class="j-p">{</span></span></div><div class="ed-line is-current"><span class="ln">2131</span><span class="code"><span class="j-p">{</span><span class="j-k">"messages"</span><span class="j-p">:</span> <span class="j-p">[{</span><span class="j-k">"role"</span><span class="j-p">:</span> <span class="j-s">"user"</span><span class="j-p">,</span> <span class="j-k">"content"</span><span class="j-p">:</span> <span class="j-s">"401 on every call. Our key: </span><span class="sel"><span class="j-s">sk-proj-pTyGJMuHbEL31IeL2HPcHyGcFRl1SPnXNYvMIHa-2o76umfX</span></span><span class="j-s">"</span><span class="j-p">},</span> <span class="j-p">{</span><span class="j-k">"role"</span><span class="j-p">:</span> <span class="j-s">"</span><span class="j-n">assistant</span></span></div><div class="ed-line"><span class="ln">2132</span><span class="code"><span class="j-p">{</span><span class="j-k">"messages"</span><span class="j-p">:</span> <span class="j-p">[{</span><span class="j-k">"role"</span><span class="j-p">:</span> <span class="j-s">"user"</span><span class="j-p">,</span> <span class="j-k">"content"</span><span class="j-p">:</span> <span class="j-s">"Our accountant wants invoice numbers to start at 5920 this year. Possible?"</span><span class="j-p">},</span> <span class="j-p">{</span><span class="j-k">"role"</span><span class="j-p">:</span> <span class="j-s">"assistant"</span><span class="j-p">,</span> <span class="j-s">"</span><span class="j-n">conten</span></span></div><div class="ed-line"><span class="ln">2133</span><span class="code"><span class="j-p">{</span><span class="j-k">"messages"</span><span class="j-p">:</span> <span class="j-p">[{</span><span class="j-k">"role"</span><span class="j-p">:</span> <span class="j-s">"user"</span><span class="j-p">,</span> <span class="j-k">"content"</span><span class="j-p">:</span> <span class="j-s">"Our accountant wants invoice numbers to start at 1352 this year. Possible?"</span><span class="j-p">},</span> <span class="j-p">{</span><span class="j-k">"role"</span><span class="j-p">:</span> <span class="j-s">"assistant"</span><span class="j-p">,</span> <span class="j-s">"</span><span class="j-n">conten</span></span></div><div class="ed-line"><span class="ln">2134</span><span class="code"><span class="j-p">{</span><span class="j-k">"messages"</span><span class="j-p">:</span> <span class="j-p">[{</span><span class="j-k">"role"</span><span class="j-p">:</span> <span class="j-s">"user"</span><span class="j-p">,</span> <span class="j-k">"content"</span><span class="j-p">:</span> <span class="j-s">"Our payout of CAD 2266.99 scheduled for 14 October hasn't arrived."</span><span class="j-p">},</span> <span class="j-p">{</span><span class="j-k">"role"</span><span class="j-p">:</span> <span class="j-s">"assistant"</span><span class="j-p">,</span> <span class="j-k">"content"</span><span class="j-p">:</span> <span class="j-s">"</span><span class="j-n">Pay</span></span></div><div class="ed-line"><span class="ln">2135</span><span class="code"><span class="j-p">{</span><span class="j-k">"messages"</span><span class="j-p">:</span> <span class="j-p">[{</span><span class="j-k">"role"</span><span class="j-p">:</span> <span class="j-s">"user"</span><span class="j-p">,</span> <span class="j-k">"content"</span><span class="j-p">:</span> <span class="j-s">"A customer disputed INV-2025-21435 (GBP 6581.10). What do we need to send?"</span><span class="j-p">},</span> <span class="j-p">{</span><span class="j-k">"role"</span><span class="j-p">:</span> <span class="j-s">"assistant"</span><span class="j-p">,</span> <span class="j-s">"</span><span class="j-n">conten</span></span></div><div class="ed-line"><span class="ln">2136</span><span class="code"><span class="j-p">{</span><span class="j-k">"messages"</span><span class="j-p">:</span> <span class="j-p">[{</span><span class="j-k">"role"</span><span class="j-p">:</span> <span class="j-s">"user"</span><span class="j-p">,</span> <span class="j-k">"content"</span><span class="j-p">:</span> <span class="j-s">"How do I change the email address our invoices are sent to? We have 49 people on the Starter plan."</span><span class="j-p">},</span> <span class="j-p">{</span><span class="j-s">"</span><span class="j-n">rol</span></span></div><div class="ed-line"><span class="ln">2137</span><span class="code"><span class="j-p">{</span><span class="j-k">"messages"</span><span class="j-p">:</span> <span class="j-p">[{</span><span class="j-k">"role"</span><span class="j-p">:</span> <span class="j-s">"user"</span><span class="j-p">,</span> <span class="j-k">"content"</span><span class="j-p">:</span> <span class="j-s">"I was refunded for INV-2026-91827 on 21 May but I still don't see the GBP 8553.75 on my statement."</span><span class="j-p">},</span> <span class="j-p">{</span><span class="j-s">"</span><span class="j-n">rol</span></span></div><div class="ed-line"><span class="ln">2138</span><span class="code"><span class="j-p">{</span><span class="j-k">"messages"</span><span class="j-p">:</span> <span class="j-p">[{</span><span class="j-k">"role"</span><span class="j-p">:</span> <span class="j-s">"user"</span><span class="j-p">,</span> <span class="j-k">"content"</span><span class="j-p">:</span> <span class="j-s">"I was refunded for INV-2026-70557 on 22 June but I still don't see the CAD 447.20 on my statement."</span><span class="j-p">},</span> <span class="j-p">{</span><span class="j-s">"</span><span class="j-n">rol</span></span></div><div class="ed-line"><span class="ln">2139</span><span class="code"><span class="j-p">{</span><span class="j-k">"tools"</span><span class="j-p">:</span> <span class="j-p">[{</span><span class="j-k">"type"</span><span class="j-p">:</span> <span class="j-s">"function"</span><span class="j-p">,</span> <span class="j-k">"function"</span><span class="j-p">:</span> <span class="j-p">{</span><span class="j-k">"name"</span><span class="j-p">:</span> <span class="j-s">"lookup_invoice"</span><span class="j-p">,</span> <span class="j-k">"description"</span><span class="j-p">:</span> <span class="j-s">"Fetch an invoice by number."</span><span class="j-p">,</span> <span class="j-k">"parameters"</span><span class="j-p">:</span> <span class="j-p">{</span><span class="j-k">"type"</span><span class="j-p">:</span> <span class="j-s">"object"</span><span class="j-p">,</span> </span></div><div class="ed-line"><span class="ln">2140</span><span class="code"><span class="j-p">{</span><span class="j-k">"messages"</span><span class="j-p">:</span> <span class="j-p">[{</span><span class="j-k">"role"</span><span class="j-p">:</span> <span class="j-s">"user"</span><span class="j-p">,</span> <span class="j-k">"content"</span><span class="j-p">:</span> <span class="j-s">"A customer disputed INV-2026-94642 (AUD 4077.99). What do we need to send?"</span><span class="j-p">},</span> <span class="j-p">{</span><span class="j-k">"role"</span><span class="j-p">:</span> <span class="j-s">"assistant"</span><span class="j-p">,</span> <span class="j-s">"</span><span class="j-n">conten</span></span></div><div class="ed-line"><span class="ln">2141</span><span class="code"><span class="j-p">{</span><span class="j-k">"messages"</span><span class="j-p">:</span> <span class="j-p">[{</span><span class="j-k">"role"</span><span class="j-p">:</span> <span class="j-s">"user"</span><span class="j-p">,</span> <span class="j-k">"content"</span><span class="j-p">:</span> <span class="j-s">"Our accountant wants invoice numbers to start at 1372 this year. Possible?"</span><span class="j-p">},</span> <span class="j-p">{</span><span class="j-k">"role"</span><span class="j-p">:</span> <span class="j-s">"assistant"</span><span class="j-p">,</span> <span class="j-s">"</span><span class="j-n">conten</span></span></div><div class="ed-line"><span class="ln">2142</span><span class="code"><span class="j-p">{</span><span class="j-k">"messages"</span><span class="j-p">:</span> <span class="j-p">[{</span><span class="j-k">"role"</span><span class="j-p">:</span> <span class="j-s">"user"</span><span class="j-p">,</span> <span class="j-k">"content"</span><span class="j-p">:</span> <span class="j-s">"Can recurring invoices for client Camila go out on the 1st instead of the 27th?"</span><span class="j-p">},</span> <span class="j-p">{</span><span class="j-k">"role"</span><span class="j-p">:</span> <span class="j-s">"assistant"</span><span class="j-p">,</span> <span class="j-s">"</span><span class="j-n">c</span></span></div><div class="ed-line"><span class="ln">2143</span><span class="code"><span class="j-p">{</span><span class="j-k">"messages"</span><span class="j-p">:</span> <span class="j-p">[{</span><span class="j-k">"role"</span><span class="j-p">:</span> <span class="j-s">"user"</span><span class="j-p">,</span> <span class="j-k">"content"</span><span class="j-p">:</span> <span class="j-s">"Our accountant wants invoice numbers to start at 8549 this year. Possible?"</span><span class="j-p">},</span> <span class="j-p">{</span><span class="j-k">"role"</span><span class="j-p">:</span> <span class="j-s">"assistant"</span><span class="j-p">,</span> <span class="j-s">"</span><span class="j-n">conten</span></span></div><div class="ed-line"><span class="ln">2144</span><span class="code"><span class="j-p">{</span><span class="j-k">"messages"</span><span class="j-p">:</span> <span class="j-p">[{</span><span class="j-k">"role"</span><span class="j-p">:</span> <span class="j-s">"user"</span><span class="j-p">,</span> <span class="j-k">"content"</span><span class="j-p">:</span> <span class="j-s">"A customer disputed INV-2026-90081 (EUR 5843.50). What do we need to send?"</span><span class="j-p">},</span> <span class="j-p">{</span><span class="j-k">"role"</span><span class="j-p">:</span> <span class="j-s">"assistant"</span><span class="j-p">,</span> <span class="j-s">"</span><span class="j-n">conten</span></span></div><div class="ed-line"><span class="ln">2145</span><span class="code"><span class="j-p">{</span><span class="j-k">"messages"</span><span class="j-p">:</span> <span class="j-p">[{</span><span class="j-k">"role"</span><span class="j-p">:</span> <span class="j-s">"user"</span><span class="j-p">,</span> <span class="j-k">"content"</span><span class="j-p">:</span> <span class="j-s">"Our accountant wants invoice numbers to start at 3957 this year. Possible?"</span><span class="j-p">},</span> <span class="j-p">{</span><span class="j-k">"role"</span><span class="j-p">:</span> <span class="j-s">"assistant"</span><span class="j-p">,</span> <span class="j-s">"</span><span class="j-n">conten</span></span></div><div class="ed-line"><span class="ln">2146</span><span class="code"><span class="j-p">{</span><span class="j-k">"messages"</span><span class="j-p">:</span> <span class="j-p">[{</span><span class="j-k">"role"</span><span class="j-p">:</span> <span class="j-s">"user"</span><span class="j-p">,</span> <span class="j-k">"content"</span><span class="j-p">:</span> <span class="j-s">"Why was a USD 15.66 conversion fee added to INV-2024-27674?"</span><span class="j-p">},</span> <span class="j-p">{</span><span class="j-k">"role"</span><span class="j-p">:</span> <span class="j-s">"assistant"</span><span class="j-p">,</span> <span class="j-k">"content"</span><span class="j-p">:</span> <span class="j-s">"</span><span class="j-n">INV-2024-2</span></span></div><div class="ed-line"><span class="ln">2147</span><span class="code"><span class="j-p">{</span><span class="j-k">"messages"</span><span class="j-p">:</span> <span class="j-p">[{</span><span class="j-k">"role"</span><span class="j-p">:</span> <span class="j-s">"user"</span><span class="j-p">,</span> <span class="j-k">"content"</span><span class="j-p">:</span> <span class="j-s">"A customer disputed INV-2025-48976 (EUR 6728.75). What do we need to send?"</span><span class="j-p">},</span> <span class="j-p">{</span><span class="j-k">"role"</span><span class="j-p">:</span> <span class="j-s">"assistant"</span><span class="j-p">,</span> <span class="j-s">"</span><span class="j-n">conten</span></span></div><div class="ed-line"><span class="ln">2148</span><span class="code"><span class="j-p">{</span><span class="j-k">"messages"</span><span class="j-p">:</span> <span class="j-p">[{</span><span class="j-k">"role"</span><span class="j-p">:</span> <span class="j-s">"user"</span><span class="j-p">,</span> <span class="j-k">"content"</span><span class="j-p">:</span> <span class="j-s">"Our payout of EUR 3505.00 scheduled for 4 June hasn't arrived."</span><span class="j-p">},</span> <span class="j-p">{</span><span class="j-k">"role"</span><span class="j-p">:</span> <span class="j-s">"assistant"</span><span class="j-p">,</span> <span class="j-k">"content"</span><span class="j-p">:</span> <span class="j-s">"</span><span class="j-n">Payouts</span></span></div><div class="ed-line"><span class="ln">2149</span><span class="code"><span class="j-p">{</span><span class="j-k">"messages"</span><span class="j-p">:</span> <span class="j-p">[{</span><span class="j-k">"role"</span><span class="j-p">:</span> <span class="j-s">"user"</span><span class="j-p">,</span> <span class="j-k">"content"</span><span class="j-p">:</span> <span class="j-s">"How do I change the email address our invoices are sent to? We have 10 people on the Scale plan."</span><span class="j-p">},</span> <span class="j-p">{</span><span class="j-s">"role"</span></span></div><span class="ed-thumb" style="--at:88.2%"></span></div>
+                </div>
               </div>
+              <div class="ed-status"><span>⑂ main</span><span class="ed-status-right"><span>Ln 2131, Col 72 (56 selected)</span><span>Spaces: 4</span><span>UTF-8</span><span>LF</span><span>JSON Lines</span></span></div>
             </div>
-            <div class="editor-statusbar"><span>⑂ main</span><span id="editor-status">UTF-8 &nbsp; · &nbsp; JSONL</span></div>
-          </div>
-          <div class="walkthrough-caption"><span id="story-label">YOUR TRAINING DATA</span><h3 id="story-title">Small file. Hidden problems.</h3><p id="story-body">A repeated example. A private email. Both easy to miss in a training set.</p></div>
-          <div class="demo-terminal-window">
-            <div class="desktop-titlebar"><span class="mac-lights"><i></i><i></i><i></i></span><span>support-model — zsh</span><span class="terminal-window-spacer"></span></div>
-            <div class="terminal-scroll" id="terminal-screen"><div class="terminal-history"><div class="terminal-run" data-run><div class="terminal-command"><span class="shell-prompt">❯</span> <span data-command="parallelogram check train.jsonl">parallelogram check train.jsonl</span><span class="shell-cursor" aria-hidden="true"></span></div><pre class="terminal-output" data-output><span class="ansi-bold ansi-cyan">  i </span><span class="ansi-dim">(global) </span><span class="ansi-cyan">[context-window] </span>Context-window counts are approximate
-      <span class="ansi-dim">→ no tokenizer specified — pass --tokenizer </span><span class="ansi-bold ansi-dim">&lt;</span><span class="ansi-bold ansi-dim ansi-magenta">model</span><span class="ansi-bold ansi-dim">&gt;</span><span class="ansi-dim"> </span><span class="ansi-bold ansi-dim">(</span><span class="ansi-dim">e.g. gpt-4o, </span>
-<span class="ansi-dim">Qwen/Qwen2.</span><span class="ansi-bold ansi-cyan ansi-dim">5</span><span class="ansi-dim">-7B</span><span class="ansi-bold ansi-dim">)</span><span class="ansi-dim"> for an exact count</span>
-<span class="ansi-bold ansi-red">  ✗ </span><span class="ansi-dim">train.jsonl:2 </span><span class="ansi-cyan">[duplicates] </span>Duplicate of line 1
-      <span class="ansi-dim">→ </span><span class="ansi-bold ansi-cyan ansi-dim">2</span><span class="ansi-dim"> copies total at lines: </span><span class="ansi-bold ansi-dim">[</span><span class="ansi-bold ansi-cyan ansi-dim">1</span><span class="ansi-dim">, </span><span class="ansi-bold ansi-cyan ansi-dim">2</span><span class="ansi-bold ansi-dim">]</span>
-<span class="ansi-bold ansi-yellow">  ! </span><span class="ansi-dim">train.jsonl:3 </span><span class="ansi-cyan">[pii] </span>Message 1 contains an email address:&#32;
-m***@***.com
-      <span class="ansi-dim">→ The model can learn and repeat it; --fix replaces it with a </span>
-<span class="ansi-dim">placeholder</span>
-
-<span class="ansi-red">╭─</span><span class="ansi-red">────────────</span><span class="ansi-red"> parallelogram </span><span class="ansi-red">─────────────</span><span class="ansi-red">─╮</span>
-<span class="ansi-red">│</span> <span class="ansi-bold">3 records  </span><span class="ansi-green">2 clean  </span><span class="ansi-bold ansi-red">1 errors  </span><span class="ansi-bold ansi-yellow">1 warnings</span> <span class="ansi-red">│</span>
-<span class="ansi-red">╰──────────────────────────────────────────╯</span>
-</pre></div><div class="terminal-run" data-run><div class="terminal-command"><span class="shell-prompt">❯</span> <span data-command="parallelogram check train.jsonl --fix --output clean.jsonl">parallelogram check train.jsonl --fix --output clean.jsonl</span><span class="shell-cursor" aria-hidden="true"></span></div><pre class="terminal-output" data-output>
-  <span class="ansi-green">✓</span> <span class="ansi-cyan">duplicates</span> <span class="ansi-dim">·</span> <span class="ansi-bold ansi-cyan">1</span> fix
-  <span class="ansi-green">✓</span> <span class="ansi-cyan">pii</span> <span class="ansi-dim">·</span> <span class="ansi-bold ansi-cyan">1</span> fix
-
-  <span class="ansi-red">✗</span> <span class="ansi-bold">dropped:</span>
-      <span class="ansi-dim">train.jsonl:</span><span class="ansi-bold ansi-cyan">2</span> <span class="ansi-dim">→</span> duplicates <span class="ansi-bold">(</span>dropped as fix<span class="ansi-bold">)</span>
-
-<span class="ansi-yellow">╭─</span><span class="ansi-yellow">──────────────────</span><span class="ansi-yellow"> parallelogram --fix </span><span class="ansi-yellow">──────────────────</span><span class="ansi-yellow">─╮</span>
-<span class="ansi-yellow">│</span> <span class="ansi-bold">3 records  </span><span class="ansi-dim">1 unchanged  </span><span class="ansi-bold ansi-green">1 fixed  </span><span class="ansi-bold ansi-red">1 dropped  </span><span class="ansi-dim">0 unparseable</span> <span class="ansi-yellow">│</span>
-<span class="ansi-yellow">╰───────────────────────────────────────────────────────────╯</span>
-  <span class="ansi-green">→</span> Wrote <span class="ansi-bold ansi-cyan">2</span> records to clean.jsonl
-</pre></div><div class="terminal-run" data-run><div class="terminal-command"><span class="shell-prompt">❯</span> <span data-command="parallelogram check clean.jsonl">parallelogram check clean.jsonl</span><span class="shell-cursor" aria-hidden="true"></span></div><pre class="terminal-output" data-output><span class="ansi-bold ansi-cyan">  i </span><span class="ansi-dim">(global) </span><span class="ansi-cyan">[context-window] </span>Context-window counts are approximate
-      <span class="ansi-dim">→ no tokenizer specified — pass --tokenizer </span><span class="ansi-bold ansi-dim">&lt;</span><span class="ansi-bold ansi-dim ansi-magenta">model</span><span class="ansi-bold ansi-dim">&gt;</span><span class="ansi-dim"> </span><span class="ansi-bold ansi-dim">(</span><span class="ansi-dim">e.g. gpt-4o, </span>
-<span class="ansi-dim">Qwen/Qwen2.</span><span class="ansi-bold ansi-cyan ansi-dim">5</span><span class="ansi-dim">-7B</span><span class="ansi-bold ansi-dim">)</span><span class="ansi-dim"> for an exact count</span>
-
-<span class="ansi-green">╭─</span><span class="ansi-green">────────────</span><span class="ansi-green"> parallelogram </span><span class="ansi-green">─────────────</span><span class="ansi-green">─╮</span>
-<span class="ansi-green">│</span> <span class="ansi-bold">2 records  </span><span class="ansi-green">2 clean  </span><span class="ansi-dim">0 errors  </span><span class="ansi-dim">0 warnings</span> <span class="ansi-green">│</span>
-<span class="ansi-green">╰──────────────────────────────────────────╯</span>
-</pre></div><div class="terminal-idle" id="terminal-idle"><span class="shell-prompt">❯</span> <span class="shell-cursor"></span></div></div></div>
+            <div class="win-term" id="demo-window">
+              <video id="demo-video" data-wide="demo/terminal-108.mp4" data-wide-poster="demo/terminal-108.webp" data-narrow="demo/terminal-60.mp4" data-narrow-poster="demo/terminal-60.webp" muted playsinline loop preload="none" disablepictureinpicture></video>
+            </div>
           </div>
         </div>
-        <figcaption class="walkthrough-footer"><span><span class="local-dot" aria-hidden="true"></span> On your machine. Before training.</span><span>Example dataset · actual CLI output</span></figcaption>
-        <div id="terminal-static" class="terminal-static"><h3>Three examples. Two issues. One clean file.</h3><p>Parallelogram finds a duplicate record and a private email in train.jsonl. The fix writes two records to clean.jsonl: the duplicate is removed and the email becomes [REDACTED_EMAIL]. The original file stays untouched. A second check passes with no errors or warnings.</p><pre><span class="shell-prompt">❯</span> parallelogram check train.jsonl
-<span class="ansi-bold ansi-cyan">  i </span><span class="ansi-dim">(global) </span><span class="ansi-cyan">[context-window] </span>Context-window counts are approximate
-      <span class="ansi-dim">→ no tokenizer specified — pass --tokenizer </span><span class="ansi-bold ansi-dim">&lt;</span><span class="ansi-bold ansi-dim ansi-magenta">model</span><span class="ansi-bold ansi-dim">&gt;</span><span class="ansi-dim"> </span><span class="ansi-bold ansi-dim">(</span><span class="ansi-dim">e.g. gpt-4o, </span>
-<span class="ansi-dim">Qwen/Qwen2.</span><span class="ansi-bold ansi-cyan ansi-dim">5</span><span class="ansi-dim">-7B</span><span class="ansi-bold ansi-dim">)</span><span class="ansi-dim"> for an exact count</span>
-<span class="ansi-bold ansi-red">  ✗ </span><span class="ansi-dim">train.jsonl:2 </span><span class="ansi-cyan">[duplicates] </span>Duplicate of line 1
-      <span class="ansi-dim">→ </span><span class="ansi-bold ansi-cyan ansi-dim">2</span><span class="ansi-dim"> copies total at lines: </span><span class="ansi-bold ansi-dim">[</span><span class="ansi-bold ansi-cyan ansi-dim">1</span><span class="ansi-dim">, </span><span class="ansi-bold ansi-cyan ansi-dim">2</span><span class="ansi-bold ansi-dim">]</span>
-<span class="ansi-bold ansi-yellow">  ! </span><span class="ansi-dim">train.jsonl:3 </span><span class="ansi-cyan">[pii] </span>Message 1 contains an email address:&#32;
-m***@***.com
-      <span class="ansi-dim">→ The model can learn and repeat it; --fix replaces it with a </span>
-<span class="ansi-dim">placeholder</span>
+        <figcaption class="scene-foot"><span><span class="local-dot" aria-hidden="true"></span> Screen recording · real bash session · synthetic 2,412-ticket support export</span><span>parallelogram 1.6.1</span></figcaption>
+        <div id="terminal-static" class="terminal-static"><h3>2,412 support conversations. 16 issues. One clean file.</h3><p>The first check finds a pasted API key, customer contact details, eval leakage, duplicates, empty and unfinished turns, an undeclared tool call and mojibake, and exits 2. jq shows the key in record 2131. The fix writes 2,403 records to train.clean.jsonl with the key redacted, and leaves train.jsonl untouched; the re-check exits 0.</p><pre>$ parallelogram check data/train.jsonl --eval data/eval.jsonl
+  i (global) [context-window] Context-window counts are approximate
+      → no tokenizer specified — pass --tokenizer &lt;model&gt; (e.g. gpt-4o, Qwen/Qwen2.5-7B) for an exact count
+  ✗ data/train.jsonl:377 [eval-overlap] Record also appears in the eval set (eval.jsonl:42)
+      → Training on eval examples inflates the eval score; --fix drops this train record
+  ! data/train.jsonl:412 [pii] Message 0 contains a phone number: …0461
+      → The model can learn and repeat it; --fix replaces it with a placeholder
+  ✗ data/train.jsonl:640 [roles] Message 2: Conversation must end on &#x27;assistant&#x27;
+  ! data/train.jsonl:731 [encoding] Message 0 contains likely mojibake: &#x27;â€™&#x27;
+      → UTF-8 → latin-1 → UTF-8 round-trip artifact
+  ✗ data/train.jsonl:1022 [empty-content] Message 1 (role=assistant) has empty content
+  ✗ data/train.jsonl:1450 [tool-calls] Message 1, call 0: function name is not declared in tools
+  ! data/train.jsonl:1576 [encoding] Message 0 contains likely mojibake: &#x27;â€™&#x27;
+      → UTF-8 → latin-1 → UTF-8 round-trip artifact
+  ✗ data/train.jsonl:1709 [eval-overlap] Record also appears in the eval set (eval.jsonl:189)
+      → Training on eval examples inflates the eval score; --fix drops this train record
+  ! data/train.jsonl:1843 [pii] Message 1 contains an email address: p***@***.com
+      → The model can learn and repeat it; --fix replaces it with a placeholder
+  ✗ data/train.jsonl:1967 [empty-content] Message 1 (role=assistant) has empty content
+  ! data/train.jsonl:2077 [context-window] Record may exceed max_seq_len: ~13165 &gt; 4096 tokens (estimated)
+      → Estimated with a length heuristic; over-long records are truncated silently. Pass --tokenizer 
+&lt;model&gt; to confirm.
+  ✗ data/train.jsonl:2131 [secrets] Message 0 contains a likely OpenAI API key: sk-pro…
+      → A model trained on it can repeat it; --fix redacts it
+  ! data/train.jsonl:2210 [pii] Message 0 contains an email address: j***@***.com
+      → The model can learn and repeat it; --fix replaces it with a placeholder
+  ✗ data/train.jsonl:2398 [duplicates] Duplicate of line 2202
+      → 2 copies total at lines: [2202, 2398]
+  ✗ data/train.jsonl:2400 [duplicates] Duplicate of line 904
+      → 2 copies total at lines: [904, 2400]
+  ✗ data/train.jsonl:2406 [duplicates] Duplicate of line 1188
+      → 2 copies total at lines: [1188, 2406]
 
-<span class="ansi-red">╭─</span><span class="ansi-red">────────────</span><span class="ansi-red"> parallelogram </span><span class="ansi-red">─────────────</span><span class="ansi-red">─╮</span>
-<span class="ansi-red">│</span> <span class="ansi-bold">3 records  </span><span class="ansi-green">2 clean  </span><span class="ansi-bold ansi-red">1 errors  </span><span class="ansi-bold ansi-yellow">1 warnings</span> <span class="ansi-red">│</span>
-<span class="ansi-red">╰──────────────────────────────────────────╯</span>
-<span class="shell-prompt">❯</span> parallelogram check train.jsonl --fix --output clean.jsonl
+╭───────────────── parallelogram ─────────────────╮
+│ 2412 records  2402 clean  10 errors  6 warnings │
+╰─────────────────────────────────────────────────╯
 
-  <span class="ansi-green">✓</span> <span class="ansi-cyan">duplicates</span> <span class="ansi-dim">·</span> <span class="ansi-bold ansi-cyan">1</span> fix
-  <span class="ansi-green">✓</span> <span class="ansi-cyan">pii</span> <span class="ansi-dim">·</span> <span class="ansi-bold ansi-cyan">1</span> fix
+$ sed -n 2131p data/train.jsonl | jq &#x27;.messages[0]&#x27;
+{
+  &quot;role&quot;: &quot;user&quot;,
+  &quot;content&quot;: &quot;401 on every call. Our key: sk-proj-pTyGJMuHbEL31IeL2HPcHyGcFRl1SPnXNYvMIHa-2o76umfX&quot;
+}
 
-  <span class="ansi-red">✗</span> <span class="ansi-bold">dropped:</span>
-      <span class="ansi-dim">train.jsonl:</span><span class="ansi-bold ansi-cyan">2</span> <span class="ansi-dim">→</span> duplicates <span class="ansi-bold">(</span>dropped as fix<span class="ansi-bold">)</span>
+$ parallelogram check data/train.jsonl --eval data/eval.jsonl --fix -o data/train.clean.jsonl
 
-<span class="ansi-yellow">╭─</span><span class="ansi-yellow">──────────────────</span><span class="ansi-yellow"> parallelogram --fix </span><span class="ansi-yellow">──────────────────</span><span class="ansi-yellow">─╮</span>
-<span class="ansi-yellow">│</span> <span class="ansi-bold">3 records  </span><span class="ansi-dim">1 unchanged  </span><span class="ansi-bold ansi-green">1 fixed  </span><span class="ansi-bold ansi-red">1 dropped  </span><span class="ansi-dim">0 unparseable</span> <span class="ansi-yellow">│</span>
-<span class="ansi-yellow">╰───────────────────────────────────────────────────────────╯</span>
-  <span class="ansi-green">→</span> Wrote <span class="ansi-bold ansi-cyan">2</span> records to clean.jsonl
-<span class="shell-prompt">❯</span> parallelogram check clean.jsonl
-<span class="ansi-bold ansi-cyan">  i </span><span class="ansi-dim">(global) </span><span class="ansi-cyan">[context-window] </span>Context-window counts are approximate
-      <span class="ansi-dim">→ no tokenizer specified — pass --tokenizer </span><span class="ansi-bold ansi-dim">&lt;</span><span class="ansi-bold ansi-dim ansi-magenta">model</span><span class="ansi-bold ansi-dim">&gt;</span><span class="ansi-dim"> </span><span class="ansi-bold ansi-dim">(</span><span class="ansi-dim">e.g. gpt-4o, </span>
-<span class="ansi-dim">Qwen/Qwen2.</span><span class="ansi-bold ansi-cyan ansi-dim">5</span><span class="ansi-dim">-7B</span><span class="ansi-bold ansi-dim">)</span><span class="ansi-dim"> for an exact count</span>
+  ✓ context-window · 1 fix
+  ✓ duplicates · 3 fixes
+  ✓ empty-content · 2 fixes
+  ✓ encoding · 2 fixes
+  ✓ eval-overlap · 2 fixes
+  ✓ pii · 3 fixes
+  ✓ secrets · 1 fix
 
-<span class="ansi-green">╭─</span><span class="ansi-green">────────────</span><span class="ansi-green"> parallelogram </span><span class="ansi-green">─────────────</span><span class="ansi-green">─╮</span>
-<span class="ansi-green">│</span> <span class="ansi-bold">2 records  </span><span class="ansi-green">2 clean  </span><span class="ansi-dim">0 errors  </span><span class="ansi-dim">0 warnings</span> <span class="ansi-green">│</span>
-<span class="ansi-green">╰──────────────────────────────────────────╯</span>
+  ✗ dropped:
+      data/train.jsonl:377 → eval-overlap (dropped as fix)
+      data/train.jsonl:640 → roles (unfixable)
+      data/train.jsonl:1022 → roles (unfixable)
+      data/train.jsonl:1450 → tool-calls (unfixable)
+      data/train.jsonl:1709 → eval-overlap (dropped as fix)
+      … and 4 more
+
+╭────────────────────── parallelogram --fix ──────────────────────╮
+│ 2412 records  2396 unchanged  7 fixed  9 dropped  0 unparseable │
+╰─────────────────────────────────────────────────────────────────╯
+  → Wrote 2403 records to data/train.clean.jsonl
+
+$ sed -n 2125p data/train.clean.jsonl | jq &#x27;.messages[0]&#x27;
+{
+  &quot;role&quot;: &quot;user&quot;,
+  &quot;content&quot;: &quot;401 on every call. Our key: [REDACTED_SECRET]&quot;
+}
+
+$ parallelogram check data/train.clean.jsonl --eval data/eval.jsonl
+  i (global) [context-window] Context-window counts are approximate
+      → no tokenizer specified — pass --tokenizer &lt;model&gt; (e.g. gpt-4o, Qwen/Qwen2.5-7B) for an exact count
+
+╭──────────────── parallelogram ─────────────────╮
+│ 2403 records  2403 clean  0 errors  0 warnings │
+╰────────────────────────────────────────────────╯
+
 </pre></div>
         <!-- terminal-recording:end -->
       </figure>
@@ -764,19 +763,21 @@ Without `--tokenizer`, token counts are estimates and an estimated overflow is a
 
 ## Product walkthrough
 
-The CLI panel automatically demonstrates a small customer-support dataset in
-an editor alongside a terminal. Three examples contain one duplicate and one
-synthetic email address. The check highlights each issue in its source record;
-the fix writes two records to a separate clean.jsonl file, replacing the email
-with [REDACTED_EMAIL]. The original stays untouched. Re-checking the new file
-returns zero errors and zero warnings.
+The CLI panel shows an editor open on the dataset, line 2131 selected, and a
+screen recording of a real bash session on the same synthetic export of
+2,412 customer-support conversations. The first check reports 16
+issues: a pasted API key, customer contact details, eval leakage, duplicates,
+empty and unfinished turns, an undeclared tool call, mojibake and an
+over-long record (exit 2). jq prints record 2131, where the key sits. The fix
+writes 2,403 records to data/train.clean.jsonl with the key and contact details
+redacted and leaves data/train.jsonl untouched; jq shows the same record now
+reads [REDACTED_SECRET], and the re-check exits 0.
 
-The input, output file and terminal stdout are captured from Parallelogram
-1.6.1. Plain-language captions connect each command to the visible file change.
-The demonstration loops automatically without buttons or timers. It pauses
-when offscreen, in a hidden tab, or focused for keyboard reading. Reduced
-motion shows the completed result and full transcript. Without JavaScript,
-the explanation and transcript remain available.
+The recording is checked against Parallelogram 1.6.1: every command's output in
+it matches what the CLI prints today. It plays only while visible, pauses when
+focused for keyboard reading, and is replaced by the finished state and the
+full transcript under reduced motion. Without JavaScript, the explanation and
+transcript remain available.
 
 ## Model comparisons
 

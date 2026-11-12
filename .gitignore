@@ -38,3 +38,5 @@ stress_clean*.jsonl
 .codex/
 .env
 .env.*
+scripts/demo/node_modules/
+__pycache__/

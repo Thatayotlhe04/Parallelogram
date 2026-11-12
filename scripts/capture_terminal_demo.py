@@ -1,149 +1,220 @@
 #!/usr/bin/env python3
-"""Reproduce the landing terminal recording from the installed local CLI."""
+"""Check (or rebuild) the landing-page terminal recording.
+
+The CLI panel plays a screen recording of a real bash session on the demo
+dataset (scripts/demo_dataset.py): scripts/demo/record.py records the session
+as an asciicast, scripts/demo/render.py renders it through xterm.js into
+landing/demo/*.mp4. This script verifies that every command's output in the
+recorded sessions is exactly what the installed CLI prints today, and keeps
+the page's transcript and markup in step.
+
+    python scripts/capture_terminal_demo.py           # verify
+    python scripts/capture_terminal_demo.py --write   # rewrite the page block
+    python scripts/capture_terminal_demo.py --record  # re-record the sessions (then run render.py)
+"""
 import argparse
-import importlib.metadata
 import html
+import importlib.metadata
 import json
 import os
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
-DESTINATION = ROOT / 'landing/terminal-recording.json'
+DEMO = ROOT / 'scripts/demo'
+sys.path.insert(0, str(DEMO))
+sys.path.insert(0, str(ROOT / 'scripts'))
+from record import SCRIPT, project  # noqa: E402
+
 PAGE = ROOT / 'landing/index.html'
 START = '<!-- terminal-recording:start -->'
 END = '<!-- terminal-recording:end -->'
+SIZES = {'wide': (108, 22), 'narrow': (60, 30)}
+EDITOR_FIRST, EDITOR_LINE, EDITOR_ROWS = 2128, 2131, 22   # train.jsonl lines in the editor; 2131 holds the key
+EDITOR_CLIP = 150                                         # characters rendered per line; the rest is off-screen
+TOKEN = re.compile(r'"(?:[^"\\]|\\.)*"|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?|true|false|null|[{}\[\],:]|\s+|.')
+ANSI = re.compile(r'\x1b\[[0-9;?]*[A-Za-z]|\x1b\][^\x07]*\x07|[\x01\x02]')
 
 
-def ansi_html(text):
-    """Preserve terminal characters and SGR styling; never reinterpret output."""
-    classes = set()
-    output = []
-    palette = {1: 'ansi-bold', 2: 'ansi-dim', 31: 'ansi-red', 32: 'ansi-green',
-               33: 'ansi-yellow', 36: 'ansi-cyan', 95: 'ansi-magenta'}
-    for part in re.split(r'(\x1b\[[0-9;]*m)', text):
-        if part.startswith('\x1b['):
-            for number in (int(value or '0') for value in part[2:-1].split(';')):
-                if number == 0:
-                    classes.clear()
-                elif number in palette:
-                    classes.add(palette[number])
-                else:
-                    raise ValueError(f'Unsupported terminal style: {number}')
-        elif part:
-            value = html.escape(part)
-            output.append(f'<span class="{" ".join(sorted(classes))}">{value}</span>' if classes else value)
-    # Encode literal line-end spaces so the exact terminal text survives clean diffs.
-    return re.sub(r' +(?=\n)', lambda match: '&#32;' * len(match.group()), ''.join(output))
+def commands():
+    """The command lines the session runs, as bash sees them after history recall."""
+    lines, last = [], []
+    for action, value in SCRIPT:
+        if action == 'type':
+            last.append(value)
+        elif action == 'up':
+            last = [lines[-value]]
+        elif action == 'enter':
+            lines.append(''.join(last))
+            last = []
+    return lines
 
 
-def record_html(records, clean=False):
-    """Show the actual file as JSONL with visual wrapping, not invented records."""
-    output = []
-    for index, record in enumerate(records):
-        messages = record['messages']
-        lines = ['{<span class="json-key">"messages"</span>: [']
-        for n, message in enumerate(messages):
-            role = html.escape(json.dumps(message['role']))
-            content = html.escape(json.dumps(message['content'], ensure_ascii=False))
-            if 'maya@acme.com' in content:
-                content = content.replace('maya@acme.com', '<mark class="private-value">maya@acme.com</mark>')
-            if '[REDACTED_EMAIL]' in content:
-                content = content.replace('[REDACTED_EMAIL]', '<mark class="redacted-value">[REDACTED_EMAIL]</mark>')
-            comma = ',' if n < len(messages) - 1 else ''
-            lines.append('  {<span class="json-key">"role"</span>: <span class="json-string">' + role + '</span>, <span class="json-key">"content"</span>: <span class="json-string">' + content + '</span>}' + comma)
-        lines.append(']}')
-        issue = '' if clean else (' duplicate-record' if index == 1 else ' private-record' if index == 2 else '')
-        joined = '\n'.join(lines)
-        output.append(f'<div class="source-record{issue}"><span class="record-number">{index + 1}</span><pre>{joined}</pre></div>')
-    return ''.join(output)
-
-
-def render(recording):
+def fresh_runs(cols):
+    """Run each command in a fresh copy of the demo project, as the recording did."""
     runs = []
-    transcript = []
-    for clip in recording['commands']:
-        command = html.escape(clip['command'])
-        output = ansi_html(clip['ansi'])
-        runs.append(f'<div class="terminal-run" data-run><div class="terminal-command"><span class="shell-prompt">❯</span> <span data-command="{command}">{command}</span><span class="shell-cursor" aria-hidden="true"></span></div><pre class="terminal-output" data-output>{output}</pre></div>')
-        transcript.append(f'<span class="shell-prompt">❯</span> {command}\n{output}')
+    with tempfile.TemporaryDirectory(prefix='parallelogram-verify-') as tmp:
+        home = Path(tmp)
+        project(home)
+        cwd = home / 'code/support-sft'
+        env = {**os.environ, 'COLUMNS': str(cols), 'FORCE_COLOR': '1', 'TERM': 'xterm-256color',
+               'PATH': os.pathsep.join([str(Path(sys.executable).parent), os.environ.get('PATH', '')])}
+        env.pop('NO_COLOR', None)
+        for line in commands():
+            result = subprocess.run(['bash', '-c', line], cwd=cwd, env=env, text=True,
+                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False)
+            runs.append({'command': line, 'exit_code': result.returncode, 'output': result.stdout})
+    return runs
+
+
+def cast_text(path):
+    lines = path.read_text().splitlines()
+    header = json.loads(lines[0])
+    text = ''.join(json.loads(line)[2] for line in lines[1:])
+    return header, ANSI.sub('', text).replace('\r\n', '\n')
+
+
+def verify_cast(name, cols, rows):
+    path = DEMO / f'session-{cols}.cast'
+    header, text = cast_text(path)
+    assert (header['width'], header['height']) == (cols, rows), f'{path.name} is not {cols}×{rows}'
+    runs = fresh_runs(cols)
+    position = 0
+    for run in runs:
+        expected = ANSI.sub('', run['output'])
+        found = text.find(expected, position)
+        if found < 0:
+            sys.exit(f'{path.name}: the recorded output of `{run["command"]}` differs from the CLI today; '
+                     'run --record, then scripts/demo/render.py')
+        position = found + len(expected)
+    for media in (f'landing/demo/terminal-{cols}.mp4', f'landing/demo/terminal-{cols}.webp'):
+        if not (ROOT / media).is_file():
+            sys.exit(f'missing {media}; run scripts/demo/render.py')
+    return runs
+
+
+def json_html(raw, mark=None):
+    """Highlight one JSONL line like an editor; `mark` is a (start, end) selection."""
+    kinds = [''] * len(raw)
+    tokens = [(m.start(), m.end(), m.group()) for m in TOKEN.finditer(raw)]
+    for i, (a, b, value) in enumerate(tokens):
+        if value.startswith('"'):
+            following = next((t[2] for t in tokens[i + 1:] if not t[2].isspace()), '')
+            kind = 'j-k' if following == ':' else 'j-s'
+        elif value in '{}[],:':
+            kind = 'j-p'
+        elif value.isspace():
+            kind = ''
+        else:
+            kind = 'j-n'
+        kinds[a:b] = [kind] * (b - a)
+    out, run, key = [], '', None
+    for index, ch in enumerate(raw):
+        state = (kinds[index], bool(mark) and mark[0] <= index < mark[1])
+        if state != key and run:
+            out.append(_span(run, *key))
+            run = ''
+        key, run = state, run + ch
+    if run:
+        out.append(_span(run, *key))
+    return ''.join(out)
+
+
+def _span(text, kind, selected):
+    value = html.escape(text, quote=False)
+    value = f'<span class="{kind}">{value}</span>' if kind else value
+    return f'<span class="sel">{value}</span>' if selected else value
+
+
+def editor_lines():
+    """The real train.jsonl lines the editor shows, and the selected key on line 2131."""
+    from demo_dataset import build, dumps
+    lines = dumps(build()[0]).splitlines()
+    target = lines[EDITOR_LINE - 1]
+    start = target.index('sk-proj-')
+    end = start + re.match(r'sk-proj-[A-Za-z0-9_-]+', target[start:]).end()
+    rows = []
+    for number in range(EDITOR_FIRST, EDITOR_FIRST + EDITOR_ROWS):
+        raw = lines[number - 1][:EDITOR_CLIP]
+        current = number == EDITOR_LINE
+        rows.append(f'<div class="ed-line{" is-current" if current else ""}"><span class="ln">{number}</span>'
+                    f'<span class="code">{json_html(raw, (start, end) if current else None)}</span></div>')
+    return ''.join(rows), len(lines), start + 1, end - start
+
+
+def render(runs):
+    version = importlib.metadata.version('parallelogram')
+    transcript = ''.join(f'$ {html.escape(run["command"])}\n{html.escape(ANSI.sub("", run["output"]))}\n'
+                         for run in runs)
+    train = re.search(r'(\d+) records', ANSI.sub('', runs[0]['output'])).group(1)
+    issues = len(re.findall(r'^  [✗!] ', ANSI.sub('', runs[0]['output']), re.MULTILINE))
+    clean = re.search(r'Wrote (\d+) records', ANSI.sub('', runs[2]['output'])).group(1)
+    rows, total, column, selected = editor_lines()
+    scroll = round(100 * (EDITOR_FIRST - 1) / total, 1)
+    tree = ''.join(f'<div class="tree-row {cls}">{label}</div>' for cls, label in (
+        ('root', '⌄ SUPPORT-SFT'), ('d1', '› .github'), ('d1', '⌄ configs'),
+        ('d2', '<i class="fi fi-yml">≡</i>sft-qwen2.5-7b.yaml'), ('d1', '⌄ data'),
+        ('d2', '<i class="fi fi-json">{}</i>eval.jsonl'), ('d2 is-active', '<i class="fi fi-json">{}</i>train.jsonl'),
+        ('d1', '› scripts'), ('d1', '<i class="fi fi-git">◆</i>.gitignore'),
+        ('d1', '<i class="fi fi-md">ⓘ</i>README.md'), ('d1', '<i class="fi fi-py">◆</i>train.py')))
+    sources = ' '.join(f'data-{name}="demo/terminal-{cols}.mp4" data-{name}-poster="demo/terminal-{cols}.webp"'
+                       for name, (cols, _) in SIZES.items())
     return f'''{START}
-        <div class="demo-desktop" id="demo-desktop" data-scene="intro" aria-hidden="true">
-          <div class="editor-window">
-            <div class="desktop-titlebar"><span class="mac-lights"><i></i><i></i><i></i></span><span>support-model</span><span class="window-symbol"></span></div>
-            <div class="editor-layout">
-              <aside class="editor-sidebar"><span class="explorer-title">EXPLORER</span><div class="project-folder">⌄ &nbsp; support-model</div><div class="explorer-file original-file"><span class="file-icon">&#123;&#125;</span> train.jsonl <span class="problem-count">2</span></div><div class="explorer-file clean-file"><span class="file-icon">&#123;&#125;</span> clean.jsonl <span class="file-new">U</span></div><div class="explorer-file"><span class="python-icon">◇</span> train.py</div><div class="explorer-file"><span class="readme-icon">≡</span> README.md</div></aside>
-              <div class="editor-main">
-                <div class="editor-tabs"><span class="editor-tab original-file"><span class="file-icon">&#123;&#125;</span> train.jsonl <span>×</span></span><span class="editor-tab clean-file"><span class="file-icon">&#123;&#125;</span> clean.jsonl <span>×</span></span></div>
-                <div class="editor-breadcrumb">support-model <span>›</span> <span id="editor-filename">train.jsonl</span><span class="jsonl-label">JSON Lines</span></div>
-                <div class="editor-code"><div id="source-before">{record_html(recording['before'])}</div><div id="source-after" hidden>{record_html(recording['after'], clean=True)}</div></div>
-                <div class="editor-diagnostic" id="editor-diagnostic"><span class="diagnostic-dot"></span><span id="editor-note">3 training examples · customer support</span></div>
+        <div class="scene" id="demo-desktop" data-layout="wide" aria-hidden="true">
+          <div class="scene-stage" id="scene-stage">
+            <div class="win-editor">
+              <div class="ed-bar"><span class="lights"><i></i><i></i><i></i></span>train.jsonl — support-sft</div>
+              <div class="ed-body">
+                <div class="ed-tree"><div class="tree-head">EXPLORER</div>{tree}</div>
+                <div class="ed-main">
+                  <div class="ed-tabs"><span class="ed-tab is-active"><i class="fi fi-json">{{}}</i>train.jsonl</span><span class="ed-tab"><i class="fi fi-yml">≡</i>sft-qwen2.5-7b.yaml</span></div>
+                  <div class="ed-crumbs">data <span>›</span> train.jsonl</div>
+                  <div class="ed-code">{rows}<span class="ed-thumb" style="--at:{scroll}%"></span></div>
+                </div>
               </div>
+              <div class="ed-status"><span>⑂ main</span><span class="ed-status-right"><span>Ln {EDITOR_LINE}, Col {column} ({selected} selected)</span><span>Spaces: 4</span><span>UTF-8</span><span>LF</span><span>JSON Lines</span></span></div>
             </div>
-            <div class="editor-statusbar"><span>⑂ main</span><span id="editor-status">UTF-8 &nbsp; · &nbsp; JSONL</span></div>
-          </div>
-          <div class="walkthrough-caption"><span id="story-label">YOUR TRAINING DATA</span><h3 id="story-title">Small file. Hidden problems.</h3><p id="story-body">A repeated example. A private email. Both easy to miss in a training set.</p></div>
-          <div class="demo-terminal-window">
-            <div class="desktop-titlebar"><span class="mac-lights"><i></i><i></i><i></i></span><span>support-model — zsh</span><span class="terminal-window-spacer"></span></div>
-            <div class="terminal-scroll" id="terminal-screen"><div class="terminal-history">{''.join(runs)}<div class="terminal-idle" id="terminal-idle"><span class="shell-prompt">❯</span> <span class="shell-cursor"></span></div></div></div>
+            <div class="win-term" id="demo-window">
+              <video id="demo-video" {sources} muted playsinline loop preload="none" disablepictureinpicture></video>
+            </div>
           </div>
         </div>
-        <figcaption class="walkthrough-footer"><span><span class="local-dot" aria-hidden="true"></span> On your machine. Before training.</span><span>Example dataset · actual CLI output</span></figcaption>
-        <div id="terminal-static" class="terminal-static"><h3>Three examples. Two issues. One clean file.</h3><p>Parallelogram finds a duplicate record and a private email in train.jsonl. The fix writes two records to clean.jsonl: the duplicate is removed and the email becomes [REDACTED_EMAIL]. The original file stays untouched. A second check passes with no errors or warnings.</p><pre>{''.join(transcript)}</pre></div>
+        <figcaption class="scene-foot"><span><span class="local-dot" aria-hidden="true"></span> Screen recording · real bash session · synthetic {int(train):,}-ticket support export</span><span>parallelogram {version}</span></figcaption>
+        <div id="terminal-static" class="terminal-static"><h3>{int(train):,} support conversations. {issues} issues. One clean file.</h3><p>The first check finds a pasted API key, customer contact details, eval leakage, duplicates, empty and unfinished turns, an undeclared tool call and mojibake, and exits 2. jq shows the key in record 2131. The fix writes {int(clean):,} records to train.clean.jsonl with the key redacted, and leaves train.jsonl untouched; the re-check exits 0.</p><pre>{transcript}</pre></div>
         {END}'''
 
 
-def capture():
-    def chat(question, answer):
-        return {'messages': [{'role': 'user', 'content': question},
-                             {'role': 'assistant', 'content': answer}]}
-
-    clean = chat('Can I return an item?', 'Returns are accepted within 30 days.')
-    rows = [clean, clean, chat('Where is my order?', 'Email maya@acme.com for an update.')]
-    commands = [
-        ['check', 'train.jsonl'],
-        ['check', 'train.jsonl', '--fix', '--output', 'clean.jsonl'],
-        ['check', 'clean.jsonl'],
-    ]
-    env = {**os.environ, 'FORCE_COLOR': '1', 'COLUMNS': '72', 'TERM': 'xterm-256color'}
-    env.pop('NO_COLOR', None)
-    clips = []
-    with tempfile.TemporaryDirectory(prefix='parallelogram-demo-') as directory:
-        work = Path(directory)
-        (work / 'train.jsonl').write_text(''.join(json.dumps(row, ensure_ascii=False) + '\n' for row in rows))
-        for arguments in commands:
-            result = subprocess.run(
-                [sys.executable, '-c', 'from parallelogram.cli import app; app()', *arguments],
-                cwd=work, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                text=True, check=False,
-            )
-            clips.append({'command': 'parallelogram ' + ' '.join(arguments),
-                          'exit_code': result.returncode, 'ansi': result.stdout})
-        fixed = [json.loads(line) for line in (work / 'clean.jsonl').read_text().splitlines()]
-    if [clip['exit_code'] for clip in clips] != [2, 1, 0]:
-        raise RuntimeError('The recorded CLI behavior changed; review before publishing.')
-    return {'version': importlib.metadata.version('parallelogram'),
-            'columns': 72, 'before': rows, 'after': fixed, 'commands': clips}
-
-
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--write', action='store_true', help='Replace the saved recording')
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument('--write', action='store_true', help='rewrite the page block from fresh runs')
+    parser.add_argument('--record', action='store_true', help='re-record both sessions')
     arguments = parser.parse_args()
-    recording = capture()
+    if arguments.record:
+        for cols, rows in SIZES.values():
+            subprocess.run([sys.executable, str(DEMO / 'record.py'), str(DEMO / f'session-{cols}.cast'),
+                            str(cols), str(rows)], check=True)
+        print('Recorded. Now render: python scripts/demo/render.py for each session.')
+        sys.exit()
+    if not shutil.which('jq'):
+        sys.exit('jq is required to verify the recording')
+    wide = None
+    for name, (cols, rows) in SIZES.items():
+        runs = verify_cast(name, cols, rows)
+        if name == 'wide':
+            wide = runs
+    if [run['exit_code'] for run in wide] != [2, 0, 1, 0, 0]:
+        sys.exit('The recorded CLI behavior changed; review before publishing.')
+    block = render(wide)
+    source = PAGE.read_text()
     if arguments.write:
-        DESTINATION.write_text(json.dumps(recording, ensure_ascii=False, indent=2) + '\n')
-        source = PAGE.read_text()
-        if START in source:
-            first, last = source.index(START), source.index(END) + len(END)
-            PAGE.write_text(source[:first] + render(recording) + source[last:])
-        print('Captured actual CLI output and exit codes.')
-    elif recording != json.loads(DESTINATION.read_text()):
-        sys.exit('Recording does not match the current CLI.')
-    elif render(recording) not in PAGE.read_text():
-        sys.exit('The displayed transcript does not match the recording.')
+        first, last = source.index(START), source.index(END) + len(END)
+        PAGE.write_text(source[:first] + block + source[last:])
+        print('Wrote the recording block.')
+    elif block not in source:
+        sys.exit('The page block does not match the recording; run --write.')
     else:
-        print('Recording matches the current CLI.')
+        print('Recorded sessions match the current CLI.')

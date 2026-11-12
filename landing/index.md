@@ -93,19 +93,21 @@ Without `--tokenizer`, token counts are estimates and an estimated overflow is a
 
 ## Product walkthrough
 
-The CLI panel automatically demonstrates a small customer-support dataset in
-an editor alongside a terminal. Three examples contain one duplicate and one
-synthetic email address. The check highlights each issue in its source record;
-the fix writes two records to a separate clean.jsonl file, replacing the email
-with [REDACTED_EMAIL]. The original stays untouched. Re-checking the new file
-returns zero errors and zero warnings.
+The CLI panel shows an editor open on the dataset, line 2131 selected, and a
+screen recording of a real bash session on the same synthetic export of
+2,412 customer-support conversations. The first check reports 16
+issues: a pasted API key, customer contact details, eval leakage, duplicates,
+empty and unfinished turns, an undeclared tool call, mojibake and an
+over-long record (exit 2). jq prints record 2131, where the key sits. The fix
+writes 2,403 records to data/train.clean.jsonl with the key and contact details
+redacted and leaves data/train.jsonl untouched; jq shows the same record now
+reads [REDACTED_SECRET], and the re-check exits 0.
 
-The input, output file and terminal stdout are captured from Parallelogram
-1.6.1. Plain-language captions connect each command to the visible file change.
-The demonstration loops automatically without buttons or timers. It pauses
-when offscreen, in a hidden tab, or focused for keyboard reading. Reduced
-motion shows the completed result and full transcript. Without JavaScript,
-the explanation and transcript remain available.
+The recording is checked against Parallelogram 1.6.1: every command's output in
+it matches what the CLI prints today. It plays only while visible, pauses when
+focused for keyboard reading, and is replaced by the finished state and the
+full transcript under reduced motion. Without JavaScript, the explanation and
+transcript remain available.
 
 ## Model comparisons
 
