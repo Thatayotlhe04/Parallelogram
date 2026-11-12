@@ -36,6 +36,29 @@ def ansi_html(text):
         elif part:
             value = html.escape(part)
             output.append(f'<span class="{" ".join(sorted(classes))}">{value}</span>' if classes else value)
+    # Encode literal line-end spaces so the exact terminal text survives clean diffs.
+    return re.sub(r' +(?=\n)', lambda match: '&#32;' * len(match.group()), ''.join(output))
+
+
+def record_html(records, clean=False):
+    """Show the actual file as JSONL with visual wrapping, not invented records."""
+    output = []
+    for index, record in enumerate(records):
+        messages = record['messages']
+        lines = ['{<span class="json-key">"messages"</span>: [']
+        for n, message in enumerate(messages):
+            role = html.escape(json.dumps(message['role']))
+            content = html.escape(json.dumps(message['content'], ensure_ascii=False))
+            if 'maya@acme.com' in content:
+                content = content.replace('maya@acme.com', '<mark class="private-value">maya@acme.com</mark>')
+            if '[REDACTED_EMAIL]' in content:
+                content = content.replace('[REDACTED_EMAIL]', '<mark class="redacted-value">[REDACTED_EMAIL]</mark>')
+            comma = ',' if n < len(messages) - 1 else ''
+            lines.append('  {<span class="json-key">"role"</span>: <span class="json-string">' + role + '</span>, <span class="json-key">"content"</span>: <span class="json-string">' + content + '</span>}' + comma)
+        lines.append(']}')
+        issue = '' if clean else (' duplicate-record' if index == 1 else ' private-record' if index == 2 else '')
+        joined = '\n'.join(lines)
+        output.append(f'<div class="source-record{issue}"><span class="record-number">{index + 1}</span><pre>{joined}</pre></div>')
     return ''.join(output)
 
 
@@ -48,9 +71,28 @@ def render(recording):
         runs.append(f'<div class="terminal-run" data-run><div class="terminal-command"><span class="shell-prompt">❯</span> <span data-command="{command}">{command}</span><span class="shell-cursor" aria-hidden="true"></span></div><pre class="terminal-output" data-output>{output}</pre></div>')
         transcript.append(f'<span class="shell-prompt">❯</span> {command}\n{output}')
     return f'''{START}
-        <figcaption><span class="mac-lights" aria-hidden="true"><i></i><i></i><i></i></span><span class="terminal-path">datasets — zsh</span><span class="terminal-window-spacer" aria-hidden="true"></span></figcaption>
-        <div class="terminal-scroll" id="terminal-screen" tabindex="0" role="region" aria-label="Automatic terminal demonstration. Focus to pause and read." hidden><div class="terminal-history" aria-hidden="true">{''.join(runs)}<div class="terminal-idle" id="terminal-idle"><span class="shell-prompt">❯</span> <span id="terminal-clear"></span><span class="shell-cursor"></span></div></div></div>
-        <div id="terminal-static" class="terminal-static"><pre>{''.join(transcript)}</pre></div>
+        <div class="demo-desktop" id="demo-desktop" data-scene="intro" aria-hidden="true">
+          <div class="editor-window">
+            <div class="desktop-titlebar"><span class="mac-lights"><i></i><i></i><i></i></span><span>support-model</span><span class="window-symbol"></span></div>
+            <div class="editor-layout">
+              <aside class="editor-sidebar"><span class="explorer-title">EXPLORER</span><div class="project-folder">⌄ &nbsp; support-model</div><div class="explorer-file original-file"><span class="file-icon">&#123;&#125;</span> train.jsonl <span class="problem-count">2</span></div><div class="explorer-file clean-file"><span class="file-icon">&#123;&#125;</span> clean.jsonl <span class="file-new">U</span></div><div class="explorer-file"><span class="python-icon">◇</span> train.py</div><div class="explorer-file"><span class="readme-icon">≡</span> README.md</div></aside>
+              <div class="editor-main">
+                <div class="editor-tabs"><span class="editor-tab original-file"><span class="file-icon">&#123;&#125;</span> train.jsonl <span>×</span></span><span class="editor-tab clean-file"><span class="file-icon">&#123;&#125;</span> clean.jsonl <span>×</span></span></div>
+                <div class="editor-breadcrumb">support-model <span>›</span> <span id="editor-filename">train.jsonl</span><span class="jsonl-label">JSON Lines</span></div>
+                <div class="editor-code"><div id="source-before">{record_html(recording['before'])}</div><div id="source-after" hidden>{record_html(recording['after'], clean=True)}</div></div>
+                <div class="editor-diagnostic" id="editor-diagnostic"><span class="diagnostic-dot"></span><span id="editor-note">3 training examples · customer support</span></div>
+              </div>
+            </div>
+            <div class="editor-statusbar"><span>⑂ main</span><span id="editor-status">UTF-8 &nbsp; · &nbsp; JSONL</span></div>
+          </div>
+          <div class="walkthrough-caption"><span id="story-label">YOUR TRAINING DATA</span><h3 id="story-title">Small file. Hidden problems.</h3><p id="story-body">A repeated example. A private email. Both easy to miss in a training set.</p></div>
+          <div class="demo-terminal-window">
+            <div class="desktop-titlebar"><span class="mac-lights"><i></i><i></i><i></i></span><span>support-model — zsh</span><span class="terminal-window-spacer"></span></div>
+            <div class="terminal-scroll" id="terminal-screen"><div class="terminal-history">{''.join(runs)}<div class="terminal-idle" id="terminal-idle"><span class="shell-prompt">❯</span> <span class="shell-cursor"></span></div></div></div>
+          </div>
+        </div>
+        <figcaption class="walkthrough-footer"><span><span class="local-dot" aria-hidden="true"></span> On your machine. Before training.</span><span>Example dataset · actual CLI output</span></figcaption>
+        <div id="terminal-static" class="terminal-static"><h3>Three examples. Two issues. One clean file.</h3><p>Parallelogram finds a duplicate record and a private email in train.jsonl. The fix writes two records to clean.jsonl: the duplicate is removed and the email becomes [REDACTED_EMAIL]. The original file stays untouched. A second check passes with no errors or warnings.</p><pre>{''.join(transcript)}</pre></div>
         {END}'''
 
 
@@ -59,26 +101,19 @@ def capture():
         return {'messages': [{'role': 'user', 'content': question},
                              {'role': 'assistant', 'content': answer}]}
 
-    clean = chat('What is 2 + 2?', '4')
-    held = chat('Capital of France?', 'Paris.')
-    # This synthetic key is the existing detector-test fixture, not a credential.
-    rows = [clean,
-            chat('Review this config: sk-proj-Ab3dEf9hIjK2mNoPqR5sTuVwXyZ01234',
-                 'Keep credentials out of training data.'),
-            {'prompt': 'Choose a greeting.', 'chosen': 'Hello.', 'rejected': 'Hello.'},
-            clean, chat('Who should I contact?', 'Itâ€™s team@acme.com.'), held]
+    clean = chat('Can I return an item?', 'Returns are accepted within 30 days.')
+    rows = [clean, clean, chat('Where is my order?', 'Email maya@acme.com for an update.')]
     commands = [
-        ['check', 'train.jsonl', '--eval', 'eval.jsonl'],
-        ['check', 'train.jsonl', '--eval', 'eval.jsonl', '--fix', '--output', 'clean.jsonl'],
-        ['check', 'clean.jsonl', '--eval', 'eval.jsonl'],
+        ['check', 'train.jsonl'],
+        ['check', 'train.jsonl', '--fix', '--output', 'clean.jsonl'],
+        ['check', 'clean.jsonl'],
     ]
-    env = {**os.environ, 'FORCE_COLOR': '1', 'COLUMNS': '96', 'TERM': 'xterm-256color'}
+    env = {**os.environ, 'FORCE_COLOR': '1', 'COLUMNS': '72', 'TERM': 'xterm-256color'}
     env.pop('NO_COLOR', None)
     clips = []
     with tempfile.TemporaryDirectory(prefix='parallelogram-demo-') as directory:
         work = Path(directory)
         (work / 'train.jsonl').write_text(''.join(json.dumps(row, ensure_ascii=False) + '\n' for row in rows))
-        (work / 'eval.jsonl').write_text(json.dumps(held) + '\n')
         for arguments in commands:
             result = subprocess.run(
                 [sys.executable, '-c', 'from parallelogram.cli import app; app()', *arguments],
@@ -87,10 +122,11 @@ def capture():
             )
             clips.append({'command': 'parallelogram ' + ' '.join(arguments),
                           'exit_code': result.returncode, 'ansi': result.stdout})
+        fixed = [json.loads(line) for line in (work / 'clean.jsonl').read_text().splitlines()]
     if [clip['exit_code'] for clip in clips] != [2, 1, 0]:
         raise RuntimeError('The recorded CLI behavior changed; review before publishing.')
     return {'version': importlib.metadata.version('parallelogram'),
-            'columns': 96, 'commands': clips}
+            'columns': 72, 'before': rows, 'after': fixed, 'commands': clips}
 
 
 if __name__ == '__main__':

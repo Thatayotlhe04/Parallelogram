@@ -78,27 +78,33 @@ Hover decoration only runs on fine pointers; keyboard focus has equivalent
 control emphasis. `prefers-reduced-motion` disables all comparison animations
 and transitions. No looping effects, animation libraries or hidden initial content.
 
-## Recorded terminal session
+## Product walkthrough
 
-`demo.js` automatically replays actual CLI stdout from `terminal-recording.json`
-in a Mac-style terminal. There are no playback buttons, timer, scrubber, chapter
-UI or rewritten result cards. Commands are typed, then the original output
-appears in continuous scrollback. After the final result, `clear` is typed and
-the session repeats. Focus pauses for reading; moving focus away resumes. It pauses
-offscreen and in hidden pages/tabs. Reduced motion shows the static transcript.
+`demo.js` synchronizes an editor, a terminal and plain-language explanations.
+The three-record support dataset has one duplicate and one synthetic private
+email. The sequence highlights each issue, runs `--fix --output clean.jsonl`,
+opens the actual output file, then validates it. Input records stay unchanged.
+The editor is an illustrative development workspace, not a new product GUI.
 
-The capture uses a six-record synthetic fixture (including the existing test
-key, not a real credential), at 96 columns. Actual exits are 2 → 1 → 0. All
-stdout is preserved, including the approximate-tokenizer notice, details,
-fix/drop summary and Rich box drawing. ANSI styles are mapped to CSS; command
-typing and reading pauses are presentation pacing, not execution benchmarks.
+`scripts/capture_terminal_demo.py` runs the actual CLI in a temporary directory
+and captures input/output records plus ANSI stdout at 72 columns. The saved
+`terminal-recording.json` and generated HTML must match a fresh run. No JSONL
+dataset files are committed. Exit codes are 2 → 1 → 0: dropping a duplicate
+produces a partial-fix exit even though the new file passes its next check.
+
+The display types commands and highlights issues with presentation pacing;
+it does not execute code in the visitor's browser or claim execution timings.
+There are no playback buttons, chapter controls, progress bars or timers.
+It automatically loops, pauses offscreen/in hidden tabs and on keyboard focus,
+and respects reduced motion. The completed result and transcript are available
+with reduced motion; no-JavaScript users receive the explanation and transcript.
 
 From the repo root, with the local CLI installed in the current Python env:
 
 ```sh
-python scripts/capture_terminal_demo.py          # verify stdout and displayed transcript
-python scripts/capture_terminal_demo.py --write  # recapture and rebuild the transcript
+python scripts/capture_terminal_demo.py          # verify captured files and stdout
+python scripts/capture_terminal_demo.py --write  # recapture and rebuild the scene
 ```
 
-The static transcript is the no-JavaScript fallback and screen-reader version.
-Tests cover autonomous cycles, pause/resume, output preservation and reduced motion.
+Tests cover faithful file changes, scene/output synchronization, autonomous
+cycles, pause/resume and reduced motion.

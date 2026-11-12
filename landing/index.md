@@ -91,15 +91,21 @@ Without `--tokenizer`, token counts are estimates and an estimated overflow is a
 - Fix into a separate file, then check that file.
 - Never overwrite the input or the eval set.
 
-## Terminal replay
+## Product walkthrough
 
-The CLI panel automatically replays an actual check → fix → re-check session,
-captured from Parallelogram 1.6.1 on a six-record fixture. It preserves the CLI's
-diagnostic text, details, ANSI colors and summary boxes. The final re-check
-exits 0. It runs continuously in a Mac-style terminal with no player controls.
-Focusing pauses the terminal for reading; moving focus away resumes it.
-The full transcript is available without JavaScript and to screen readers.
-Reduced-motion users see a static session instead of autoplay.
+The CLI panel automatically demonstrates a small customer-support dataset in
+an editor alongside a terminal. Three examples contain one duplicate and one
+synthetic email address. The check highlights each issue in its source record;
+the fix writes two records to a separate clean.jsonl file, replacing the email
+with [REDACTED_EMAIL]. The original stays untouched. Re-checking the new file
+returns zero errors and zero warnings.
+
+The input, output file and terminal stdout are captured from Parallelogram
+1.6.1. Plain-language captions connect each command to the visible file change.
+The demonstration loops automatically without buttons or timers. It pauses
+when offscreen, in a hidden tab, or focused for keyboard reading. Reduced
+motion shows the completed result and full transcript. Without JavaScript,
+the explanation and transcript remain available.
 
 ## Model comparisons
 
