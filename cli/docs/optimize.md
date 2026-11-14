@@ -475,6 +475,33 @@ final-evaluation path would be exercised. The base model was also pretrained
 for longer (3,000 steps instead of 600) so that the retained capability
 meant something. Neither change was made to produce a win, and none occurred.
 
+**Replication and a 1.2M-parameter pilot.** A separate session reran
+`examples/optimize/tiny` from an empty cache and reproduced every test-split
+number above exactly. It then ran the same contract, unchanged, on a model
+ten times larger: `make_tiny_experiment.py --n-embd 128 --n-layer 6
+--n-head 4 --pretrain-steps 6000` (a 6-layer character-level GPT-2,
+1,206,144 parameters). 2.48M of 3.0M FTE, 260 s of compute. Test-split loss
+on the target capability:
+
+| arm | comparison | mean | across-seed std |
+|---|---|---|---|
+| base model | reference | 11.50 | n/a |
+| `random@3000` | matched tokens | 3.137 | 0.012 |
+| `diversity@3000` | matched tokens | 5.043 | 1.326 |
+| **`less@3000`** (frozen candidate) | matched tokens | 3.184 | 0.018 |
+| `less@3000~diversity_lambda=0.3` | matched tokens | 3.085 | 0.027 |
+| `random+overhead` (10,083 tokens) | matched compute | 2.945 | 0.065 |
+| `full` (12,120 tokens) | full data | 2.909 | 0.021 |
+
+Reported conclusion: **not supported**, and more clearly than at 113k
+parameters. At matched tokens random selection is now better beyond noise
+(difference 0.047; across-seed interval [0.008, 0.086]). Counting the scoring
+overhead, random selection with the same compute is better by 0.239. The
+lambda-0.3 variant had the lowest loss among the subsets but lost more of
+the retained capability than the 0.25 tolerance allows, so it could not be
+frozen; it also spent 17.1% of its tokens on the mislabeled reversal records
+(11.0% of the pool). A bigger toy model did not change the picture.
+
 ## Remaining empirical experiments
 
 Not run, and nothing here claims otherwise:

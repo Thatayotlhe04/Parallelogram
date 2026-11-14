@@ -49,6 +49,9 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--candidates", type=int, default=600)
     parser.add_argument("--pretrain-steps", type=int, default=3000)
+    parser.add_argument("--n-embd", type=int, default=64, help="model width (64 gives ~100k parameters)")
+    parser.add_argument("--n-layer", type=int, default=2)
+    parser.add_argument("--n-head", type=int, default=2)
     args = parser.parse_args()
     rng = random.Random(args.seed)
     used: set[str] = set()
@@ -81,7 +84,8 @@ def main() -> None:
     # The base model learns the chat format, copying and uppercasing. It never
     # sees reversal, and never sees any string used in the three splits.
     pretrain = [record(i, rng.choice(["copy", "upper"]), fresh(), rng, "pre")["messages"] for i in range(2000)]
-    build_tiny_model(args.out / "model", seed=args.seed, pretrain=pretrain, pretrain_steps=args.pretrain_steps)
+    build_tiny_model(args.out / "model", seed=args.seed, pretrain=pretrain, pretrain_steps=args.pretrain_steps,
+                     n_embd=args.n_embd, n_layer=args.n_layer, n_head=args.n_head)
     print(f"wrote {args.out}/data/{{candidates,dev,test}}.jsonl and {args.out}/model")
 
 
