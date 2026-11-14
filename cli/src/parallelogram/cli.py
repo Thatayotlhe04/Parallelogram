@@ -6,6 +6,7 @@ Local pre-flight validation plus discovery and agent tools:
   parallelogram report <path>  — aggregate dataset health, for humans and CI
   parallelogram rules          — discover rule metadata and repair behavior
   parallelogram mcp            — serve local dataset tools over stdio
+  parallelogram optimize ...   — plan/run/report/export a data-selection experiment
 
 Exit codes are deliberately minimal and stable:
   0 — clean (no issues)
@@ -39,6 +40,7 @@ from .core.fixer import Disposition
 from .core.report import Severity
 from .formats import supported_formats
 from .output.terminal import render_report
+from .optimize.cli import optimize_app
 
 
 app = typer.Typer(
@@ -47,6 +49,9 @@ app = typer.Typer(
     add_completion=False,
     no_args_is_help=True,
 )
+
+
+app.add_typer(optimize_app, name="optimize")
 
 
 def _version_callback(value: bool) -> None:
@@ -253,10 +258,15 @@ def mcp(
              "Output paths outside it are refused.",
         exists=True, file_okay=False, dir_okay=True,
     ),
+    optimize: bool = typer.Option(
+        False, "--optimize",
+        help="Also serve optimize_plan, optimize_report and optimize_export. "
+             "Off by default, so the default tool list is unchanged.",
+    ),
 ) -> None:
     """Serve local dataset tools over newline-delimited JSON-RPC on stdio."""
     from .mcp_server import serve
-    serve(root=root)
+    serve(root=root, optimize=optimize)
 
 
 @app.command()

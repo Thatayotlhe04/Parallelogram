@@ -54,6 +54,27 @@ issues never limits validation. Fixes require a separate output path and refuse
 input/eval aliases. [Agent guide](cli/docs/agents.md): MCP tools, Claude Code/Codex/Cursor
 configuration, Python errors, and a six-line AGENTS.md/CLAUDE.md snippet.
 
+## Optimize (experimental)
+
+Pick a training subset with gradient-based scores, then train it and several
+baselines for real and report what was measured. Needs the optional extras;
+`check`, `report` and `mcp` never import them.
+
+```bash
+pip install 'parallelogram[optimize]'
+parallelogram optimize plan experiment.yaml      # matrix, costs, budget fit; trains nothing
+parallelogram optimize run experiment.yaml       # score, select, train, compare, freeze, test
+parallelogram optimize report RUN_DIRECTORY
+parallelogram optimize export RUN_DIRECTORY --output selected.jsonl
+```
+
+One path is supported: LoRA instruction tuning of a local Hugging Face causal
+LM on plain chat records. The default conclusion is "insufficient evidence",
+and scoring overhead is counted against the method. Validated on CPU with a
+tiny model only; in that pilot the gradient selector did not beat random
+selection. [Optimize guide](cli/docs/optimize.md): the experiment
+contract, method, deviations from LESS, and what has and has not been run.
+
 ## The problem
 
 Every fine-tuning framework assumes your data is clean. None of them verify it:

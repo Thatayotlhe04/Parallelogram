@@ -52,6 +52,36 @@ TOOLS = [
 ]
 
 
+# Served only with `parallelogram mcp --optimize`, so the default tool list
+# (and every client configured against it) is unchanged. There is no
+# optimize_run tool on purpose: a run trains models for minutes to hours, and
+# this server answers one request at a time. Start runs from the CLI.
+OPTIMIZE_TOOLS = [
+    {
+        "name": "optimize_plan",
+        "description": "Plan a Parallelogram Optimize experiment without training. Reads the experiment contract (.yaml/.yml/.json), checks the candidate, development and test splits for validation errors and leakage, and returns the experiment matrix, estimated compute by stage against the budget, what does not fit, resource assumptions and the artifacts a run would write. exit_code 0 means the plan fits its budget, 2 that it does not. Token counts are exact only when the optional ML extras and the tokenizer are available locally; otherwise they are labeled as estimates. Nothing is downloaded and nothing is written.",
+        "inputSchema": _schema({"experiment": {"type": "string", "minLength": 1,
+                                               "description": "Path to the experiment contract."}}, ["experiment"]),
+    },
+    {
+        "name": "optimize_report",
+        "description": "Report on an optimize run directory, rebuilt from its artifacts. Sections are kept apart: estimated_signals (gradient-alignment heuristics, not probabilities), development_results (measured, but they chose the candidate), final_results (measured once on held-out data after the freeze), compute (everything charged, including scoring overhead), coverage, limitations and not_performed. conclusion.status is supported, not_supported or insufficient_evidence; results labeled pilot do not establish an improvement for larger models. Read conclusion and not_performed before quoting any number.",
+        "inputSchema": _schema({"run_dir": {"type": "string", "minLength": 1,
+                                            "description": "Run directory written by `parallelogram optimize run`."}},
+                               ["run_dir"]),
+    },
+    {
+        "name": "optimize_export",
+        "description": "Copy the records selected by an optimize run to a new JSONL file, byte for byte in source order, and write <output>.manifest.json with source identifiers, selection reasons, scores, fingerprints and provenance. Exports the frozen candidate unless trial names another arm. Refuses to write over an input dataset, outside the server root, or over an existing file unless overwrite=true, and refuses if the candidates file changed since the run. Returns the manifest without its per-record list (records_listed=false); read the manifest file for per-record detail.",
+        "inputSchema": _schema({"run_dir": {"type": "string", "minLength": 1},
+                                "output": {"type": "string", "minLength": 1},
+                                "trial": {"type": "string", "minLength": 1,
+                                          "description": "Arm to export instead of the frozen candidate."},
+                                "overwrite": {"type": "boolean", "default": False}}, ["run_dir", "output"]),
+    },
+]
+
+
 _OUTCOME_ORDER = {"dropped": 0, "unparseable": 1, "fixed": 2}
 
 
@@ -67,8 +97,8 @@ class InvalidParams(ValueError):
     """Malformed method arguments, distinct from failures while using a tool."""
 
 
-def _arguments(name: str, arguments: object) -> dict:
-    tool = next((tool for tool in TOOLS if tool["name"] == name), None)
+def _arguments(name: str, arguments: object, tools: list[dict] = TOOLS) -> dict:
+    tool = next((tool for tool in tools if tool["name"] == name), None)
     if tool is None:
         raise InvalidParams(f"Unknown tool: {name}")
     schema = tool["inputSchema"]
@@ -125,13 +155,37 @@ def _confined_output(value: str, root: Path, overwrite: bool, dry_run: bool) -> 
         raise ToolRefused(f"output already exists; pass overwrite=true to replace it: {value}")
 
 
-def _call_tool(params: dict, root: Path | None = None) -> dict:
+def _optimize_tool(name: str, arguments: dict, root: Path) -> dict:
+    """Run one optimize tool. Imported lazily: the default server never loads it."""
+    from . import optimize
+
+    if name == "optimize_plan":
+        _regular_file(arguments["experiment"], "experiment")
+        obj = optimize.plan(arguments["experiment"])
+        return {**obj, "exit_code": 0 if obj["fits_budget"] else 2}
+    if not Path(arguments["run_dir"]).is_dir():
+        raise ToolRefused(f"run_dir is not a directory: {arguments['run_dir']}")
+    if name == "optimize_report":
+        return {**optimize.report(arguments["run_dir"]), "exit_code": 0}
+    overwrite = arguments.get("overwrite", False)
+    for target in (arguments["output"], arguments["output"] + ".manifest.json"):
+        _confined_output(target, root, overwrite, False)
+    manifest = optimize.export(arguments["run_dir"], arguments["output"], trial=arguments.get("trial"),
+                               overwrite=overwrite)
+    return {**{k: v for k, v in manifest.items() if k != "records"}, "records_listed": False, "exit_code": 0}
+
+
+def _call_tool(params: dict, root: Path | None = None, optimize: bool = False) -> dict:
     if not isinstance(params.get("name"), str):
         raise InvalidParams("tools/call requires a string name")
     name = params["name"]
-    arguments = _arguments(name, params.get("arguments", {}))
+    arguments = _arguments(name, params.get("arguments", {}), TOOLS + OPTIMIZE_TOOLS if optimize else TOOLS)
     root = (root or Path(os.getcwd())).resolve()
     try:
+        if name.startswith("optimize_"):
+            obj = _optimize_tool(name, arguments, root)
+            return {"content": [{"type": "text", "text": json.dumps(obj, separators=(",", ":"))}],
+                    "structuredContent": obj}
         if name in ("check_dataset", "fix_dataset"):
             _regular_file(arguments["path"], "path")
             if "eval_path" in arguments:
@@ -160,7 +214,7 @@ def _error(request_id: object, code: int, message: str) -> dict:
     return {"jsonrpc": "2.0", "id": request_id, "error": {"code": code, "message": message}}
 
 
-def handle(message: object, root: Path | None = None) -> dict | None:
+def handle(message: object, root: Path | None = None, optimize: bool = False) -> dict | None:
     """Dispatch one JSON-RPC message without writing to either stream."""
     if (not isinstance(message, dict) or message.get("jsonrpc") != "2.0"
             or not isinstance(message.get("method"), str)
@@ -186,9 +240,9 @@ def handle(message: object, root: Path | None = None) -> dict | None:
         elif method == "ping":
             result = {}
         elif method == "tools/list":
-            result = {"tools": TOOLS}
+            result = {"tools": TOOLS + OPTIMIZE_TOOLS if optimize else TOOLS}
         elif method == "tools/call":
-            result = _call_tool(params, root)
+            result = _call_tool(params, root, optimize)
         else:
             return _error(request_id, -32601, f"Method not found: {method}")
         return {"jsonrpc": "2.0", "id": request_id, "result": result}
@@ -224,7 +278,7 @@ def _lines(stdin: TextIO):
 
 
 def serve(stdin: TextIO | None = None, stdout: TextIO | None = None,
-          root: Path | None = None) -> None:
+          root: Path | None = None, optimize: bool = False) -> None:
     """Process one JSON object per line until EOF, flushing every response."""
     stdin = sys.stdin if stdin is None else stdin
     stdout = sys.stdout if stdout is None else stdout
@@ -244,7 +298,7 @@ def serve(stdin: TextIO | None = None, stdout: TextIO | None = None,
                 # Keep accidental downstream diagnostics off the transport.
                 with redirect_stdout(sys.stderr):
                     try:
-                        response = handle(message, root)
+                        response = handle(message, root, optimize)
                     except Exception as exc:  # noqa: BLE001 — isolate tool/transport failures
                         print(scrub(f"MCP internal error: {type(exc).__name__}: {exc}"), file=sys.stderr)
                         response = _error(message.get("id") if isinstance(message, dict) else None,

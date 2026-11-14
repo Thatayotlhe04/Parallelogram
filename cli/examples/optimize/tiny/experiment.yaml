@@ -1,0 +1,84 @@
+# Tiny CPU experiment for `parallelogram optimize`. Real training, toy scale.
+#
+#   python examples/optimize/make_tiny_experiment.py
+#   parallelogram optimize plan   examples/optimize/tiny/experiment.yaml
+#   parallelogram optimize run    examples/optimize/tiny/experiment.yaml
+#   parallelogram optimize report examples/optimize/tiny/run
+#   parallelogram optimize export examples/optimize/tiny/run --output selected.jsonl
+#
+# Paths are relative to this file. Results are a pilot: they show the pipeline
+# works end to end, not that the method helps on real models or data.
+schema_version: 1
+name: tiny-cpu-pilot
+scale: pilot
+objective: sft-lora-causal-lm
+
+data:
+  candidates: {path: data/candidates.jsonl}
+  dev: {path: data/dev.jsonl}
+  test: {path: data/test.jsonl}
+  id_field: id
+  group_field: doc            # related-document key checked across splits
+  capability_field: skill
+  dev_selection_fraction: 0.5 # half steers gradient scoring, half compares policies
+  leakage: {on_exact: exclude, on_related: exclude, on_near: report, near_threshold: 0.8}
+
+model:
+  path: model                 # local directory; nothing is downloaded
+  chat_template: tokenizer
+  max_seq_len: 64
+  device: cpu
+  dtype: float32
+
+recipe:
+  lora: {r: 8, alpha: 16, dropout: 0.0, target_modules: [c_attn]}
+  optimizer: adamw
+  learning_rate: 3.0e-3
+  epochs: 6
+  batch_size: 8
+  schedule: linear
+  loss_masking: assistant_only
+  seeds: [0, 1, 2]
+
+evaluation:
+  metrics: [loss, exact_match]
+  primary_metric: loss
+  max_new_tokens: 8
+  target_capabilities: [reverse]
+  retain_capabilities: [copy]
+  retention_tolerance: 0.25   # in units of the primary metric (nats of loss here)
+
+selection:
+  token_budget: 3000          # about a quarter of the candidate pool
+  policies: [random, diversity, less]
+  seed: 0
+  report_fields: [skill]
+  coverage:
+    - {field: skill, value: copy, min_records: 15}
+  less:
+    warmup: {fraction: 0.1, epochs: 3, seed: 0}
+    projection: {kind: countsketch, dim: 1024, seed: 0}
+    optimizer_aware: true
+    normalization: cosine
+    checkpoint_weighting: lr
+    target_aggregation: max
+    diversity_lambda: 0.0
+    shard_size: 128
+
+search:
+  token_budgets: [1500]
+  less_variants:
+    - {diversity_lambda: 0.3}
+  max_trials: 4
+
+baselines:
+  base_model: true
+  full_data: true
+  random_matched_compute: true
+
+budget:
+  total_compute: 3.0e+6       # forward-token-equivalents, everything included
+
+output:
+  run_dir: run
+  cache_dir: cache
