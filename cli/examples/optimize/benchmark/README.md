@@ -32,7 +32,11 @@ cd cli/examples/optimize/benchmark
 
 # 1. Data (CC BY-SA 3.0). Download the single JSONL file yourself, then split it.
 #    https://huggingface.co/datasets/databricks/databricks-dolly-15k  ->  databricks-dolly-15k.jsonl
-python prepare_dolly.py --input databricks-dolly-15k.jsonl --out data
+#    Evaluation examples are never truncated, so dev and test are drawn only from
+#    prompts that fit max_seq_len, counted with the model's own tokenizer.
+python prepare_dolly.py --input databricks-dolly-15k.jsonl --out data \
+    --max-eval-tokens 512 --tokenizer Qwen/Qwen2.5-0.5B-Instruct \
+    --tokenizer-revision 7ae557604adf67be50417f59c2c2f167def9a775
 
 # 2. Each split must pass the linter (optimize refuses otherwise).
 for f in data/candidates.jsonl data/dev.jsonl data/test.jsonl; do parallelogram check "$f"; done

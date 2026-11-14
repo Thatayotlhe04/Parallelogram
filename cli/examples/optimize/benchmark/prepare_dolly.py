@@ -1,10 +1,12 @@
 """Turn databricks-dolly-15k into the three splits of the benchmark contract.
 
-    python prepare_dolly.py --input databricks-dolly-15k.jsonl --out data
+    python prepare_dolly.py --input databricks-dolly-15k.jsonl --out data \
+        --max-eval-tokens 512 --tokenizer Qwen/Qwen2.5-0.5B-Instruct \
+        --tokenizer-revision 7ae557604adf67be50417f59c2c2f167def9a775
 
 Input is the dataset's single JSONL file (fields: instruction, context,
-response, category), downloaded by you; this script reads a local file and
-touches no network. Output is `data/{candidates,dev,test}.jsonl` in chat
+response, category), downloaded by you. Without `--tokenizer` the script
+reads a local file and touches no network. Output is `data/{candidates,dev,test}.jsonl` in chat
 format with an `id` and the original `category`.
 
 Split rules, all deterministic:
@@ -14,6 +16,12 @@ Split rules, all deterministic:
 * Development and test examples are drawn only from the target and retained
   categories; everything else, including the rest of those categories, is a
   candidate.
+* With `--max-eval-tokens`, a prompt is eligible for development or test
+  only if its records fit in that many tokens, counted the way
+  `parallelogram optimize` counts them (the tokenizer's chat template, whole
+  conversation). The optimizer never truncates or drops an evaluation
+  example, so an evaluation split must fit `model.max_seq_len` as written.
+  Longer records stay candidates, where `on_overlength` decides.
 * Records with an empty instruction or response, and exact repeats, are
   dropped here because `parallelogram optimize` refuses splits that fail
   `parallelogram check`.
@@ -37,7 +45,15 @@ def main() -> None:
     parser.add_argument("--max-candidates", type=int, default=0,
                         help="keep at most this many candidates, sampled by prompt hash within each category "
                              "in proportion to its size (0 keeps all)")
+    parser.add_argument("--max-eval-tokens", type=int, default=0,
+                        help="only prompts whose records fit in this many tokens may become dev or test "
+                             "(requires --tokenizer; 0 applies no limit)")
+    parser.add_argument("--tokenizer", help="tokenizer used for --max-eval-tokens: a local directory or a "
+                                            "Hugging Face id (downloaded if not cached)")
+    parser.add_argument("--tokenizer-revision", help="pinned revision for a Hugging Face tokenizer id")
     args = parser.parse_args()
+    if args.max_eval_tokens and not args.tokenizer:
+        parser.error("--max-eval-tokens needs --tokenizer")
 
     rows, seen_prompts, seen_records = [], set(), set()
     with open(args.input, encoding="utf-8") as f:
@@ -61,11 +77,21 @@ def main() -> None:
                 "_prompt": hashlib.sha256(prompt.encode("utf-8")).hexdigest(),
             })
 
+    # Prompts too long to evaluate at --max-eval-tokens can't be dev or test.
+    too_long: set[str] = set()
+    if args.max_eval_tokens:
+        count = token_counter(args.tokenizer, args.tokenizer_revision)
+        for row in rows:
+            if row["category"] in (args.target, args.retain) and count(row["messages"]) > args.max_eval_tokens:
+                too_long.add(row["_prompt"])
+        print(f"evaluation length limit: {len(too_long)} {args.target}/{args.retain} prompt(s) exceed "
+              f"{args.max_eval_tokens} tokens and stay candidates")
+
     # Order evaluation-category prompts by hash; the first ones become test,
     # the next ones dev. Every record sharing a chosen prompt goes with it.
     assignment: dict[str, str] = {}
     for category in (args.target, args.retain):
-        prompts = sorted({r["_prompt"] for r in rows if r["category"] == category} - set(assignment))
+        prompts = sorted({r["_prompt"] for r in rows if r["category"] == category} - set(assignment) - too_long)
         for i, prompt in enumerate(prompts):
             if i < args.test_per_category:
                 assignment[prompt] = "test"
@@ -111,6 +137,22 @@ def main() -> None:
         for record in records:
             by_category[record["category"]] = by_category.get(record["category"], 0) + 1
         print(f"{name}: {len(records)} records {dict(sorted(by_category.items()))}")
+
+
+def token_counter(ref: str, revision: str | None):
+    """Count tokens exactly as `parallelogram optimize` does: the tokenizer's
+    chat template over the whole conversation, no added special tokens."""
+    from transformers import AutoTokenizer
+
+    tokenizer = AutoTokenizer.from_pretrained(ref, revision=revision)
+    if not tokenizer.chat_template:
+        raise SystemExit(f"The tokenizer {ref!r} has no chat template")
+
+    def count(messages: list[dict]) -> int:
+        text = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=False)
+        return len(tokenizer(text, add_special_tokens=False)["input_ids"])
+
+    return count
 
 
 if __name__ == "__main__":
