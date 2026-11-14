@@ -8,7 +8,7 @@ A buildless, static landing page for the [Parallelogram CLI](https://github.com/
 - `styles.css`: shared layout and legal-page styles; local Manrope, Inter and Source Code Pro fonts (SIL OFL).
 - `main.js`: install copy buttons only, with an accessible status announcement. With JavaScript or clipboard access unavailable, commands remain selectable.
 - `privacy.html` and `terms.html`: legal pages with shared navigation and styling.
-- The mark is the parallelogram ruled into a 3x3 lattice, white on black. `BRAND` in `scripts/build_shared.py` is the source for every header and footer; `favicon.svg`, `favicon-32x32.png`, `apple-touch-icon.png` and the mark on `og.png` use the same geometry.
+- The mark is the parallelogram as a 4x4 checkerboard, white on black. `BRAND` in `scripts/build_shared.py` is the source for every header and footer; `favicon.svg`, `favicon-32x32.png`, `apple-touch-icon.png` and the mark on `og.png` use the same geometry.
 - `og.png`: social image. Crawler files and `.well-known/security.txt` remain in place.
 - `vercel.json`: unchanged first-party CSP and security headers.
 

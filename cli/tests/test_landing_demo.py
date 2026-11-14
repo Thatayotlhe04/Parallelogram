@@ -46,16 +46,17 @@ def test_editor_chrome_is_drawn_not_typed():
     assert editor.count('<svg class="fi ') >= 12 and 'class="ed-branch"' in editor
 
 
-def test_mark_is_the_same_lattice_everywhere():
-    """One mark: the parallelogram ruled 3x3, in every header and footer and in the favicon."""
+def test_mark_is_the_same_everywhere():
+    """One mark: the parallelogram as a 4x4 checkerboard, in every header and footer and in the favicon."""
     sys.path.insert(0, str(ROOT / 'scripts'))
     from build_shared import BRAND, PAGES
-    outline, lattice = 'M8 5 L29 5 L24 27 L3 27 Z', 'M15 5 L10 27 M22 5 L17 27 M6.33 12.33 H27.33 M4.67 19.67 H25.67'
-    assert outline in BRAND and lattice in BRAND
+    outline = 'M8 5 L29 5 L24 27 L3 27 Z'
+    cells = 'M8 5L13.25 5L12 10.5L6.75 10.5ZM18.5 5L23.75 5L22.5 10.5L17.25 10.5ZM12 10.5L17.25 10.5L16 16L10.75 16ZM22.5 10.5L27.75 10.5L26.5 16L21.25 16ZM5.5 16L10.75 16L9.5 21.5L4.25 21.5ZM16 16L21.25 16L20 21.5L14.75 21.5ZM9.5 21.5L14.75 21.5L13.5 27L8.25 27ZM20 21.5L25.25 21.5L24 27L18.75 27Z'
+    assert outline in BRAND and cells in BRAND and BRAND.count('Z') == 9
     for name in PAGES:
         assert (ROOT / 'landing' / name).read_text().count(BRAND) == 2, name
     favicon = (ROOT / 'landing/favicon.svg').read_text()
-    assert outline in favicon and lattice in favicon
+    assert outline in favicon and cells in favicon
 
 
 def test_terminal_transcript_is_available_without_javascript():

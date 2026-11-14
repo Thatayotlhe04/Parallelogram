@@ -24,10 +24,14 @@ REPO = "https://github.com/Thatayotlhe04/Parallelogram"
 CHEVRON = ('<svg class="chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5" '
            'fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" '
            'stroke-linejoin="round"/></svg>')
-# The mark: the parallelogram ruled into a 3x3 lattice, lines parallel to its sides.
-BRAND = ('<svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true" fill="none" stroke="currentColor">'
-         '<path d="M8 5 L29 5 L24 27 L3 27 Z" stroke-width="2.2" stroke-linejoin="round"/>'
-         '<path d="M15 5 L10 27 M22 5 L17 27 M6.33 12.33 H27.33 M4.67 19.67 H25.67" stroke-width="1.7"/></svg>')
+# The mark: the parallelogram as a 4x4 checkerboard, cells parallel to its sides.
+BRAND = ('<svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">'
+         '<path d="M8 5L13.25 5L12 10.5L6.75 10.5ZM18.5 5L23.75 5L22.5 10.5L17.25 10.5Z'
+         'M12 10.5L17.25 10.5L16 16L10.75 16ZM22.5 10.5L27.75 10.5L26.5 16L21.25 16Z'
+         'M5.5 16L10.75 16L9.5 21.5L4.25 21.5ZM16 16L21.25 16L20 21.5L14.75 21.5Z'
+         'M9.5 21.5L14.75 21.5L13.5 27L8.25 27ZM20 21.5L25.25 21.5L24 27L18.75 27Z" fill="currentColor"/>'
+         '<path d="M8 5 L29 5 L24 27 L3 27 Z" fill="none" stroke="currentColor" stroke-width="1.4" '
+         'stroke-linejoin="round"/></svg>')
 STAR = ('<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.3" '
         'stroke-linejoin="round" d="M8 1.8l1.9 3.9 4.3.6-3.1 3 .7 4.3L8 11.6l-3.8 2 .7-4.3-3.1-3 4.3-.6z"/></svg>')
 
