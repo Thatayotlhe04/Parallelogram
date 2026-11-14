@@ -44,36 +44,23 @@ parallelogram check clean.jsonl                         # exit 0
 
 The display removes Rich box borders, blank lines, indentation, and two explanatory detail lines. Diagnostic text, summary counts, and command order are unchanged; `exit N` annotations show captured process statuses, not CLI-generated lines. The approximate-token-count note is retained.
 
-## Model comparison section
+## Why-check-first section
 
-`#benchmarks` uses vertical, provider-colored columns and local brand marks.
-Its first view explains measured training-data damage and the defects the CLI
-can catch. The other views compare API costs and ownership/control tradeoffs.
-The cost panel calculates a conditional crossover against the cheapest listed
-API at the selected tier; this assumes the same fixed budget can serve that
-volume and does not establish matched task quality. There is no paper promotion or model intelligence score.
-
-`benchmarks.js` holds a dated official-price snapshot (12 November 2026), two
-API tiers and a browser-local scenario calculator. Costs assume 1,500 input and
-200 total billed output tokens per task. The owned deployment is an editable
-budget, not a measured model cost. The default includes $2,800 hosting, $2,500
-maintenance and $700 amortized training. Capacity is assumed, not simulated.
-Gemini 4 Carbon's promotional rates expire November 30; update the snapshot
-and source text together if refreshing prices. No runtime network requests.
+`#benchmarks` shows one measured result: training-data damage in a controlled
+small-model test, and the defects the CLI can catch. `benchmarks.js` only
+switches the chart between the 10% and 30% injection settings. The earlier API
+cost calculator and ownership comparison were removed: they argued about model
+ownership, not about the linter, and depended on a dated price snapshot.
 
 The quality data is preserved in `benchmark-evidence.json`, with provenance
 from research revision `1fcefb66637638ead2c50ab60d49ffaada57d769`. These are small-model
 and validator experiments, not evidence of linter-induced accuracy gains.
 
-Brand SVGs in `logos/` come from `@lobehub/icons-static-svg` 1.102.0 (MIT; license
-included). Logos identify providers and model families; no endorsement implied.
-
-Test the three tabs, arrows/Home/End, API tiers, volume buttons, invalid budgets,
-quality selector, 375px layout, reduced motion and no-JS fallback. Both all-panel
-fallback and the scenario arithmetic have automated tests in `cli/tests/`.
+Test the injection selector, 375px layout, reduced motion and no-JS fallback;
+the selector and entrance have automated tests in `cli/tests/`.
 
 Comparison motion is local CSS: a one-time viewport entrance, staggered column
-reveals, smooth bar resizing, and hover highlights for columns, rows and controls.
+reveals, smooth bar resizing, and hover highlights for columns and controls.
 Hover decoration only runs on fine pointers; keyboard focus has equivalent
 control emphasis. `prefers-reduced-motion` disables all comparison animations
 and transitions. No looping effects, animation libraries or hidden initial content.

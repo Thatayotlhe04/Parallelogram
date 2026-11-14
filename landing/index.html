@@ -313,12 +313,7 @@ $ parallelogram check data/train.clean.jsonl --eval data/eval.jsonl
         <p>A fine-tuned model learns your data—including its mistakes.<br class="desktop-break"> Catch checkable defects before you spend GPU hours.</p>
       </div>
       <div class="comparison-board">
-        <div class="compare-tabs" role="tablist" aria-label="Model comparisons" hidden>
-          <button id="tab-quality" type="button" role="tab" aria-controls="panel-quality" aria-selected="true"><span aria-hidden="true">◈</span> Why check first</button>
-          <button id="tab-cost" type="button" role="tab" aria-controls="panel-cost" aria-selected="false" tabindex="-1"><span aria-hidden="true">▥</span> Cost at scale</button>
-          <button id="tab-fit" type="button" role="tab" aria-controls="panel-fit" aria-selected="false" tabindex="-1"><span aria-hidden="true">⊞</span> What you control</button>
-        </div>
-        <div id="panel-quality" class="compare-panel" role="tabpanel" aria-labelledby="tab-quality" tabindex="0">
+        <div id="panel-quality" class="compare-panel">
           <div class="chart-topline"><div><h3>Same model. Different data. Different result.</h3><p>Exact-match accuracy · higher is better · controlled small-model test</p></div><span class="comparison-label">MEASURED, NOT PROJECTED</span></div>
           <div class="quality-layout">
             <figure class="quality-figure" aria-label="Accuracy by training data quality">
@@ -336,71 +331,6 @@ $ parallelogram check data/train.clean.jsonl --eval data/eval.jsonl
           <details class="compare-details"><summary>Test setup &amp; limits <span aria-hidden="true">+</span></summary><div><p>Accuracy: locally built 383K-parameter GPT-style model, 2,000 fine-tuning examples, 600 held-out extraction examples, five seeds. At 30% injection, empty answers reduced mean accuracy by 22.4 percentage points (95% paired t-interval: 18.8–26.0); systematic errors by 31.7 (30.3–33.1). At 10% the reductions were 4.6 (3.3–5.9) and 12.2 (10.6–13.8). Systematic errors actually affected 12.1% and 31.9% of rows.</p><p>Detection: separate test of Parallelogram 1.6.1, 100 injected rows per defect type, all rules, approximate token counts with a 2,048-token limit. The 98–100% range includes warnings. The base was filtered by all detectors, so false positives on natural data are not estimated. Both tests were conducted by Parallelogram’s author; these results do not measure accuracy recovered by the linter, production-model quality, or performance against frontier APIs.</p><p><a href="benchmark-evidence.json">Download experiment results ↗</a></p></div></details>
           <p class="sr-only" id="quality-announcement" aria-live="polite"></p>
         </div>
-        <div id="panel-cost" class="compare-panel" role="tabpanel" aria-labelledby="tab-cost" tabindex="0">
-          <div class="chart-topline">
-            <div><h3>One workload. Four ways to run it.</h3><p>Estimated monthly spend · USD · lower is cheaper</p></div>
-            <div class="chart-mode" hidden><label class="sr-only" for="api-tier">API model tier</label><select id="api-tier"><option value="flagship">Flagship APIs</option><option value="efficient">Efficient APIs</option></select></div>
-          </div>
-          <div class="workload-strip">
-            <div><span class="workload-caption">MONTHLY WORKLOAD</span><strong id="workload-label">1 million tasks</strong></div>
-            <div class="workload-options" role="group" aria-label="Monthly task volume" hidden><button type="button" data-volume="100000" aria-pressed="false">100K</button><button type="button" data-volume="1000000" aria-pressed="true">1M</button><button type="button" data-volume="5000000" aria-pressed="false">5M</button></div>
-            <p>Change the volume.<br>Watch the economics shift.</p>
-          </div>
-          <div class="cost-layout">
-            <figure class="cost-figure" aria-label="Monthly cost comparison">
-              <div class="chart-key"><span><i class="key-solid"></i>Published API rates</span><span><i class="key-hatched"></i>Your deployment estimate</span><span class="price-date">12 NOV 2026 SNAPSHOT</span></div>
-              <div class="vertical-chart">
-                <div class="chart-grid" aria-hidden="true"><span id="cost-axis-3">$30K</span><span id="cost-axis-2">$20K</span><span id="cost-axis-1">$10K</span><span id="cost-axis-0">$0</span></div>
-                <div class="model-columns"><div class="model-column mint">
-                  <div class="column-space"><div class="model-bar" id="cost-bar-openai" style="--height:83.3333%"><strong id="cost-value-openai">$25K</strong></div></div>
-                  <div class="model-label"><img src="logos/openai.svg" width="28" height="28" alt=""><span class="model-provider">OpenAI</span><strong id="cost-name-openai">GPT-6 Astra</strong><span id="cost-kind-openai">API · standard rate</span></div>
-                </div><div class="model-column sand">
-                  <div class="column-space"><div class="model-bar" id="cost-bar-claude" style="--height:66.6667%"><strong id="cost-value-claude">$20K</strong></div></div>
-                  <div class="model-label"><img src="logos/claude.svg" width="28" height="28" alt=""><span class="model-provider">Anthropic</span><strong id="cost-name-claude">Claude Fable 5.2</strong><span id="cost-kind-claude">API · standard rate</span></div>
-                </div><div class="model-column blue">
-                  <div class="column-space"><div class="model-bar" id="cost-bar-gemini" style="--height:16.6667%"><strong id="cost-value-gemini">$5K</strong></div></div>
-                  <div class="model-label"><img src="logos/gemini.svg" width="28" height="28" alt=""><span class="model-provider">Google</span><strong id="cost-name-gemini">Gemini 4 Carbon</strong><span id="cost-kind-gemini">API · standard rate</span></div>
-                </div><div class="model-column orange">
-                  <div class="column-space"><div class="model-bar" id="cost-bar-meta" style="--height:20%"><strong id="cost-value-meta">$6K</strong></div></div>
-                  <div class="model-label"><img src="logos/meta.svg" width="28" height="28" alt=""><span class="model-provider">Self-hosted</span><strong id="cost-name-meta">Your fine-tune</strong><span id="cost-kind-meta">Llama-based · scenario</span></div>
-                </div></div>
-              </div>
-              <figcaption>1,500 input + 200 billed output tokens per task. Cost comparison, not a quality ranking.</figcaption>
-            </figure>
-            <aside class="scenario-card">
-              <div class="scenario-brand"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8 5H29L24 27H3Z" fill="none" stroke="currentColor" stroke-width="2"/></svg><span>YOUR MODEL, YOUR MATH</span></div>
-              <p class="scenario-value" id="own-unit-cost">$6.00<span> / 1K tasks</span></p>
-              <p class="scenario-description">A specialized model has a different cost structure. See where your workload fits.</p>
-              <div class="scenario-input" hidden><label for="owned-budget">Monthly ownership budget</label><div><span>$</span><input id="owned-budget" type="number" min="100" max="1000000" step="100" value="6000" inputmode="decimal" aria-describedby="budget-help budget-error"></div></div>
-              <p id="budget-error" class="budget-error" hidden>Enter a budget from $100 to $1,000,000. The chart keeps the last valid estimate.</p>
-              <p id="budget-help">Illustrative $6,000/month for hosting, upkeep and amortized training. Adjust for your capacity and team.</p>
-              <p class="scenario-note" id="cost-insight">At 1M tasks, the lowest listed API estimate is $5,000/month. Ownership is not automatically cheaper.</p>
-            </aside>
-          </div>
-          <details class="compare-details"><summary>Pricing &amp; assumptions <span aria-hidden="true">+</span></summary><div>
-            <p>Snapshot: 12 November 2026. API cost = tasks × (1,500 × input rate + 200 × output rate) ÷ 1,000,000. The 200 output tokens include any billed reasoning tokens; more reasoning increases cost. Tokenization varies by provider. Standard uncached text rates; no batch discounts, tools, taxes, retries or application-operation costs. Selected models are examples, not a complete market survey.</p>
-            <p>USD per million input/output tokens: GPT-6 Astra 10/50; Claude Fable 5.2 8/40; Gemini 4 Carbon 2/10. Efficient alternatives: GPT-6 Luna 0.10/0.50; Claude Haiku 5.5 0.10/0.50; Gemini 3.1 Flash-Lite 0.25/1.50. Gemini 4 Carbon’s promotional rates end 30 November 2026; this is a dated snapshot.</p>
-            <p>The self-hosted bar is an editable budget, not a measured Llama deployment or a vendor quote. The default assumes $2,800 hosting, $2,500 maintenance and $700 amortized training per month. It stays fixed as volume changes: increase it if extra GPUs or staffing are needed. Matching the APIs’ task quality and meeting throughput targets require your own evaluation. No Parallelogram savings or model-quality uplift is assumed.</p>
-            <p class="compare-sources"><a href="https://developers.openai.com/api/docs/pricing">OpenAI pricing ↗</a><a href="https://platform.claude.com/docs/en/about-claude/pricing">Anthropic pricing ↗</a><a href="https://aistudio.google.com/docs/pricing">Google pricing ↗</a></p>
-          </div></details>
-          <p id="cost-announcement" class="sr-only" aria-live="polite"></p>
-        </div>
-        <div id="panel-fit" class="compare-panel" role="tabpanel" aria-labelledby="tab-fit" tabindex="0">
-          <div class="chart-topline"><div><h3>Buy capability. Build specialization.</h3><p>Different approaches to the same job—not a universal winner.</p></div><span class="comparison-label">WORKFLOW COMPARISON</span></div>
-          <div class="fit-table-wrap" tabindex="0" role="region" aria-label="Compare model ownership and API access">
-            <table class="fit-table"><thead><tr><th scope="col">What matters</th><th scope="col"><div class="provider-stack"><img src="logos/openai.svg" alt="OpenAI" width="25" height="25"><img src="logos/claude.svg" alt="Anthropic" width="25" height="25"><img src="logos/gemini.svg" alt="Google" width="25" height="25"></div>Frontier APIs<span>GPT · Claude · Gemini</span></th><th scope="col"><img src="logos/meta.svg" alt="Meta" width="30" height="30">Your fine-tune<span>For example, a self-hosted Llama adapter</span></th></tr></thead><tbody>
-              <tr><th scope="row">Where to start</th><td>Broad reasoning &amp; unfamiliar tasks</td><td>Stable, repeated tasks with examples</td></tr>
-              <tr><th scope="row">Behavior</th><td>Prompts, tools &amp; retrieval</td><td>Training examples + your adapter</td></tr>
-              <tr><th scope="row">Model weights</th><td>Managed by the provider</td><td>You hold the adapter and licensed base</td></tr>
-              <tr><th scope="row">Serving location</th><td>Available provider regions</td><td>You choose the infrastructure</td></tr>
-              <tr><th scope="row">Operations</th><td>Provider runs the model</td><td>Your team serves, monitors &amp; updates</td></tr>
-              <tr><th scope="row">Proof of usefulness</th><td>Evaluate on your actual workload</td><td>Evaluate on the same held-out tasks</td></tr>
-            </tbody></table>
-          </div>
-          <div class="fit-verdict"><span aria-hidden="true">↗</span><p><strong>They can work together.</strong> Route familiar work to your specialized model and escalate the harder cases to a frontier API.</p></div>
-          <p class="compare-footnote">“In-house” here means a self-hosted, fine-tuned open-weight model—not training a foundation model from scratch. Capability depends on the base, data and task.</p>
-        </div>
-        <div class="comparison-bottom"><span class="pipeline-mark" aria-hidden="true">▱</span><p><strong>Whichever model you choose, start with better data.</strong><span>Check structure, duplicates, leakage and secrets before you train.</span></p><a href="#how">See how Parallelogram fits <span aria-hidden="true">→</span></a></div>
       </div>
     </section>
 
@@ -779,7 +709,7 @@ focused for keyboard reading, and is replaced by the finished state and the
 full transcript under reduced motion. Without JavaScript, the explanation and
 transcript remain available.
 
-## Model comparisons
+## Why check first
 
 The landing page leads with the impact of training-data defects: empty answers
 reduced accuracy by 22.4 percentage points in the 30% injection test (4.6 at
@@ -787,28 +717,12 @@ reduced accuracy by 22.4 percentage points in the 30% injection test (4.6 at
 Parallelogram. The practical benefit is flagging these checkable defects before
 training, separating eval data, redacting secrets and re-checking repairs.
 
-Additional views compare API costs and self-hosted model ownership. It is not
-an intelligence ranking. Pricing is a fixed snapshot from 12 November 2026.
-One task means 1,500 input and 200 billed output tokens, including reasoning.
-
-- Flagship APIs: GPT-6 Astra ($10/$50 per million input/output tokens), Claude
-  Fable 5.2 ($8/$40), Gemini 4 Carbon ($2/$10, promotional through Nov 30).
-- Efficient APIs: GPT-6 Luna ($0.10/$0.50), Claude Haiku 5.5 ($0.10/$0.50),
-  Gemini 3.1 Flash-Lite ($0.25/$1.50).
-- The self-hosted fine-tune is an editable $6,000/month scenario, including
-  hosting, maintenance and amortized training. It assumes sufficient capacity
-  for the selected workload and makes no claim of matched model quality.
-- A separate controlled 383K-parameter model test shows 100% accuracy on clean
-  data, 77.6% with 30% empty answers, and 68.3% with systematic wrong labels.
-  Five seeds, greedy decoding, 600 held-out extraction examples. It does not
-  measure accuracy recovered by Parallelogram or production-model performance.
+- A controlled 383K-parameter model test shows 100% accuracy on clean data,
+  77.6% with 30% empty answers, and 68.3% with systematic wrong labels. Five
+  seeds, greedy decoding, 600 held-out extraction examples. It does not measure
+  accuracy recovered by Parallelogram or production-model performance.
 - Parallelogram 1.6.1 detected 98–100% of injected rows in 18 of 23 defect types
   in a separate detection test, including warnings. Semantic defects remain.
-
-Official pricing sources:
-https://developers.openai.com/api/docs/pricing
-https://platform.claude.com/docs/en/about-claude/pricing
-https://aistudio.google.com/docs/pricing
 
 ## Links
 

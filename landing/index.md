@@ -109,7 +109,7 @@ focused for keyboard reading, and is replaced by the finished state and the
 full transcript under reduced motion. Without JavaScript, the explanation and
 transcript remain available.
 
-## Model comparisons
+## Why check first
 
 The landing page leads with the impact of training-data defects: empty answers
 reduced accuracy by 22.4 percentage points in the 30% injection test (4.6 at
@@ -117,28 +117,12 @@ reduced accuracy by 22.4 percentage points in the 30% injection test (4.6 at
 Parallelogram. The practical benefit is flagging these checkable defects before
 training, separating eval data, redacting secrets and re-checking repairs.
 
-Additional views compare API costs and self-hosted model ownership. It is not
-an intelligence ranking. Pricing is a fixed snapshot from 12 November 2026.
-One task means 1,500 input and 200 billed output tokens, including reasoning.
-
-- Flagship APIs: GPT-6 Astra ($10/$50 per million input/output tokens), Claude
-  Fable 5.2 ($8/$40), Gemini 4 Carbon ($2/$10, promotional through Nov 30).
-- Efficient APIs: GPT-6 Luna ($0.10/$0.50), Claude Haiku 5.5 ($0.10/$0.50),
-  Gemini 3.1 Flash-Lite ($0.25/$1.50).
-- The self-hosted fine-tune is an editable $6,000/month scenario, including
-  hosting, maintenance and amortized training. It assumes sufficient capacity
-  for the selected workload and makes no claim of matched model quality.
-- A separate controlled 383K-parameter model test shows 100% accuracy on clean
-  data, 77.6% with 30% empty answers, and 68.3% with systematic wrong labels.
-  Five seeds, greedy decoding, 600 held-out extraction examples. It does not
-  measure accuracy recovered by Parallelogram or production-model performance.
+- A controlled 383K-parameter model test shows 100% accuracy on clean data,
+  77.6% with 30% empty answers, and 68.3% with systematic wrong labels. Five
+  seeds, greedy decoding, 600 held-out extraction examples. It does not measure
+  accuracy recovered by Parallelogram or production-model performance.
 - Parallelogram 1.6.1 detected 98–100% of injected rows in 18 of 23 defect types
   in a separate detection test, including warnings. Semantic defects remain.
-
-Official pricing sources:
-https://developers.openai.com/api/docs/pricing
-https://platform.claude.com/docs/en/about-claude/pricing
-https://aistudio.google.com/docs/pricing
 
 ## Links
 

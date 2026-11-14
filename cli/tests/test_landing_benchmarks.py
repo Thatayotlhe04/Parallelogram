@@ -29,16 +29,16 @@ def test_research_is_readable_without_javascript():
     elements = parsed_page()
     ids = [e['id'] for e in elements if 'id' in e]
     assert len(ids) == len(set(ids))
-    for panel in ('panel-cost', 'panel-fit', 'panel-quality'):
-        element = next(e for e in elements if e.get('id') == panel)
-        assert 'hidden' not in element
-        assert element['aria-labelledby'] in ids
+    panel = next(e for e in elements if e.get('id') == 'panel-quality')
+    assert 'hidden' not in panel
+    # The cost calculator and ownership table were removed, with their brand marks.
+    assert not any(e.get('id') in ('panel-cost', 'panel-fit', 'api-tier', 'owned-budget') for e in elements)
+    assert not any(e.get('role') == 'tab' and e.get('aria-controls', '').startswith('panel-') for e in elements)
     script = next(e for e in elements if e.get('src') == 'benchmarks.js')
     assert 'defer' in script
     assert not any('/a-parallel-paradigm/' in e.get('href', '') for e in elements)
-    logos = {e['src'] for e in elements if e.get('src', '').startswith('logos/')}
-    assert logos == {'logos/openai.svg', 'logos/claude.svg', 'logos/gemini.svg', 'logos/meta.svg'}
-    assert all((ROOT / 'landing' / logo).is_file() for logo in logos)
+    assert not any(e.get('src', '').startswith('logos/') for e in elements)
+    assert not (ROOT / 'landing/logos').exists()
     evidence = json.loads((ROOT / 'landing/benchmark-evidence.json').read_text())
     assert evidence['source_revision'] == '1fcefb66637638ead2c50ab60d49ffaada57d769'
 
