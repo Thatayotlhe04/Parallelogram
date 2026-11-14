@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en" data-mode="operator">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Workbench — Parallelogram</title>
+  <meta name="description" content="Open a fine-tuning dataset and see every record at once. The Parallelogram engine runs in this tab: check, repair in reversible steps, and leave with a file that exits 0.">
+  <link rel="canonical" href="https://parallelogram.dev/workbench/operator/">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://parallelogram.dev/workbench/">
+  <meta property="og:title" content="Workbench — Parallelogram">
+  <meta property="og:description" content="Every record of your fine-tuning dataset on one screen, checked by the real engine, in your tab.">
+  <meta property="og:image" content="https://parallelogram.dev/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="preload" href="/fonts/Manrope-Variable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/workbench/workbench.css">
+  <script type="module" src="/workbench/workbench.js"></script>
+</head>
+<body>
+  <a class="skip" href="#field">Skip to the dataset</a>
+
+  <header class="bar">
+    <a class="brand" href="/" aria-label="Parallelogram home">
+      <svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M8 5L13.25 5L12 10.5L6.75 10.5ZM18.5 5L23.75 5L22.5 10.5L17.25 10.5ZM12 10.5L17.25 10.5L16 16L10.75 16ZM22.5 10.5L27.75 10.5L26.5 16L21.25 16ZM5.5 16L10.75 16L9.5 21.5L4.25 21.5ZM16 16L21.25 16L20 21.5L14.75 21.5ZM9.5 21.5L14.75 21.5L13.5 27L8.25 27ZM20 21.5L25.25 21.5L24 27L18.75 27Z" fill="currentColor"/><path d="M8 5 L29 5 L24 27 L3 27 Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+      <span>parallelogram</span>
+    </a>
+    <span class="bar-title">workbench</span>
+
+    <div class="files" id="files" hidden>
+      <button class="chip" id="file-train" type="button" title="Open another dataset"></button>
+      <button class="chip" id="file-eval" type="button" title="Set or replace the eval set"></button>
+      <label class="chip budget" title="Token budget per record (the CLI's --max-seq-len)">
+        <span>budget</span>
+        <input id="budget" type="number" min="1" step="1" value="4096" inputmode="numeric" aria-label="Token budget per record">
+        <span>tok</span>
+      </label>
+      <button class="chip" id="rules-button" type="button" aria-expanded="false" aria-controls="rules-pop">rules</button>
+    </div>
+
+    <div class="bar-right">
+      <nav class="routes" aria-label="Route">
+        <a id="route-bench" href="/workbench/">Sealed</a>
+        <a id="route-operator" href="/workbench/operator/">Operator</a>
+      </nav>
+      <button class="wire" id="wire" type="button" aria-expanded="false" aria-controls="wire-pop">
+        <span class="wire-dot" aria-hidden="true"></span><span id="wire-label">sealed</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="pop" id="rules-pop" hidden></div>
+  <div class="pop pop-wire" id="wire-pop" hidden></div>
+
+  <!-- Before a dataset is open -->
+  <main class="start" id="start">
+    <div class="start-inner">
+      <p class="eyebrow" id="boot-line">Starting the engine</p>
+      <h1>See the whole dataset.<br>Then decide what trains.</h1>
+      <p class="lede">Every record on one screen, judged by the same engine as <code>parallelogram check</code>, running in this tab. Repair in steps you can take back. Leave with a file that exits 0.</p>
+      <div class="start-actions">
+        <button class="btn primary" id="open-sample" type="button" disabled>Open the sample dataset</button>
+        <button class="btn" id="open-file" type="button" disabled>Open a .jsonl file</button>
+      </div>
+      <p class="fine" id="start-fine">The sample is 2,412 synthetic support tickets with the defects a real export picks up. You can also drop files anywhere on this page: a train set, and an eval set if you have one.</p>
+      <div class="boot" id="boot" role="status" aria-live="polite">
+        <div class="boot-track"><div class="boot-fill" id="boot-fill"></div></div>
+        <span id="boot-text">Python runtime, 9.6 MB, cached after the first visit</span>
+      </div>
+    </div>
+    <dl class="claims">
+      <div><dt>Nothing is uploaded</dt><dd id="claim-sealed">This page is served with a policy that lets it connect only to parallelogram.dev. Your file is read by code running in the tab and goes nowhere.</dd></div>
+      <div><dt>The same verdict</dt><dd>The engine is the released Python package, unmodified. What exits 0 here exits 0 in your terminal and in CI.</dd></div>
+      <div><dt>Not for everything</dt><dd>A tab is slower than a terminal. In our tests 60,000 records (25 MB) took about 20 seconds to check here and 300,000 (123 MB) about a minute and a half. The CLI is roughly 2.5 times faster and streams.</dd></div>
+    </dl>
+  </main>
+
+  <!-- The bench -->
+  <div class="bench" id="bench" hidden>
+    <aside class="gate" id="gate" aria-label="Gate">
+      <div class="gate-head">
+        <span class="label">exit</span>
+        <span class="exit" id="exit">–</span>
+      </div>
+      <p class="gate-line" id="gate-line"></p>
+      <div class="gate-fix" id="gate-fix"></div>
+      <h2 class="label">What stands between this file and exit 0</h2>
+      <ol class="classes" id="classes"></ol>
+      <p class="fine" id="gate-notes"></p>
+    </aside>
+
+    <section class="center" aria-label="Dataset">
+      <div class="query">
+        <label class="sr" for="q">Filter records</label>
+        <input id="q" type="text" autocomplete="off" spellcheck="false" placeholder="filter:  rule:secrets   state:error   tokens>2000   text:refund   line:2131     ( / )">
+        <span class="query-count" id="q-count"></span>
+        <div class="seg" role="group" aria-label="Arrange records">
+          <button type="button" data-arrange="file" aria-pressed="true">file order</button>
+          <button type="button" data-arrange="findings" aria-pressed="false">findings first</button>
+          <button type="button" data-arrange="tokens" aria-pressed="false">by length</button>
+        </div>
+      </div>
+      <div class="matches" id="matches" hidden></div>
+      <div class="field-wrap" id="field-wrap">
+        <canvas id="field" tabindex="0" role="img" aria-label="Every record in the dataset, one cell each"></canvas>
+        <div class="peek" id="peek" hidden></div>
+        <div class="busy" id="busy" role="status" hidden><span></span><b id="busy-text">checking</b></div>
+      </div>
+      <div class="legend" id="legend"></div>
+    </section>
+
+    <aside class="inspector" id="inspector" aria-label="Record"></aside>
+
+    <footer class="ledger" aria-label="Ledger">
+      <div class="ledger-head">
+        <span class="label">ledger</span>
+        <span class="fine" id="ledger-hint">Every change is a step. Switch one off to see the file without it.</span>
+      </div>
+      <ol class="steps" id="steps"></ol>
+      <div class="ledger-out">
+        <div class="cli" id="cli"></div>
+        <div class="exports">
+          <button class="btn small" type="button" data-export="working">Download dataset</button>
+          <button class="btn small" type="button" data-export="gate" title="Only the records the gate lets through: what check --output writes">Passing records only</button>
+          <button class="btn small" type="button" data-export="recipe" title="The ledger as JSON: what was done, in order, with hashes">Recipe</button>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <div class="drop" id="drop" hidden><p>Drop to open</p></div>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+  <input id="picker" type="file" accept=".jsonl,.json,.txt,application/json" multiple hidden>
+  <input id="picker-eval" type="file" accept=".jsonl,.json,.txt,application/json" hidden>
+  <noscript><p class="noscript">The workbench runs the validator in your browser, so it needs JavaScript. The CLI does the same checks: <code>pip install parallelogram</code>.</p></noscript>
+</body>
+</html>

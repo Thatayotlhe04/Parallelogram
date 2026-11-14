@@ -105,3 +105,66 @@ python scripts/capture_terminal_demo.py --write    # refresh the transcript bloc
 
 Tests cover the recording against a fresh CLI run, the media files, visibility
 and focus pausing, the narrow recording and reduced motion.
+
+## Workbench
+
+`/workbench/` is not a demo. It runs the released `parallelogram` package in
+the visitor's tab (CPython on WebAssembly, in a worker) and shows a dataset as
+one cell per record. Nothing on the page re-implements a rule or a fix.
+
+| File | What it is |
+|---|---|
+| `workbench/index.html`, `workbench.css` | The page. `operator/index.html` is generated from it. |
+| `workbench/workbench.js` | Gate, filter, inspector, editor, ledger, downloads, route handoff. |
+| `workbench/field.js` | The lattice: canvas drawing and hit-testing only. |
+| `workbench/engine-worker.js` | Starts Pyodide, unpacks `engine/engine.zip`, forwards calls. |
+| `workbench/engine/bridge.py` | The only Python the page adds: a stack of reversible steps over `Runner`, `api.fix` and `api.check`. |
+| `workbench/engine/engine.zip` | Built by `scripts/build_workbench.py` from `cli/src/parallelogram` (the modules `check` and `--fix` use), `bridge.py` and `scripts/demo_dataset.py`. |
+| `workbench/operator.js` | Model-proposed repairs. Imported only by the operator route. |
+| `workbench/vendor/pyodide-<version>/` | Pyodide as published, with checksums and how to verify them. |
+
+Two routes, two policies (`vercel.json`):
+
+- `/workbench/` is sealed: `connect-src 'self'`. The browser will not let the
+  page send a dataset anywhere, and the page shows the header it was served
+  with. Everything except model repair works here.
+- `/workbench/operator/` adds `https:` and `http://localhost:*` to
+  `connect-src` so it can reach the OpenAI-compatible endpoint the visitor
+  types in. Records are redacted by the engine before they are sent, each
+  request is listed on the page, and a proposal is accepted only if the engine
+  finds no error in it. Switching routes carries the open dataset and ledger
+  across through IndexedDB, deleted on arrival; nothing else is stored.
+
+The site pages keep the policy they had. `scripts/check_csp.py` requires every
+path to match exactly one policy and scans the workbench files against theirs.
+
+After changing anything under `cli/src/parallelogram`, `bridge.py`,
+`scripts/demo_dataset.py` or `workbench/index.html`:
+
+```sh
+python scripts/build_workbench.py           # rebuild engine.zip and operator/index.html
+python scripts/build_workbench.py --check   # what the tests run
+```
+
+To try it under the deployed headers (a plain `http.server` sends none, and
+the page depends on them):
+
+```sh
+python scripts/serve_landing.py 8000        # then open http://127.0.0.1:8000/workbench/
+```
+
+Tests: `cli/tests/test_workbench.py` holds the bridge to the CLI (same
+verdicts finding by finding, `--fix` step byte-identical to `check --fix`,
+untouched files exported byte for byte, redaction of everything sent to a
+model, one policy per route). `scripts/workbench_e2e.mjs` drives both routes
+in Chrome against a stub model; it needs `playwright-core` and is not part of
+CI.
+
+Measured in Chrome on a cloud VM, engine cold start 2.5 to 3.5 s: 2,412
+records check in about 1.5 s; 60,000 records (25 MB) in about 19 s, and a
+`--fix` step on them takes about 50 s; 300,000 records (123 MB) open in about
+90 s. The CLI is roughly 2.5 times faster on the same file and streams, so it
+remains the tool for large datasets.
+
+Not linked from the site navigation or the sitemap yet, and `privacy.html`
+still says the site has no input fields: both are for the owner to change.

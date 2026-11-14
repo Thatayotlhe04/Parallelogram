@@ -31,6 +31,8 @@ cli/                      the Python package (the product), published to PyPI
   examples/               small sample datasets used by tests and CI
 landing/                  static site for parallelogram.dev (Vercel)
   index.md                the machine-readable page; source of the Agent view
+  workbench/              the engine in the browser (Pyodide); engine/bridge.py is
+                          the only Python it adds, engine.zip is a build output
 scripts/                  release, CSP check and Agent view helpers
 ```
 
@@ -75,6 +77,10 @@ change; put them in `cli/tests/`.
   the format it was read in (see `to_sharegpt` and `_to_disk` in `cli.py`).
 - **Never coerce silently.** Unknown or malformed input passes through to the
   `schema` rule so it is reported, not guessed at.
+- **The workbench runs this package, not a copy of its logic.** After
+  changing `cli/src/parallelogram`, run `python scripts/build_workbench.py`;
+  `cli/tests/test_workbench.py` fails until `landing/workbench/engine/engine.zip`
+  matches. Code the page needs must stay importable without typer or rich.
 - **`check` and `report` must never disagree.** `report` is built from the
   same validation pass plus a dry fix pass.
 - **`optimize` stays optional and honest.** torch, transformers, peft, numpy
