@@ -1,11 +1,15 @@
 # Benchmark: Dolly summarization on Qwen2.5-0.5B
 
-**Status: not run.** This directory holds a contract and a data-preparation
-script for a realistic experiment. It was written on a CPU-only machine with
-no access to the Hugging Face Hub. No result is claimed for it anywhere in
-this repository. `prepare_dolly.py` was exercised on stand-in data with the
-same schema, and the contract is parsed by the test suite; the training
-itself has never been executed.
+**Status: run once, scaled down, on a Kaggle T4 (2026-11-14).** Result:
+**not supported**. On held-out data, random selection beat the gradient
+selector at the same number of training tokens, beyond noise, and random
+selection given the selector's scoring compute did better still. The report,
+the exact launcher and the deviations from this contract are in
+[`results/kaggle-t4-2026-11-14`](results/kaggle-t4-2026-11-14/README.md); the
+numbers and what they mean are in
+[`docs/optimize.md`](../../../docs/optimize.md#benchmark-qwen25-05b-on-a-kaggle-t4).
+The contract as written here (full pool, 220,000-token budget, full-data arm)
+has not been run.
 
 ## What it asks
 
@@ -59,26 +63,34 @@ the repaired file.
 
 ## Things to check when you run it
 
-These are the points that could not be verified without the model and data:
+These are the points that could not be verified without the model and data.
+The first run settled some of them, noted inline.
 
 - `optimize plan` prints the real pool size in tokens. `selection.token_budget`
   (220000) and `budget.total_compute` (2.5e8) were sized from the dataset's
   published record count and a guessed average length. Adjust both to the
   plan's numbers before running; if the budget is too small the plan says
-  which arms it drops.
+  which arms it drops. *First run: the capped 5,999-record pool was 863,188
+  tokens after exclusions, so 110,000 was 12.7% of it.*
 - The plan reports how many candidates exceed `max_seq_len: 512` and are
-  excluded.
+  excluded. *First run: 470 of 5,999.* Development and test examples must fit
+  too; prepare the data with `--max-eval-tokens 512` as shown above.
 - The plan must list a `random+overhead` arm. If instead it lists
   "matched-compute baseline" under what is not planned, the scoring overhead
   exceeds what the pool can absorb and the run cannot reach a `supported`
-  conclusion; use fewer warmup epochs or a longer recipe.
+  conclusion; use fewer warmup epochs or a longer recipe. *First run: planned,
+  at 727,260 tokens.*
 - Loss masking needs the tokenizer's chat template to render conversations
   incrementally. Encoding stops with an explicit error if Qwen's template
-  does not; it has not been tried here.
+  does not. *First run: Qwen2.5's template passed and trained.*
 - GPU execution (`device: cuda`) and reduced precision (`dtype: bfloat16`)
   have not been exercised. The contract uses `float32` to keep the first run
-  on the path closest to what was tested.
+  on the path closest to what was tested. *First run: `cuda` with `float32`
+  worked on a T4; the base-model evaluation ran out of memory at 16 examples
+  per batch and continued at 8 by itself. `bfloat16` is still untried.*
 - Throughput: per-example gradients are computed one example at a time.
+  *First run, T4, `float32`: scoring 5,529 records at two checkpoints took
+  1,728 s; training ran at about 2,300 forward-token-equivalents per second.*
 
 ## What a result would and would not show
 

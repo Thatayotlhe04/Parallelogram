@@ -502,25 +502,92 @@ the retained capability than the 0.25 tolerance allows, so it could not be
 frozen; it also spent 17.1% of its tokens on the mislabeled reversal records
 (11.0% of the pool). A bigger toy model did not change the picture.
 
+### Benchmark: Qwen2.5-0.5B on a Kaggle T4
+
+The benchmark contract, scaled down to fit one 12-hour Kaggle session, run
+once from an empty cache on 2026-11-14: Qwen2.5-0.5B-Instruct (494M
+parameters), `float32`, LoRA r16 on q/v, three epochs, three seeds, one Tesla
+T4. Pool: 5,529 Dolly records (863,188 tokens) after 470 over-length
+exclusions. Token budget 110,000, search budget 55,000, no full-data arm.
+Development and test examples come only from prompts within 512 tokens. 44.9M
+of 250M FTE, 19,834 s. The deviations, the verbatim report and the exact
+launcher are in
+[`examples/optimize/benchmark/results/kaggle-t4-2026-11-14`](../examples/optimize/benchmark/results/kaggle-t4-2026-11-14/README.md).
+
+Test-split loss, lower is better, on 300 held-out summarization examples (the
+target) and 300 open_qa examples (retained). FTE is per seed; model-aware
+arms also pay the one-time warmup and scoring overhead of 5.54M.
+
+| arm | comparison | summarization | across-seed std | open_qa | FTE per seed |
+|---|---|---|---|---|---|
+| base model | reference | 1.427 | n/a | 2.809 | 0 |
+| `random@55000` | matched tokens | 1.216 | 0.009 | 2.149 | 0.49M |
+| **`random@110000`** (frozen candidate) | matched tokens | 1.216 | 0.001 | 2.150 | 0.99M |
+| `diversity@55000` | matched tokens | 1.245 | 0.001 | 2.147 | 0.49M |
+| `diversity@110000` | matched tokens | 1.246 | 0.002 | 2.146 | 0.99M |
+| `less@55000` | matched tokens | 1.254 | 0.003 | 2.287 | 0.49M + 5.54M |
+| `less@110000` | matched tokens | 1.239 | 0.005 | 2.262 | 0.99M + 5.54M |
+| `less@110000~diversity_lambda=0.2` | matched tokens | 1.245 | 0.002 | 2.187 | 0.99M + 5.54M |
+| `random+overhead` (725,026 tokens) | matched compute | 1.208 | 0.002 | 2.133 | 6.53M |
+
+Reported conclusion: **not supported**. At matched tokens random selection
+beat the gradient selector beyond noise: 0.022 lower loss than `less@110000`
+(across-seed interval [0.010, 0.035]; evaluation interval [0.014, 0.031]).
+The development split, which chose the candidate, said the same (0.029). The
+verdict compares the frozen candidate with its rivals, and the candidate was
+a random arm, so the report states no matched-compute verdict. From the
+table: given the selector's total compute, random selection reached 1.208
+against the selector's 1.239, a gap of 0.031. Its across-seed spread is
+small, but no evaluation interval was computed for that pair.
+
+What else the run shows, about this setting only:
+
+- **Training helps; the choice of subset barely does.** Every arm gained
+  about 0.2 nats over the base model. Subset choice moved summarization loss
+  by at most 0.046. Halving the random budget changed nothing (1.216 and
+  1.216), and 6.6 times the training tokens bought 0.008. Most of the gain
+  comes from training at all, which leaves a selector little to win.
+- **The selector picked what looks like the target.** `less@110000` spent
+  46% of its tokens on closed_qa and 28% on information_extraction (20% and
+  16% of the pool), 12% on summarization (5% of the pool), and held open_qa
+  at the 100-record coverage minimum. Those categories share the shape of a
+  summarization prompt: an instruction followed by a passage. The toy runs
+  showed the same pull, and here too it did not turn into lower target loss
+  than an unbiased sample.
+- **It also kept less of the retained capability.** Selector arms reached
+  2.19 to 2.29 on open_qa, against 2.13 to 2.15 for random and diversity.
+  Every arm still improved on the base model's 2.81, so all stayed within
+  the 0.05 tolerance.
+- **Warmup and scoring cost 5.6 times the training they were meant to
+  improve** (5.54M against 0.99M FTE per seed for one 110,000-token arm).
+  For a single target, that cost would have to be shared across many runs,
+  or paid on a cheaper model, before selection could pay for itself.
+
+Limits: loss on reference answers, not judged generations (the contract
+sets `metrics: [loss]`); development and test come from the same dataset as
+the candidates, and only short prompts; one model, one dataset, one target,
+one run of a scaled-down contract. The comparison half of the development
+split has 50 examples per capability.
+
 ## Remaining empirical experiments
 
 Not run, and nothing here claims otherwise:
 
-1. **The benchmark contract** in
+1. **The benchmark contract at full scale** in
    [`examples/optimize/benchmark`](../examples/optimize/benchmark/README.md):
-   Qwen2.5-0.5B-Instruct on databricks-dolly-15k, one GPU. The exact
-   commands are in its README, with the list of things to verify on first
-   contact with the real model and data.
-2. **GPU and reduced precision.** `device: cuda`, `mps`, `dtype: bfloat16`
-   and `float16` have never executed. Out-of-memory handling was tested by
-   injecting the exceptions torch raises, not by exhausting a real device.
-3. **A production chat template.** Loss masking was verified on the test
-   template only. Templates with default system prompts or leading-space
-   tokenization need the same check; encoding fails loudly if the template
-   is not incremental.
+   the whole pool, a 220,000-token budget and the full-data arm. Only the
+   scaled-down version above has run.
+2. **Other devices and reduced precision.** `cuda` with `float32` ran on a
+   T4, including one real out-of-memory fallback (the base-model evaluation
+   dropped from 16 to 8 examples per batch by itself). `mps`, `bfloat16` and
+   `float16` have never executed.
+3. **Loss masking on a production chat template.** Qwen2.5's template passed
+   the incremental-render check and trained, but the mask was verified
+   against a direct calculation only on the test template. Templates with
+   default system prompts or leading-space tokenization need the same check.
 4. **Older library versions** down to the declared lower bounds.
 5. **An out-of-distribution target**, the setting the reference paper
    studies, on a model large enough to matter.
-6. **Scale.** Nothing above a few hundred candidates has been run. Feature
-   storage is `checkpoints x candidates x projection_dim x 4` bytes; k-center
-   time grows with candidates times picks.
+6. **Scale.** The largest run had 5,529 candidates. Feature storage is
+   `checkpoints x candidates x projection_dim x 4` bytes; k-center time grows
+   with candidates times picks.
