@@ -8,7 +8,9 @@ on:
       - "scripts/check_csp.py"
       - "scripts/build_agent_view.py"
       - "scripts/build_shared.py"
-      - "cli/src/parallelogram/__init__.py"
+      - "scripts/build_workbench.py"
+      - "scripts/demo_dataset.py"
+      - "cli/src/parallelogram/**"
       - ".github/workflows/landing-ci.yml"
   pull_request:
     paths:
@@ -16,7 +18,9 @@ on:
       - "scripts/check_csp.py"
       - "scripts/build_agent_view.py"
       - "scripts/build_shared.py"
-      - "cli/src/parallelogram/__init__.py"
+      - "scripts/build_workbench.py"
+      - "scripts/demo_dataset.py"
+      - "cli/src/parallelogram/**"
       - ".github/workflows/landing-ci.yml"
 
 permissions:
@@ -42,3 +46,6 @@ jobs:
 
       - name: Check the shared header and footer are current on every page
         run: python scripts/build_shared.py --check
+
+      - name: Check the workbench runs the engine in this commit
+        run: python scripts/build_workbench.py --check
