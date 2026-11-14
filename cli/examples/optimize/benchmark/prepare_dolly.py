@@ -34,6 +34,9 @@ def main() -> None:
     parser.add_argument("--retain", default="open_qa")
     parser.add_argument("--dev-per-category", type=int, default=100)
     parser.add_argument("--test-per-category", type=int, default=300)
+    parser.add_argument("--max-candidates", type=int, default=0,
+                        help="keep at most this many candidates, sampled by prompt hash within each category "
+                             "in proportion to its size (0 keeps all)")
     args = parser.parse_args()
 
     rows, seen_prompts, seen_records = [], set(), set()
@@ -72,12 +75,32 @@ def main() -> None:
     for row in rows:
         split = assignment.get(row["_prompt"], "candidates")
         if split != "candidates":
+            # A record of another category that shares an evaluation prompt is
+            # dropped: it can't be evaluated as that capability, and keeping it
+            # as a candidate would leak the prompt.
+            if row["category"] not in (args.target, args.retain):
+                continue
             # One record per evaluation prompt: a prompt with two different
             # reference answers would be a duplicate-prompt eval example.
             if row["_prompt"] in seen_prompts:
                 continue
             seen_prompts.add(row["_prompt"])
         splits[split].append({k: v for k, v in row.items() if k != "_prompt"})
+
+    if args.max_candidates and len(splits["candidates"]) > args.max_candidates:
+        # Deterministic, proportional per category: lowest prompt hashes win.
+        by_cat: dict[str, list[dict]] = {}
+        for record in splits["candidates"]:
+            by_cat.setdefault(record["category"], []).append(record)
+        total = len(splits["candidates"])
+        key = {r["id"]: r for r in rows}
+        kept = []
+        for category, records in sorted(by_cat.items()):
+            share = round(args.max_candidates * len(records) / total)
+            records.sort(key=lambda r: key[r["id"]]["_prompt"])
+            kept.extend(records[:share])
+        order = {r["id"]: i for i, r in enumerate(splits["candidates"])}
+        splits["candidates"] = sorted(kept, key=lambda r: order[r["id"]])
 
     args.out.mkdir(parents=True, exist_ok=True)
     for name, records in splits.items():
