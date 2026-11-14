@@ -66,3 +66,40 @@ jobs:
           test -s /tmp/cleaned.jsonl
           # The repaired output must itself validate clean
           parallelogram check /tmp/cleaned.jsonl
+
+  optimize:
+    # `parallelogram optimize` trains a tiny model for real, so its tests need
+    # the ML extras. Kept in its own job: the matrix above proves the default
+    # install works without them.
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: cli
+
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+
+      - name: Install with optimize extras (CPU-only torch)
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install -e ".[dev,optimize]"
+
+      - name: Run optimize tests
+        run: pytest -q tests/test_optimize_contract.py tests/test_optimize_ml.py
+
+      - name: Tiny CPU experiment (real training)
+        run: |
+          python examples/optimize/make_tiny_experiment.py
+          parallelogram optimize plan examples/optimize/tiny/experiment.yaml
+          parallelogram optimize run examples/optimize/tiny/experiment.yaml --quiet > /tmp/optimize-report.md
+          parallelogram optimize report examples/optimize/tiny/run --json > /tmp/optimize-report.json
+          parallelogram optimize export examples/optimize/tiny/run --output /tmp/selected.jsonl
+          # The selected subset is itself a valid dataset.
+          parallelogram check /tmp/selected.jsonl
+          cat /tmp/optimize-report.md >> "$GITHUB_STEP_SUMMARY"

@@ -38,3 +38,11 @@ stress_clean*.jsonl
 .codex/
 .env
 .env.*
+
+# `parallelogram optimize`: generated data, models, runs and caches
+cli/examples/optimize/tiny/data/
+cli/examples/optimize/tiny/model/
+cli/examples/optimize/*/run/
+cli/examples/optimize/*/cache/
+cli/examples/optimize/benchmark/data/
+.parallelogram-cache/

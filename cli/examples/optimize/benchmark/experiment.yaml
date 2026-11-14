@@ -1,0 +1,97 @@
+# Benchmark contract for `parallelogram optimize` on realistic hardware.
+#
+# NOT RUN by the authors of this file: it was written on a CPU-only machine
+# without access to the Hugging Face Hub. Nothing in this repository claims a
+# result for it. See README.md in this directory for the exact commands and
+# for what running it would and would not establish.
+#
+# Target: one GPU with 16 GB or more. Model: Qwen2.5-0.5B-Instruct (Apache-2.0,
+# ~494M parameters). Data: databricks-dolly-15k (CC BY-SA 3.0), prepared by
+# prepare_dolly.py. Question: when tuning for summarization while keeping
+# open-ended QA, does gradient-based selection of a tenth of the pool beat
+# random and diversity selection, and does it still win once its scoring cost
+# is counted?
+schema_version: 1
+name: dolly-summarization-qwen2.5-0.5b
+scale: benchmark
+objective: sft-lora-causal-lm
+
+data:
+  candidates: {path: data/candidates.jsonl}
+  dev: {path: data/dev.jsonl}
+  test: {path: data/test.jsonl}
+  id_field: id
+  capability_field: category
+  dev_selection_fraction: 0.5
+  leakage: {on_exact: exclude, on_related: exclude, on_near: report, near_threshold: 0.8}
+
+model:
+  path: Qwen/Qwen2.5-0.5B-Instruct
+  # Commit on main when this file was written. Verify it before relying on it:
+  #   git ls-remote https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct main
+  revision: 7ae557604adf67be50417f59c2c2f167def9a775
+  chat_template: tokenizer
+  max_seq_len: 512
+  on_overlength: exclude     # long Dolly contexts are left out, and counted in the plan
+  device: cuda
+  dtype: float32
+
+recipe:
+  lora: {r: 16, alpha: 32, dropout: 0.05, target_modules: [q_proj, v_proj]}
+  optimizer: adamw
+  learning_rate: 2.0e-4
+  weight_decay: 0.0
+  epochs: 3
+  batch_size: 8
+  schedule: linear
+  warmup_ratio: 0.03
+  max_grad_norm: 1.0
+  loss_masking: assistant_only
+  seeds: [0, 1, 2]
+
+evaluation:
+  metrics: [loss]            # generation-based exact match means nothing for summaries
+  primary_metric: loss
+  batch_size: 16
+  target_capabilities: [summarization]
+  retain_capabilities: [open_qa]
+  retention_tolerance: 0.05  # nats of open_qa loss the tuned model may give up
+  bootstrap_samples: 2000
+
+selection:
+  token_budget: 220000       # roughly a tenth of the pool; check against `optimize plan`
+  policies: [random, diversity, less]
+  seed: 0
+  report_fields: [category]
+  coverage:
+    - {field: category, value: open_qa, min_records: 100}
+  less:
+    warmup: {fraction: 0.05, epochs: 2, seed: 0}
+    projection: {kind: countsketch, dim: 8192, seed: 0}
+    optimizer_aware: true
+    normalization: cosine
+    checkpoint_weighting: lr
+    target_aggregation: max
+    diversity_lambda: 0.0
+    shard_size: 512
+
+search:
+  token_budgets: [110000]
+  less_variants:
+    - {diversity_lambda: 0.2}
+  max_trials: 4
+
+baselines:
+  base_model: true
+  full_data: true
+  random_matched_compute: true
+
+budget:
+  # Forward-token-equivalents. Sized from pool-size arithmetic, not from a run:
+  # confirm with `optimize plan`, which prints the estimate per stage and what
+  # it would drop to fit.
+  total_compute: 2.5e+8
+
+output:
+  run_dir: run
+  cache_dir: cache

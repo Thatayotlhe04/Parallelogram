@@ -27,6 +27,9 @@ dependencies = [
 
 [project.optional-dependencies]
 tokenizer = ["tokenizers>=0.15", "tiktoken>=0.7"]
+# `parallelogram optimize`: real training, so real ML dependencies. Never
+# imported by check/report/fix/mcp; the default install stays typer + rich.
+optimize = ["torch>=2.1", "transformers>=4.41", "peft>=0.11", "numpy>=1.24", "pyyaml>=6.0"]
 dev = ["pytest>=8", "ruff>=0.5"]
 
 [project.scripts]

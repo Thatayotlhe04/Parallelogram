@@ -24,6 +24,8 @@ cli/                      the Python package (the product), published to PyPI
     rules/                one module per rule id
     core/                 runner, fixer, summary/report, tokenization, io
     output/               terminal, JSON, markdown renderers
+    optimize/             `optimize plan|run|report|export`: data selection
+                          measured by real training (optional ML extras)
   tests/                  pytest suite (the source of truth)
   smoke.py, smoke_fix.py  stdlib-only smoke scripts
   examples/               small sample datasets used by tests and CI
@@ -43,6 +45,9 @@ python smoke.py && python smoke_fix.py
 parallelogram check examples/clean.jsonl          # must exit 0
 parallelogram check examples/broken.jsonl         # must exit 2
 ```
+
+The optimize tests that train a model are skipped without the extras. To run
+them: `python -m pip install -e '.[dev,optimize]'`, then `pytest -q`.
 
 Every PR must leave `pytest -q` green. Add tests for every behavior you add or
 change; put them in `cli/tests/`.
@@ -72,6 +77,13 @@ change; put them in `cli/tests/`.
   `schema` rule so it is reported, not guessed at.
 - **`check` and `report` must never disagree.** `report` is built from the
   same validation pass plus a dry fix pass.
+- **`optimize` stays optional and honest.** torch, transformers, peft, numpy
+  and yaml are imported only inside `optimize/` code paths that need them;
+  importing `parallelogram`, the CLI or the MCP server must not load them.
+  Models download only with `--allow-download`. Final test examples are read
+  only after a freeze record exists, and never reach selection code. Reports
+  keep estimated scores, development results and held-out results apart, and
+  no test may depend on the model-aware selector beating a baseline.
 
 ## Adding a dataset format
 
