@@ -130,6 +130,26 @@ def _span(text, kind, selected):
     return f'<span class="sel">{value}</span>' if selected else value
 
 
+def _icon(name, body):
+    return f'<svg class="fi fi-{name}" viewBox="0 0 16 16">{body}</svg>'
+
+
+# Editor chrome is drawn, not typed: glyphs such as ⑂ or ⓘ fall back to whatever
+# symbol font the visitor has, and render differently (or not at all) per system.
+ICONS = {
+    'open': _icon('tw', '<path d="M4 6.2 8 10.2 12 6.2"/>'),
+    'closed': _icon('tw', '<path d="M6.2 4 10.2 8 6.2 12"/>'),
+    'json': _icon('json', '<path d="M6.2 2.6c-1.5 0-1.9.7-1.9 1.9v1.7c0 .8-.4 1.3-1.3 1.8.9.5 1.3 1 1.3 1.8v1.7c0 1.2.4 1.9 1.9 1.9'
+                          'M9.8 2.6c1.5 0 1.9.7 1.9 1.9v1.7c0 .8.4 1.3 1.3 1.8-.9.5-1.3 1-1.3 1.8v1.7c0 1.2-.4 1.9-1.9 1.9"/>'),
+    'yml': _icon('yml', '<path d="M3 4.5h10M3 8h10M3 11.5h6.5"/>'),
+    'git': _icon('git', '<path d="M8 2.3 13.7 8 8 13.7 2.3 8Z"/><path d="M8 6.2v3.6"/>'),
+    'md': _icon('md', '<circle cx="8" cy="8" r="5.5"/><path d="M8 7.4v3.2M8 5.2v.1"/>'),
+    'py': _icon('py', '<path d="M4 2.5h5l3 3v8H4ZM9 2.5v3h3"/>'),
+    'branch': _icon('branch', '<circle cx="5" cy="3.7" r="1.5"/><circle cx="5" cy="12.3" r="1.5"/><circle cx="11" cy="5.7" r="1.5"/>'
+                              '<path d="M5 5.2v5.6M11 7.2c0 2.3-6 1.3-6 3.6"/>'),
+}
+
+
 def editor_lines():
     """The real train.jsonl lines the editor shows, and the selected key on line 2131."""
     from demo_dataset import build, dumps
@@ -155,12 +175,14 @@ def render(runs):
     clean = re.search(r'Wrote (\d+) records', ANSI.sub('', runs[2]['output'])).group(1)
     rows, total, column, selected = editor_lines()
     scroll = round(100 * (EDITOR_FIRST - 1) / total, 1)
-    tree = ''.join(f'<div class="tree-row {cls}">{label}</div>' for cls, label in (
-        ('root', '⌄ SUPPORT-SFT'), ('d1', '› .github'), ('d1', '⌄ configs'),
-        ('d2', '<i class="fi fi-yml">≡</i>sft-qwen2.5-7b.yaml'), ('d1', '⌄ data'),
-        ('d2', '<i class="fi fi-json">{}</i>eval.jsonl'), ('d2 is-active', '<i class="fi fi-json">{}</i>train.jsonl'),
-        ('d1', '› scripts'), ('d1', '<i class="fi fi-git">◆</i>.gitignore'),
-        ('d1', '<i class="fi fi-md">ⓘ</i>README.md'), ('d1', '<i class="fi fi-py">◆</i>train.py')))
+    tree = ''.join(
+        f'<div class="tree-row {cls}"><span class="tw">{ICONS[twist] if twist else ""}</span>'
+        f'{ICONS[icon] if icon else ""}<span class="tl">{label}</span></div>' for cls, twist, icon, label in (
+            ('root', 'open', '', 'SUPPORT-SFT'), ('d1', 'closed', '', '.github'), ('d1', 'open', '', 'configs'),
+            ('d2', '', 'yml', 'sft-qwen2.5-7b.yaml'), ('d1', 'open', '', 'data'),
+            ('d2', '', 'json', 'eval.jsonl'), ('d2 is-active', '', 'json', 'train.jsonl'),
+            ('d1', 'closed', '', 'scripts'), ('d1', '', 'git', '.gitignore'),
+            ('d1', '', 'md', 'README.md'), ('d1', '', 'py', 'train.py')))
     sources = ' '.join(f'data-{name}="demo/terminal-{cols}.mp4" data-{name}-poster="demo/terminal-{cols}.webp"'
                        for name, (cols, _) in SIZES.items())
     return f'''{START}
@@ -171,12 +193,12 @@ def render(runs):
               <div class="ed-body">
                 <div class="ed-tree"><div class="tree-head">EXPLORER</div>{tree}</div>
                 <div class="ed-main">
-                  <div class="ed-tabs"><span class="ed-tab is-active"><i class="fi fi-json">{{}}</i>train.jsonl</span><span class="ed-tab"><i class="fi fi-yml">≡</i>sft-qwen2.5-7b.yaml</span></div>
-                  <div class="ed-crumbs">data <span>›</span> train.jsonl</div>
+                  <div class="ed-tabs"><span class="ed-tab is-active">{ICONS["json"]}train.jsonl</span><span class="ed-tab">{ICONS["yml"]}sft-qwen2.5-7b.yaml</span></div>
+                  <div class="ed-crumbs">data {ICONS["closed"]} train.jsonl</div>
                   <div class="ed-code">{rows}<span class="ed-thumb" style="--at:{scroll}%"></span></div>
                 </div>
               </div>
-              <div class="ed-status"><span>⑂ main</span><span class="ed-status-right"><span>Ln {EDITOR_LINE}, Col {column} ({selected} selected)</span><span>Spaces: 4</span><span>UTF-8</span><span>LF</span><span>JSON Lines</span></span></div>
+              <div class="ed-status"><span class="ed-branch">{ICONS["branch"]}main</span><span class="ed-status-right"><span>Ln {EDITOR_LINE}, Col {column} ({selected} selected)</span><span>Spaces: 4</span><span>UTF-8</span><span>LF</span><span>JSON Lines</span></span></div>
             </div>
             <div class="win-term" id="demo-window">
               <video id="demo-video" {sources} muted playsinline loop preload="none" disablepictureinpicture></video>

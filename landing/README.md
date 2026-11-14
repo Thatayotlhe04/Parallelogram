@@ -8,7 +8,8 @@ A buildless, static landing page for the [Parallelogram CLI](https://github.com/
 - `styles.css`: shared layout and legal-page styles; local Manrope, Inter and Source Code Pro fonts (SIL OFL).
 - `main.js`: install copy buttons only, with an accessible status announcement. With JavaScript or clipboard access unavailable, commands remain selectable.
 - `privacy.html` and `terms.html`: legal pages with shared navigation and styling.
-- `og.png`: existing social image. Favicons, crawler files, and `.well-known/security.txt` remain in place.
+- The mark is the parallelogram ruled into a 3x3 lattice, white on black. `BRAND` in `scripts/build_shared.py` is the source for every header and footer; `favicon.svg`, `favicon-32x32.png`, `apple-touch-icon.png` and the mark on `og.png` use the same geometry.
+- `og.png`: social image. Crawler files and `.well-known/security.txt` remain in place.
 - `vercel.json`: unchanged first-party CSP and security headers.
 
 Serve `landing/` with `python -m http.server 8000 --directory landing` from the repository root. Vercel uses `landing/` as its root, with no build command or output directory.
@@ -70,7 +71,8 @@ and transitions. No looping effects, animation libraries or hidden initial conte
 The CLI panel is two windows on `scene-backdrop.webp` (an original, generated
 painting). Behind: an editor showing lines 2128–2149 of the demo dataset's
 `data/train.jsonl`, exactly as the file has them, with the pasted key on line
-2131 selected. In front: `demo/terminal-108.mp4`, a screen recording of a real
+2131 selected. Its file, folder and branch icons are inline SVG, not symbol
+glyphs, so they do not depend on the visitor's fonts. In front: `demo/terminal-108.mp4`, a screen recording of a real
 bash session in that project. Below 760px only the 60-column recording
 (`demo/terminal-60.mp4`) shows.
 

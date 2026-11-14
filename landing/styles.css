@@ -48,7 +48,7 @@ code, .mono { font-family: var(--mono); }
 .nav { position: sticky; top: 0; z-index: 50; height: 52px; background: var(--nav); border-bottom: 1px solid var(--line-strong); }
 .nav-inner { height: 100%; max-width: 1440px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; gap: 40px; }
 .brand { display: inline-flex; align-items: center; gap: 8px; font: 600 16px/1 var(--sans); letter-spacing: -.01em; }
-.brand-mark { width: 18px; height: 18px; }
+.brand-mark { width: 20px; height: 20px; }
 .nav-links { display: flex; align-self: stretch; align-items: stretch; gap: 28px; font-size: 14px; color: #d4d4d4; }
 .nav-links > a, .nav-item { display: flex; align-items: center; }
 .nav-links > a:hover, .nav-links > a[aria-current="page"], .nav-github:hover { color: var(--text); }
@@ -652,18 +652,21 @@ h3 { font: 500 16px/1.4 var(--sans); }
 .ed-body { flex: 1; min-height: 0; display: grid; grid-template-columns: 170px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); overflow: hidden; }
 .ed-tree { padding: 8px 0; overflow: hidden; background: #161411; border-right: 1px solid #0d0c0a; font: 400 12px/22px Inter, sans-serif; color: #9c958b; white-space: nowrap; }
 .tree-head { padding: 0 16px 2px; font-size: 10.5px; letter-spacing: .05em; color: #6f685f; }
-.tree-row { height: 22px; padding-right: 8px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-.tree-row .fi { display: inline-block; margin-right: 6px; vertical-align: -1px; }
-.tree-row.root { padding-left: 8px; font-size: 10.5px; font-weight: 700; letter-spacing: .02em; color: #c4bdb2; }
-.tree-row.d1 { padding-left: 16px; }
-.tree-row.d2 { padding-left: 30px; }
+.tree-row { display: flex; align-items: center; height: 22px; padding-right: 8px; overflow: hidden; white-space: nowrap; }
+.tree-row .tw { flex: none; width: 16px; height: 14px; color: #8a837a; }
+.tree-row > .fi { margin-right: 6px; }
+.tree-row .tl { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.tree-row.root { padding-left: 4px; font-size: 10.5px; font-weight: 700; letter-spacing: .02em; color: #c4bdb2; }
+.tree-row.d1 { padding-left: 12px; }
+.tree-row.d2 { padding-left: 24px; }
 .tree-row.is-active { background: rgba(255, 255, 255, .06); color: #ddd6cb; }
-.fi { flex: none; width: 14px; text-align: center; font: normal 700 10px/1 "JetBrains Mono", monospace; }
+.fi { flex: none; width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.35; stroke-linecap: round; stroke-linejoin: round; }
+.fi-tw { stroke-width: 1.5; }
 .fi-json { color: #c4ad5e; }
 .fi-yml { color: #a389c4; }
-.fi-py { color: #6a98c4; font-size: 8px; }
-.fi-git { color: #c46a5e; font-size: 8px; }
-.fi-md { color: #6a9ab4; font-size: 11px; }
+.fi-py { color: #6a98c4; }
+.fi-git { color: #c46a5e; }
+.fi-md { color: #6a9ab4; }
 .ed-main { min-width: 0; min-height: 0; display: flex; flex-direction: column; }
 .ed-tabs { flex: none; display: flex; height: 34px; background: #161411; border-bottom: 1px solid #0d0c0a; }
 .ed-tab { display: flex; align-items: center; gap: 7px; padding: 0 16px 0 12px; border-right: 1px solid #0d0c0a; font: 400 12px/1 Inter, sans-serif; color: #7d766d; white-space: nowrap; }
@@ -682,6 +685,9 @@ h3 { font: 500 16px/1.4 var(--sans); }
 .sel { background: rgba(255, 255, 255, .13); }
 .ed-thumb { position: absolute; right: 2px; top: var(--at); width: 10px; height: 14px; background: rgba(130, 122, 112, .35); }
 .ed-status { flex: none; display: flex; justify-content: space-between; align-items: center; height: 24px; padding: 0 12px; background: #161411; border-top: 1px solid #0d0c0a; font: 400 11px/1 Inter, sans-serif; color: #7d766d; }
+.ed-branch { display: flex; align-items: center; gap: 4px; }
+.ed-branch .fi { width: 12px; height: 12px; }
+.ed-crumbs .fi { width: 11px; height: 11px; }
 .ed-status-right { display: flex; gap: 18px; }
 
 /* Terminal: the recording, focused and in front. */
