@@ -76,7 +76,7 @@
     <div class="legal-container">
       <span class="kicker">/ legal</span>
       <h1>Privacy Policy</h1>
-      <p class="legal-effective">Effective November 7, 2026 · Replaces all prior versions</p>
+      <p class="legal-effective">Effective November 15, 2026 · Replaces all prior versions</p>
 
       <p>
         This Privacy Policy describes how <strong>Parallelogram</strong> ("we", "us", "our") handles information
@@ -88,7 +88,10 @@
       <p>
         The short version: <strong>the CLI collects nothing whatsoever.</strong> The website collects almost
         nothing — only what your browser unavoidably transmits and what our hosting provider logs for
-        operational reasons. We do not sell, rent, or share your data with anyone for commercial purposes.
+        operational reasons. Datasets you open in the <strong>workbench</strong> are read inside your
+        browser and never reach us. The one feature that can send any of their content anywhere is the
+        workbench's optional operator route, and it sends only to the model endpoint you type in, only
+        when you press send. We do not sell, rent, or share your data with anyone for commercial purposes.
       </p>
 
       <h2>1. Scope of this policy</h2>
@@ -96,13 +99,14 @@
         This policy applies to:
       </p>
       <ul>
-        <li>The <strong>parallelogram.dev</strong> website and all pages served from that domain.</li>
+        <li>The <strong>parallelogram.dev</strong> website and all pages served from that domain, including the workbench at <code>/workbench/</code>.</li>
         <li>The <strong>parallelogram</strong> Python package distributed via PyPI and any source builds from the GitHub repository.</li>
         <li>Any email or written communications you initiate with us.</li>
       </ul>
       <p>
         This policy does not apply to third-party services you may access through links on this website,
         to the Hugging Face Hub or OpenAI's tokenizer files (which you may optionally contact when using <code>--tokenizer</code>),
+        to any model provider you choose to connect on the workbench's operator route (section 3.3),
         or to GitHub, PyPI, or Vercel, each of which operates under its own privacy policy.
       </p>
 
@@ -145,11 +149,47 @@
       <h3>3.1 Information you provide directly</h3>
       <p>
         The parallelogram.dev website has no user accounts, no sign-up forms, no comment sections, and no
-        input fields of any kind. You cannot submit personal data to us through the website interface because
-        the interface provides no mechanism to do so.
+        way to send anything to us. The workbench has file pickers and text fields, for opening a dataset,
+        filtering it, editing records and setting a token budget, but what you put into them is handled by
+        code running in your browser and is never submitted to us. The site is static files; it has no
+        server endpoint that accepts or stores what you send it.
       </p>
 
-      <h3>3.2 Server logs (Vercel hosting)</h3>
+      <h3>3.2 The workbench: files you open</h3>
+      <p>
+        The workbench at <code>/workbench/</code> runs the same validation engine as the CLI, compiled to
+        run inside your browser (Python on WebAssembly, using the open-source Pyodide runtime). When you
+        open a file, by choosing it or dropping it on the page, your browser hands a copy to that code, which
+        checks it in a background worker in the same tab. Specifically:
+      </p>
+      <ul>
+        <li>Your files, your edits, your filters and your ledger steps stay in that tab. They are not uploaded to us or to anyone else.</li>
+        <li>What the page downloads from us is the program itself: the page, its scripts, the Python runtime and the engine. Those requests are logged by Vercel like any page request (section 3.4) and contain nothing from your files.</li>
+        <li>Files you download from the workbench (the repaired dataset, the passing records, the recipe) are produced in the tab and saved by your browser. They do not pass through our servers.</li>
+        <li>The workbench is served with a Content-Security-Policy of <code>connect-src 'self'</code>. Your browser enforces it and refuses any connection from the page to another website, so not even a defect in our code could send your file to a third party. The policy does allow requests back to parallelogram.dev, which is how the page loads the engine. The page shows the policy it was served with when you click the <em>sealed</em> indicator at the top.</li>
+      </ul>
+
+      <h3>3.3 The workbench operator route: model-assisted repair</h3>
+      <p>
+        The operator route at <code>/workbench/operator/</code> is optional. It lets a language model of
+        your choosing propose repairs for records that cannot be fixed mechanically. It is the only part of
+        this website that can send any content from your dataset off your computer, and it works as follows:
+      </p>
+      <ul>
+        <li><strong>Where it goes.</strong> Requests go directly from your browser to the endpoint you type in: a model on your own computer (for example Ollama or LM Studio on <code>localhost</code>), or a provider such as OpenAI or OpenRouter. They do not pass through parallelogram.dev and we never receive them. To make that possible this route is served with a wider policy than the sealed workbench: it allows connections to any HTTPS address and to your own computer.</li>
+        <li><strong>When.</strong> Nothing is sent until you press the send button. Before that, the page shows the instructions the model gets, the first request as it will be sent (very long records are shortened on screen), and the total size of what will be sent.</li>
+        <li><strong>What.</strong> For each record you selected (at most 40 per run): fixed instructions, the names of the problems the engine found in it, and the engine's redacted copy of the record. If the model's reply is unreadable or the engine rejects the repair, the page asks once more for that record, with the engine's objections.</li>
+        <li><strong>What redaction does and does not cover.</strong> Before sending, the engine replaces what its patterns detect with placeholders: email addresses, phone numbers, payment card numbers, and known credential formats such as API keys, access tokens and private keys. This is not anonymization. Names, street addresses, account identifiers and anything else outside those patterns are sent as written. If that matters for your data, use a model running on your own computer, or keep to the sealed workbench.</li>
+        <li><strong>Your API key and endpoint.</strong> Held in the page's memory for that tab only. They are never written to your browser's storage, never sent to us, and are discarded when you close or reload the tab. The key is sent only to the endpoint you set, in the <code>Authorization</code> header, including when you press "List models", which sends the key but no records.</li>
+        <li><strong>A record of it.</strong> Every request the page makes to the endpoint is listed, with its size, in the <em>wire</em> panel at the top of the page.</li>
+      </ul>
+      <p>
+        Once a request reaches the provider you chose, its own privacy policy and terms govern it, including
+        whether it is retained or used to train models. We have no relationship with any model provider and
+        receive nothing from them.
+      </p>
+
+      <h3>3.4 Server logs (Vercel hosting)</h3>
       <p>
         The website is hosted on Vercel's global edge network. As with every web server on the internet,
         Vercel's infrastructure automatically records certain metadata for each HTTP request it receives.
@@ -173,7 +213,7 @@
         <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener">Vercel's Privacy Policy</a>.
       </p>
 
-      <h3>3.3 Fonts</h3>
+      <h3>3.5 Fonts</h3>
       <p>
         This website serves its typefaces (Manrope, Inter and Source Code Pro) directly from
         <code>parallelogram.dev</code> as self-hosted font files. Loading a page here makes
@@ -182,22 +222,39 @@
         transmitted to any third party.
       </p>
 
-      <h3>3.4 Analytics and tracking</h3>
+      <h3>3.6 Analytics and tracking</h3>
       <p>
         We run <strong>no analytics</strong> of any kind. There is no Google Analytics, no Mixpanel, no
         Segment, no Plausible, no Fathom, no Cloudflare Web Analytics, no Hotjar, no FullStory, no
         advertising pixel, no conversion tracker, and no behavioral fingerprinting script on this website.
         You can verify this by inspecting the page source — there are no third-party script, font, or
-        resource tags of any kind. Every asset on this site is served first-party.
+        resource tags of any kind. Every asset on this site is served first-party. That includes the
+        workbench's Python runtime: Pyodide is open-source software written by others, and we serve an
+        unmodified copy of it from parallelogram.dev rather than load it from a CDN.
       </p>
 
-      <h3>3.5 Cookies and local storage</h3>
+      <h3>3.7 Cookies and local storage</h3>
       <p>
         The website sets no cookies and uses no session storage. It keeps one entry in your browser's local
         storage, <code>pg-mode</code>, holding the word <code>human</code> or <code>agent</code> so the page
         remembers which view you picked with the Human / Agent switch. It is written only when you use that
         switch, never leaves your browser, is not sent to us or anyone else, and you can clear it at any time
         with your browser's site data settings.
+      </p>
+      <p>
+        The workbench uses one IndexedDB database in your browser, <code>parallelogram-workbench</code>, for
+        one purpose. When you switch between the sealed workbench and the operator route with a dataset open,
+        the page writes the open files, your ledger steps, your rule settings and the selected record there,
+        loads the other route, and that route deletes the entry as it reads it. The entry contains the
+        contents of your files. If the other route does not load, for example because you close the tab
+        first, the entry stays in your browser until you next open the workbench, which deletes it; an entry
+        older than two minutes is deleted without being used. Switching routes with no dataset open writes
+        nothing, and your API key is never written there. Like everything else in this section, the entry
+        never leaves your browser.
+      </p>
+      <p>
+        Your browser may also keep the workbench's program files in its ordinary cache so that it starts
+        faster next time. Those files are the same for every visitor and contain nothing about you.
       </p>
 
       <h2>4. Email correspondence</h2>
@@ -271,6 +328,7 @@
       <ul>
         <li><strong>Vercel server logs</strong> are retained according to Vercel's default retention policy, which we do not control.</li>
         <li><strong>Email correspondence</strong> is retained in our email inbox for as long as we deem it necessary to address the matter, after which it may be deleted.</li>
+        <li><strong>Workbench data</strong> (files you open, edits, settings) is held by your browser in the tab and discarded when you close it, apart from the short-lived route handoff described in section 3.7. We hold none of it.</li>
       </ul>
 
       <h2>9. Security</h2>
@@ -283,6 +341,12 @@
       <p>
         For the CLI: because it collects no data and transmits nothing, there is no data store to secure
         on our end. The security surface is entirely local to your machine.
+      </p>
+      <p>
+        For the workbench: your data is processed in your browser, under the policies described in sections
+        3.2 and 3.3, so the same holds. An API key you type into the operator route can be read by the code
+        running in that page, which is our own first-party code and nothing else. Even so, use a key you can
+        revoke, ideally one created for this purpose.
       </p>
 
       <h2>10. Changes to this policy</h2>
