@@ -255,7 +255,12 @@ def test_outbound_rows_are_redacted(demo):
     assert "[REDACTED_SECRET]" in sent and "[REDACTED_EMAIL]" in sent and "[REDACTED_PHONE]" in sent
     for leaked in ("sk-proj-", "priya.raman", "jonas.weber", "7700 900461"):
         assert leaked not in sent
-    assert json.loads(sent)[2]["findings"][0].startswith("secrets: Message 0 contains a likely OpenAI API key")
+    # Findings go without the CLI's partial masks: no trailing digits, initials or key prefixes.
+    assert [o["findings"] for o in json.loads(sent)] == [
+        ["pii: Message 0 contains a phone number"], ["pii: Message 1 contains an email address"],
+        ["secrets: Message 0 contains a likely OpenAI API key"], ["pii: Message 0 contains an email address"]]
+    for fragment in ("0461", "p***", "j***", "sk-pro"):
+        assert fragment not in sent
     assert b.outbound([10**9]) == []
 
 
