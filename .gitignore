@@ -26,6 +26,9 @@ make_stress_dataset.py
 parallelogram_stress.jsonl
 stress_clean*.jsonl
 
+# Node (browser test tooling: scripts/workbench_e2e.mjs, scripts/demo)
+node_modules/
+
 # macOS
 .DS_Store
 
