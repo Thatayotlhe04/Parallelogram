@@ -550,7 +550,7 @@ class Bench:
             if rid not in lines:
                 continue
             out.append({"id": rid, "row": redact_row(_text(lines[rid])),
-                        "findings": [f"{i.rule_id}: {i.message}" for i in cur.analysis.issues.get(rid, [])]})
+                        "findings": [_outbound_finding(i) for i in cur.analysis.issues.get(rid, [])]})
         return out
 
     def verify(self, proposals: dict) -> list[dict]:
@@ -667,6 +667,21 @@ def _spans(record: Any) -> dict:
             if found:
                 out[f"{key}:{index}"] = sorted(found)
     return out
+
+
+def _outbound_finding(issue: Issue) -> str:
+    """A finding as it may be sent to a model.
+
+    The CLI's secrets and pii messages end in a partial mask of the value
+    (the last four digits of a number, the first letter of an address, the
+    first characters of a key) so a person can find it. A model needs none of
+    that: the row it gets already carries a placeholder. The mask is cut, and
+    the rest is scrubbed in case a message quotes record text.
+    """
+    message = issue.message
+    if issue.rule_id in ("secrets", "pii"):
+        message = message.rsplit(": ", 1)[0]
+    return f"{issue.rule_id}: {scrub(message)}"
 
 
 def _scrub_all(value: Any) -> Any:

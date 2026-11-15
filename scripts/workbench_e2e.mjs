@@ -229,7 +229,7 @@ await page.getByRole("button", { name: "Apply 2 repairs as a step" }).click();
 await settled();
 await page.waitForFunction(() => document.querySelectorAll("#steps .step").length === 3);
 assert.match(await text("#steps .step:nth-child(3)"), /model repair.*2 changed.*stub-repairer/s);
-assert.match(await text("#wire-label"), /wire: 5 requests/);
+assert.match(await text("#wire-label"), /wire: 6 requests/);      // the model list, then five carrying records
 await page.getByRole("button", { name: "Apply --fix" }).click();
 await exitIs(0);
 await settled();

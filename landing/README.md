@@ -166,5 +166,7 @@ records check in about 1.5 s; 60,000 records (25 MB) in about 19 s, and a
 90 s. The CLI is roughly 2.5 times faster on the same file and streams, so it
 remains the tool for large datasets.
 
-Not linked from the site navigation or the sitemap yet, and `privacy.html`
-still says the site has no input fields: both are for the owner to change.
+Not linked from the site navigation or the sitemap yet. `privacy.html`
+sections 3.2, 3.3 and 3.7 describe what the workbench does with data; keep
+them in step with the code (what the operator sends, what redaction covers,
+the IndexedDB handoff, the wire log).

@@ -54,7 +54,9 @@ export function createOperator(ctx) {
     const headers = { "Content-Type": "application/json" };
     if (st.key) headers.Authorization = `Bearer ${st.key}`;
     const payload = body ? JSON.stringify(body) : null;
-    if (payload) wireSent({ host: host(), what, bytes: new TextEncoder().encode(payload).length });
+    // Every request is entered on the wire log, including the model list, which carries the key
+    // but no records: the privacy policy says every request is listed.
+    wireSent({ host: host(), what: what || "list models", bytes: payload ? new TextEncoder().encode(payload).length : 0 });
     let response;
     try {
       response = await fetch(st.endpoint.replace(/\/+$/, "") + path, { method: body ? "POST" : "GET", headers: body ? headers : (st.key ? { Authorization: headers.Authorization } : {}), body: payload });
